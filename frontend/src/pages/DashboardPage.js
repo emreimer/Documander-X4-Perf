@@ -31,10 +31,8 @@ const DashboardPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    // No auth needed - set default user
+    setUser({ full_name: 'Kullanıcı' });
     fetchSession();
   }, []);
 
