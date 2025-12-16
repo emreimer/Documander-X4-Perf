@@ -54,12 +54,7 @@ const AuthPage = ({ setIsAuthenticated }) => {
       <div className="flex items-center justify-center p-8 lg:p-12">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <FileText className="w-8 h-8 text-primary" strokeWidth={1.5} />
-              <h1 className="text-4xl font-heading font-bold tracking-tight">
-                Fatura Yönetim
-              </h1>
-            </div>
+            <img src="/logo.png" alt="Documander" className="h-12 mb-4" />
             <p className="text-sm text-muted-foreground tracking-wide uppercase">
               Muhasebe için profesyonel çözüm
             </p>
