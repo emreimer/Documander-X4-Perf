@@ -43,8 +43,8 @@ const DashboardPage = () => {
   }, [session]);
 
   const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return { Authorization: `Bearer ${token}` };
+    // No auth needed
+    return {};
   };
 
   const fetchSession = async () => {
