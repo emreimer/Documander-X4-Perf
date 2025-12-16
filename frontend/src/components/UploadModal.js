@@ -176,7 +176,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Desteklenen formatlar: PDF, JPG, PNG, XML
+                  Desteklenen formatlar: PDF, JPG, PNG, XML, HTML
                 </p>
                 <p className="text-xs text-muted-foreground font-medium">
                   Toplu yükleme desteklenir
