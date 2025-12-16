@@ -136,9 +136,13 @@ def create_token(user_id: str, email: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-async def get_current_user():
-    # No auth - return default user ID for Wix embed
-    return "wix-default-user"
+from fastapi import Request, Header
+
+async def get_current_user(x_visitor_id: Optional[str] = Header(None)):
+    # Get visitor ID from header for user isolation
+    if x_visitor_id:
+        return x_visitor_id
+    return "anonymous-user"
     
 async def get_current_user_old(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
