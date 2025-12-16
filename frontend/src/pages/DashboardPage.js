@@ -181,7 +181,16 @@ const DashboardPage = ({ setIsAuthenticated }) => {
                       Tarih
                     </th>
                     <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                      Düzenleyen
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Müşteri
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                      Vergi No
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                      Vergi Dairesi
                     </th>
                     <th className="px-4 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Net Tutar
@@ -206,7 +215,10 @@ const DashboardPage = ({ setIsAuthenticated }) => {
                     >
                       <td className="px-4 py-3 font-mono text-sm">{invoice.invoice_number}</td>
                       <td className="px-4 py-3 font-mono text-sm">{invoice.date}</td>
+                      <td className="px-4 py-3 text-sm">{invoice.issuer_name}</td>
                       <td className="px-4 py-3 text-sm">{invoice.customer_name}</td>
+                      <td className="px-4 py-3 font-mono text-sm">{invoice.tax_id}</td>
+                      <td className="px-4 py-3 text-sm">{invoice.tax_office}</td>
                       <td className="px-4 py-3 font-mono text-sm text-right">
                         {invoice.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                       </td>
