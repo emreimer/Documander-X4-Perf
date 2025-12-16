@@ -43,24 +43,34 @@ const UploadModal = ({ onClose, onSuccess }) => {
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      toast.error('Lütfen bir dosya seçin');
+    if (files.length === 0) {
+      toast.error('Lütfen en az bir dosya seçin');
       return;
     }
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach(file => {
+      formData.append('files', file);
+    });
 
     try {
-      await axios.post(`${API}/invoices/upload`, formData, {
+      const response = await axios.post(`${API}/invoices/upload`, formData, {
         headers: {
           ...getAuthHeader(),
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      toast.success('Fatura başarıyla yüklendi ve işlendi!');
+      const { success, failed, errors } = response.data;
+      
+      if (success > 0) {
+        toast.success(`${success} fatura başarıyla yüklendi!`);
+      }
+      if (failed > 0) {
+        errors.forEach(err => toast.error(err));
+      }
+      
       onSuccess();
       onClose();
     } catch (error) {
