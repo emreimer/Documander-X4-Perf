@@ -336,8 +336,86 @@ const DashboardPage = ({ setIsAuthenticated }) => {
     );
   };
 
+  // Session form component
+  const SessionForm = () => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-card border border-border p-8 max-w-md w-full mx-4 shadow-lg">
+        <div className="flex items-center gap-3 mb-6">
+          <Building2 className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-heading font-semibold">İşlem Dönemi Seçin</h2>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2 uppercase tracking-wider">Mükellef Adı</label>
+            <input
+              type="text"
+              value={taxpayerName}
+              onChange={(e) => setTaxpayerName(e.target.value)}
+              placeholder="Firma veya şahıs adı"
+              className="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 uppercase tracking-wider">Yıl</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {[2023, 2024, 2025, 2026].map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 uppercase tracking-wider">Ay</label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="w-full px-4 py-3 border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {Object.entries(MONTH_NAMES).map(([num, name]) => (
+                  <option key={num} value={num}>{name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            {session && (
+              <Button
+                onClick={() => setShowSessionForm(false)}
+                variant="outline"
+                className="flex-1 rounded-none"
+              >
+                İptal
+              </Button>
+            )}
+            <Button
+              onClick={createSession}
+              className="flex-1 rounded-none"
+            >
+              {session ? 'Yeni Dönem Başlat' : 'Başla'}
+            </Button>
+          </div>
+          
+          {session && (
+            <p className="text-xs text-muted-foreground text-center">
+              Yeni dönem başlatıldığında mevcut faturalar silinecektir
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen" data-testid="dashboard-page">
+      {showSessionForm && <SessionForm />}
+      
       {/* Header */}
       <header className="border-b border-border bg-card shadow-sm">
         <div className="px-8 py-4 flex items-center justify-between">
@@ -345,9 +423,16 @@ const DashboardPage = ({ setIsAuthenticated }) => {
             <FileText className="w-7 h-7 text-primary" strokeWidth={1.5} />
             <div>
               <h1 className="text-2xl font-heading font-bold tracking-tight">
-                Fatura Yönetim
+                {session ? `${session.taxpayer_name}` : 'Fatura Yönetim'}
               </h1>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                {session && (
+                  <>
+                    <Calendar className="w-3 h-3" />
+                    {MONTH_NAMES[session.month]} {session.year}
+                    <span className="mx-2">•</span>
+                  </>
+                )}
                 {user?.full_name}
               </p>
             </div>
