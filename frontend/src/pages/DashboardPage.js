@@ -199,14 +199,27 @@ const DashboardPage = ({ setIsAuthenticated }) => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-heading font-semibold tracking-tight">{title}</h2>
-          <Button
-            onClick={() => openUploadModal(type)}
-            className="rounded-none gap-2 uppercase tracking-wide"
-            data-testid={`upload-${type}-button`}
-          >
-            <Upload className="w-4 h-4" />
-            {type === 'income' ? 'Gelir Faturaları Yükle' : 'Gider Faturaları Yükle'}
-          </Button>
+          <div className="flex gap-2">
+            {invoices.length > 0 && (
+              <Button
+                onClick={() => handleExport(type)}
+                variant="outline"
+                className="rounded-none gap-2 uppercase tracking-wide"
+                data-testid={`export-${type}-button`}
+              >
+                <Download className="w-4 h-4" />
+                Excel
+              </Button>
+            )}
+            <Button
+              onClick={() => openUploadModal(type)}
+              className="rounded-none gap-2 uppercase tracking-wide"
+              data-testid={`upload-${type}-button`}
+            >
+              <Upload className="w-4 h-4" />
+              {type === 'income' ? 'Gelir Yükle' : 'Gider Yükle'}
+            </Button>
+          </div>
         </div>
 
         {invoices.length === 0 ? (
