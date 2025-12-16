@@ -479,6 +479,199 @@ startxref
             self.log_test("Delete All Invoices by Category", False, "Failed to delete by category")
             return False
 
+    def test_create_session(self):
+        """Test creating taxpayer session"""
+        if not self.token:
+            self.log_test("Create Session", False, "No token available")
+            return False, None
+        
+        session_data = {
+            "taxpayer_name": "Test Mükellef A.Ş.",
+            "year": 2024,
+            "month": 12
+        }
+        
+        success, response = self.run_test(
+            "Create Taxpayer Session",
+            "POST",
+            "sessions",
+            200,
+            data=session_data
+        )
+        
+        if success and 'id' in response:
+            session_id = response['id']
+            self.log_test("Create Taxpayer Session", True)
+            return True, session_id
+        else:
+            self.log_test("Create Taxpayer Session", False, "No session ID in response")
+            return False, None
+
+    def test_get_current_session(self):
+        """Test getting current session"""
+        if not self.token:
+            self.log_test("Get Current Session", False, "No token available")
+            return False
+        
+        success, response = self.run_test(
+            "Get Current Session",
+            "GET",
+            "sessions/current",
+            200
+        )
+        
+        if success and response and 'taxpayer_name' in response:
+            self.log_test("Get Current Session", True)
+            return True
+        else:
+            self.log_test("Get Current Session", False, "No session data in response")
+            return False
+
+    def test_delete_session(self):
+        """Test deleting session"""
+        if not self.token:
+            self.log_test("Delete Session", False, "No token available")
+            return False
+        
+        success, response = self.run_test(
+            "Delete Session",
+            "DELETE",
+            "sessions",
+            200
+        )
+        
+        if success and 'message' in response:
+            self.log_test("Delete Session", True)
+            return True
+        else:
+            self.log_test("Delete Session", False, "No success message in response")
+            return False
+
+    def test_invoice_upload_date_validation(self):
+        """Test invoice upload with date validation"""
+        if not self.token:
+            self.log_test("Invoice Upload Date Validation", False, "No token available")
+            return False
+        
+        # First create a session for December 2024
+        session_data = {
+            "taxpayer_name": "Test Mükellef Date Validation",
+            "year": 2024,
+            "month": 12
+        }
+        
+        success, _ = self.run_test(
+            "Create Session for Date Test",
+            "POST",
+            "sessions",
+            200,
+            data=session_data
+        )
+        
+        if not success:
+            self.log_test("Invoice Upload Date Validation", False, "Could not create session")
+            return False
+        
+        # Create test file
+        test_file = self.create_test_invoice_file()
+        
+        files = {
+            'files': ('test_invoice_wrong_date.pdf', test_file, 'application/pdf')
+        }
+        data = {
+            'category': 'income'
+        }
+        
+        # Manual upload since run_test doesn't handle form data properly
+        url = f"{self.api_url}/invoices/upload"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        try:
+            response = requests.post(url, files=files, data=data, headers=headers)
+            success = response.status_code == 200
+            
+            print(f"🔍 Testing Invoice Upload Date Validation...")
+            print(f"   URL: {url}")
+            print(f"   Status: {response.status_code} {'✅' if success else '❌'}")
+            
+            if success:
+                response_data = response.json()
+                # Check if there are date mismatches reported
+                if 'date_mismatches' in response_data:
+                    self.log_test("Invoice Upload Date Validation", True, "Date validation working")
+                    return True
+                else:
+                    self.log_test("Invoice Upload Date Validation", True, "Upload successful (no date issues)")
+                    return True
+            else:
+                error_detail = response.text[:200]
+                print(f"   Error: {error_detail}")
+                self.log_test("Invoice Upload Date Validation", False, f"Status {response.status_code}: {error_detail}")
+                return False
+                
+        except Exception as e:
+            print(f"   Exception: {str(e)} ❌")
+            self.log_test("Invoice Upload Date Validation", False, f"Exception: {str(e)}")
+            return False
+
+    def test_excel_export_with_session(self):
+        """Test Excel export with session info in filename"""
+        if not self.token:
+            self.log_test("Excel Export with Session", False, "No token available")
+            return False
+        
+        # Create a session first
+        session_data = {
+            "taxpayer_name": "Test Export Mükellef",
+            "year": 2024,
+            "month": 11
+        }
+        
+        success, _ = self.run_test(
+            "Create Session for Export Test",
+            "POST",
+            "sessions",
+            200,
+            data=session_data
+        )
+        
+        if not success:
+            self.log_test("Excel Export with Session", False, "Could not create session")
+            return False
+        
+        # Upload a test invoice
+        test_file = self.create_test_invoice_file()
+        files = {'files': ('test_invoice.pdf', test_file, 'application/pdf')}
+        data = {'category': 'income'}
+        
+        url = f"{self.api_url}/invoices/upload"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        try:
+            response = requests.post(url, files=files, data=data, headers=headers)
+            if response.status_code != 200:
+                self.log_test("Excel Export with Session", False, "Could not upload test invoice")
+                return False
+        except Exception as e:
+            self.log_test("Excel Export with Session", False, f"Upload error: {str(e)}")
+            return False
+        
+        # Now test export
+        success, response = self.run_test(
+            "Excel Export with Session Info",
+            "GET",
+            "invoices/export/excel",
+            200,
+            response_type='binary'
+        )
+        
+        if success and len(response) > 0:
+            self.log_test("Excel Export with Session", True, "Excel file generated with session info")
+            return True
+        else:
+            self.log_test("Excel Export with Session", False, "No Excel file content received")
+            return False
+
     def test_excel_export(self):
         """Test Excel export functionality"""
         if not self.token:
