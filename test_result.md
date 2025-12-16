@@ -129,3 +129,30 @@
 ### agent_communication:
 - agent: main
 - message: Implemented two new features - reset all invoices button and Excel subtotals. Backend endpoints working. Frontend has new button. Need to test full flow.
+
+## Test Session: 2025-12-16 - Session Management Feature
+### New Features to Test:
+
+#### Feature 1: Taxpayer Session Management
+- **Create Session**: POST /api/sessions - creates new taxpayer session with name, year, month
+- **Get Current Session**: GET /api/sessions/current
+- **Delete Session**: DELETE /api/sessions
+- **UI**: Session form modal for entering taxpayer name and selecting year/month
+- **Dashboard Title**: Shows taxpayer name and period (e.g., "Test Mükellef - ARALIK 2025")
+
+#### Feature 2: Invoice Date Validation
+- When uploading invoices, system validates that invoice date matches selected period
+- If date doesn't match, invoice is rejected with warning message
+- Response includes `date_mismatches` array with rejected files
+
+#### Feature 3: Dynamic Excel Filename
+- Excel filename format: `{taxpayer_name}-{year}-{month}.xlsx`
+- Example: `Test_Mukellef-2025-12.xlsx`
+
+### Test Credentials:
+- Email: muhasebe2@test.com
+- Password: test123456
+
+### agent_communication:
+- agent: main
+- message: Added taxpayer session management. Dashboard now shows taxpayer name and period. Excel filename is dynamic. Invoice date validation added.
