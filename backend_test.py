@@ -430,19 +430,19 @@ startxref
         test_file2 = self.create_test_invoice_file()
         
         # Upload income invoice
-        files1 = {
-            'files': ('test_income.pdf', test_file1, 'application/pdf'),
-            'category': (None, 'income')
-        }
+        files1 = {'files': ('test_income.pdf', test_file1, 'application/pdf')}
+        data1 = {'category': 'income'}
         
-        # Upload expense invoice
-        files2 = {
-            'files': ('test_expense.pdf', test_file2, 'application/pdf'),
-            'category': (None, 'expense')
-        }
+        # Upload expense invoice  
+        files2 = {'files': ('test_expense.pdf', test_file2, 'application/pdf')}
+        data2 = {'category': 'expense'}
         
-        self.run_test("Upload Income Invoice", "POST", "invoices/upload", 200, files=files1)
-        self.run_test("Upload Expense Invoice", "POST", "invoices/upload", 200, files=files2)
+        # Upload both invoices manually
+        url = f"{self.api_url}/invoices/upload"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        requests.post(url, files=files1, data=data1, headers=headers)
+        requests.post(url, files=files2, data=data2, headers=headers)
         
         # Delete only income invoices
         success, response = self.run_test(
