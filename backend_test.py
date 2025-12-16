@@ -219,21 +219,18 @@ class InvoiceAPITester:
         return success
 
     def create_test_invoice_file(self):
-        """Create a simple test PDF-like file"""
-        # Create a simple text file that mimics an invoice
-        invoice_content = """
-        FATURA / INVOICE
-        
-        Fatura No: INV-2024-001
-        Tarih: 15/01/2024
-        
-        Müşteri: Test Müşteri Ltd.
-        
-        Açıklama: Test Hizmeti
-        Net Tutar: 1000.00 TL
-        KDV (%18): 180.00 TL
-        Toplam: 1180.00 TL
-        """
+        """Create a simple test XML file that mimics an invoice"""
+        # Create a simple XML file that mimics an invoice
+        invoice_content = """<?xml version="1.0" encoding="UTF-8"?>
+<Invoice>
+    <InvoiceNumber>INV-2024-001</InvoiceNumber>
+    <Date>15/01/2024</Date>
+    <Customer>Test Müşteri Ltd.</Customer>
+    <Description>Test Hizmeti</Description>
+    <Amount>1000.00</Amount>
+    <VAT>180.00</VAT>
+    <Total>1180.00</Total>
+</Invoice>"""
         
         return io.BytesIO(invoice_content.encode('utf-8'))
 
