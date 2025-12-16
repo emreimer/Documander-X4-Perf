@@ -57,10 +57,12 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
     formData.append('category', category);
 
     try {
+      const headers = getAuthHeader();
+      console.log('Upload headers:', headers);
+      
       const response = await axios.post(`${API}/invoices/upload`, formData, {
         headers: {
-          ...getAuthHeader(),
-          'Content-Type': 'multipart/form-data'
+          ...headers
         }
       });
       
