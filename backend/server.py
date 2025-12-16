@@ -796,7 +796,9 @@ ALLOWED_DOMAINS = [
     "localhost:3000", 
     "localhost",
     "ac9e1a11-9445-4f64-848e-b5dc762e0e64.emergent.host",  # Production
-    "emergent.host"
+    "emergent.host",
+    "accountingai-2.preview.emergentagent.com",  # Preview
+    "preview.emergentagent.com"
 ]
 
 class SecurityMiddleware(BaseHTTPMiddleware):
