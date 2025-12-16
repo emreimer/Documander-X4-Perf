@@ -382,9 +382,9 @@ startxref
         # First create some test invoices to delete
         test_file = self.create_test_invoice_file()
         files = {
-            'files': ('test_invoice.pdf', test_file, 'application/pdf'),
-            'category': (None, 'income')
+            'files': ('test_invoice.pdf', test_file, 'application/pdf')
         }
+        data = {'category': 'income'}
         
         # Upload a test invoice
         success, _ = self.run_test(
