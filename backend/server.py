@@ -764,13 +764,27 @@ async def export_to_excel(
 
 app.include_router(api_router)
 
+# CORS for Wix embed - allow all origins
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=False,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"]
 )
+
+# Middleware to allow iframe embedding
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class IframeMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Frame-Options"] = "ALLOWALL"
+        response.headers["Content-Security-Policy"] = "frame-ancestors *"
+        return response
+
+app.add_middleware(IframeMiddleware)
 
 logging.basicConfig(
     level=logging.INFO,
