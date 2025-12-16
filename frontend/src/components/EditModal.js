@@ -73,31 +73,47 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
 
         {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="invoice_number" className="uppercase text-xs tracking-wider">
-              Fatura No
-            </Label>
-            <Input
-              id="invoice_number"
-              name="invoice_number"
-              value={formData.invoice_number}
-              onChange={handleChange}
-              className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
-              data-testid="edit-invoice-number"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="invoice_number" className="uppercase text-xs tracking-wider">
+                Fatura No
+              </Label>
+              <Input
+                id="invoice_number"
+                name="invoice_number"
+                value={formData.invoice_number}
+                onChange={handleChange}
+                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                data-testid="edit-invoice-number"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="date" className="uppercase text-xs tracking-wider">
+                Tarih
+              </Label>
+              <Input
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                data-testid="edit-date"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date" className="uppercase text-xs tracking-wider">
-              Tarih
+            <Label htmlFor="issuer_name" className="uppercase text-xs tracking-wider">
+              Faturayı Düzenleyen
             </Label>
             <Input
-              id="date"
-              name="date"
-              value={formData.date}
+              id="issuer_name"
+              name="issuer_name"
+              value={formData.issuer_name}
               onChange={handleChange}
               className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
-              data-testid="edit-date"
+              data-testid="edit-issuer-name"
             />
           </div>
 
@@ -113,6 +129,36 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
               className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
               data-testid="edit-customer-name"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tax_id" className="uppercase text-xs tracking-wider">
+                Vergi Kimlik No
+              </Label>
+              <Input
+                id="tax_id"
+                name="tax_id"
+                value={formData.tax_id}
+                onChange={handleChange}
+                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
+                data-testid="edit-tax-id"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tax_office" className="uppercase text-xs tracking-wider">
+                Vergi Dairesi
+              </Label>
+              <Input
+                id="tax_office"
+                name="tax_office"
+                value={formData.tax_office}
+                onChange={handleChange}
+                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                data-testid="edit-tax-office"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
