@@ -455,7 +455,7 @@ async def get_invoices(
             pass
         return datetime.min
     
-    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
+    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)  # Oldest first
     
     return invoices
 
