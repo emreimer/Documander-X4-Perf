@@ -410,6 +410,11 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     if not invoices:
         raise HTTPException(status_code=404, detail="No invoices found")
     
+    # Add missing category field for old records
+    for invoice in invoices:
+        if 'category' not in invoice:
+            invoice['category'] = 'income'
+    
     # Sort by date
     def parse_date(date_str):
         try:
@@ -420,57 +425,108 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
             pass
         return datetime.min
     
-    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
+    # Separate income and expense invoices
+    income_invoices = [inv for inv in invoices if inv.get('category') == 'income']
+    expense_invoices = [inv for inv in invoices if inv.get('category') == 'expense']
+    
+    income_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
+    expense_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
     
     # Create Excel workbook
     wb = Workbook()
     ws = wb.active
     ws.title = "Faturalar"
     
-    # Headers
-    headers = [
-        "Fatura No", "Tarih", 
-        "Düzenleyen", "Düzenleyen VKN", "Düzenleyen V.Dairesi",
-        "Müşteri", "Müşteri VKN", "Müşteri V.Dairesi",
-        "İçerik",
-        "Net Tutar", "KDV", "Toplam"
-    ]
-    ws.append(headers)
+    current_row = 1
     
-    # Style headers
-    header_fill = PatternFill(start_color="004D40", end_color="004D40", fill_type="solid")
-    header_font = Font(bold=True, color="FFFFFF")
+    # INCOME INVOICES SECTION
+    if income_invoices:
+        # Section title
+        ws[f'A{current_row}'] = 'GELİR FATURALARI'
+        ws[f'A{current_row}'].font = Font(bold=True, size=14, color="004D40")
+        current_row += 1
+        
+        # Headers for income
+        income_headers = [
+            "Fatura No", "Tarih", "Müşteri", "Müşteri VKN", "Müşteri V.Dairesi",
+            "İçerik", "Net Tutar", "KDV", "Toplam"
+        ]
+        ws.append(income_headers)
+        header_row = current_row
+        current_row += 1
+        
+        # Style headers
+        header_fill = PatternFill(start_color="004D40", end_color="004D40", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_idx, _ in enumerate(income_headers, 1):
+            cell = ws.cell(row=header_row, column=col_idx)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        # Add income data
+        for invoice in income_invoices:
+            ws.append([
+                invoice.get('invoice_number', ''),
+                invoice.get('date', ''),
+                invoice.get('customer_name', ''),
+                invoice.get('customer_tax_id', ''),
+                invoice.get('customer_tax_office', ''),
+                invoice.get('description', ''),
+                invoice.get('amount', 0),
+                invoice.get('vat', 0),
+                invoice.get('total', 0)
+            ])
+            # Apply Turkish number format (G, H, I = 7, 8, 9)
+            ws[f'G{current_row}'].number_format = '#.##0,00'
+            ws[f'H{current_row}'].number_format = '#.##0,00'
+            ws[f'I{current_row}'].number_format = '#.##0,00'
+            current_row += 1
+        
+        current_row += 2  # Empty rows between sections
     
-    for cell in ws[1]:
-        cell.fill = header_fill
-        cell.font = header_font
-        cell.alignment = Alignment(horizontal="center")
-    
-    # Add data with Turkish number format
-    for invoice in invoices:
-        ws.append([
-            invoice.get('invoice_number', ''),
-            invoice.get('date', ''),
-            invoice.get('issuer_name', ''),
-            invoice.get('issuer_tax_id', ''),
-            invoice.get('issuer_tax_office', ''),
-            invoice.get('customer_name', ''),
-            invoice.get('customer_tax_id', ''),
-            invoice.get('customer_tax_office', ''),
-            invoice.get('description', ''),
-            invoice.get('amount', 0),
-            invoice.get('vat', 0),
-            invoice.get('total', 0)
-        ])
-    
-    # Apply Turkish number format to amount columns (J, K, L = 10, 11, 12)
-    for row in range(2, len(invoices) + 2):
-        # Net Tutar
-        ws[f'J{row}'].number_format = '#.##0,00'
-        # KDV
-        ws[f'K{row}'].number_format = '#.##0,00'
-        # Toplam
-        ws[f'L{row}'].number_format = '#.##0,00'
+    # EXPENSE INVOICES SECTION
+    if expense_invoices:
+        # Section title
+        ws[f'A{current_row}'] = 'GİDER FATURALARI'
+        ws[f'A{current_row}'].font = Font(bold=True, size=14, color="004D40")
+        current_row += 1
+        
+        # Headers for expense
+        expense_headers = [
+            "Fatura No", "Tarih", "Düzenleyen", "Düzenleyen VKN", "Düzenleyen V.Dairesi",
+            "İçerik", "Net Tutar", "KDV", "Toplam"
+        ]
+        ws.append(expense_headers)
+        header_row = current_row
+        current_row += 1
+        
+        # Style headers
+        for col_idx, _ in enumerate(expense_headers, 1):
+            cell = ws.cell(row=header_row, column=col_idx)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        # Add expense data
+        for invoice in expense_invoices:
+            ws.append([
+                invoice.get('invoice_number', ''),
+                invoice.get('date', ''),
+                invoice.get('issuer_name', ''),
+                invoice.get('issuer_tax_id', ''),
+                invoice.get('issuer_tax_office', ''),
+                invoice.get('description', ''),
+                invoice.get('amount', 0),
+                invoice.get('vat', 0),
+                invoice.get('total', 0)
+            ])
+            # Apply Turkish number format (G, H, I = 7, 8, 9)
+            ws[f'G{current_row}'].number_format = '#.##0,00'
+            ws[f'H{current_row}'].number_format = '#.##0,00'
+            ws[f'I{current_row}'].number_format = '#.##0,00'
+            current_row += 1
     
     # Auto-adjust column widths
     for column in ws.columns:
