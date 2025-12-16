@@ -608,9 +608,9 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
                 invoice.get('total', 0)
             ])
             # Apply Turkish number format (G, H, I = 7, 8, 9)
-            ws[f'G{current_row}'].number_format = '#.##0,00'
-            ws[f'H{current_row}'].number_format = '#.##0,00'
-            ws[f'I{current_row}'].number_format = '#.##0,00'
+            ws[f'G{current_row}'].number_format = '#,##0.00'
+            ws[f'H{current_row}'].number_format = '#,##0.00'
+            ws[f'I{current_row}'].number_format = '#,##0.00'
             current_row += 1
         
         # Add subtotal row for income
