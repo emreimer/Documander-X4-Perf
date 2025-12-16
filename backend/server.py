@@ -583,7 +583,7 @@ async def export_to_excel(
         # Headers for income
         income_headers = [
             "Fatura No", "Tarih", "Müşteri", "Müşteri VKN", "Müşteri V.Dairesi",
-            "İçerik", "Net Tutar", "KDV", "Toplam"
+            "Açıklama", "Net Tutar", "KDV", "Toplam"
         ]
         ws.append(income_headers)
         header_row = current_row
@@ -649,7 +649,7 @@ async def export_to_excel(
         # Headers for expense
         expense_headers = [
             "Fatura No", "Tarih", "Düzenleyen", "Düzenleyen VKN", "Düzenleyen V.Dairesi",
-            "İçerik", "Net Tutar", "KDV", "Toplam"
+            "Açıklama", "Net Tutar", "KDV", "Toplam"
         ]
         ws.append(expense_headers)
         header_row = current_row
