@@ -336,20 +336,45 @@ class InvoiceAPITester:
             self.log_test("Excel Export", False, "No token available")
             return False
         
-        success, response = self.run_test(
-            "Excel Export",
+        # First check if we have invoices
+        success, invoices = self.run_test(
+            "Check Invoices for Export",
             "GET",
-            "invoices/export/excel",
-            200,
-            response_type='binary'
+            "invoices",
+            200
         )
         
-        if success and len(response) > 0:
-            self.log_test("Excel Export", True)
-            return True
-        else:
-            self.log_test("Excel Export", False, "No Excel file content received")
+        if not success:
+            self.log_test("Excel Export", False, "Could not check invoices")
             return False
+        
+        if len(invoices) == 0:
+            # Test export with no invoices - should return 404
+            success, response = self.run_test(
+                "Excel Export (No Invoices)",
+                "GET",
+                "invoices/export/excel",
+                404,
+                response_type='binary'
+            )
+            self.log_test("Excel Export (No Invoices)", success)
+            return success
+        else:
+            # Test export with invoices - should return 200
+            success, response = self.run_test(
+                "Excel Export (With Invoices)",
+                "GET",
+                "invoices/export/excel",
+                200,
+                response_type='binary'
+            )
+            
+            if success and len(response) > 0:
+                self.log_test("Excel Export (With Invoices)", True)
+                return True
+            else:
+                self.log_test("Excel Export (With Invoices)", False, "No Excel file content received")
+                return False
 
     def run_all_tests(self):
         """Run all tests in sequence"""
