@@ -726,12 +726,6 @@ async def export_to_excel(
     output.seek(0)
     
     # Generate filename based on session info and category
-    # Turkish month names for filename
-    month_names_tr = {
-        1: 'Ocak', 2: 'Subat', 3: 'Mart', 4: 'Nisan', 5: 'Mayis', 6: 'Haziran',
-        7: 'Temmuz', 8: 'Agustos', 9: 'Eylul', 10: 'Ekim', 11: 'Kasim', 12: 'Aralik'
-    }
-    
     category_name = "tumu"
     if category == 'income':
         category_name = "gelir"
@@ -745,8 +739,7 @@ async def export_to_excel(
         safe_name = safe_name.replace(' ', '_')
         year = session.get('year', '')
         month = session.get('month', 1)
-        month_name = month_names_tr.get(month, '')
-        filename = f"{safe_name}_{month_name}_{year}_{category_name}.xlsx"
+        filename = f"{safe_name}_{year}_{month:02d}_{category_name}.xlsx"
     else:
         filename = f"faturalar_{category_name}.xlsx"
     
