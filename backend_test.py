@@ -287,7 +287,7 @@ startxref
         test_file = self.create_test_invoice_file()
         
         files = {
-            'file': ('test_invoice.xml', test_file, 'application/xml')
+            'file': ('test_invoice.pdf', test_file, 'application/pdf')
         }
         
         success, response = self.run_test(
