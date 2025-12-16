@@ -55,6 +55,20 @@ class User(BaseModel):
     full_name: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class TaxpayerSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    taxpayer_name: str
+    year: int
+    month: int
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TaxpayerSessionCreate(BaseModel):
+    taxpayer_name: str
+    year: int
+    month: int
+
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
