@@ -208,7 +208,7 @@ const DashboardPage = ({ setIsAuthenticated }) => {
                 data-testid={`export-${type}-button`}
               >
                 <Download className="w-4 h-4" />
-                Excel
+                {type === 'income' ? 'Gelir Excel' : 'Gider Excel'}
               </Button>
             )}
             <Button
