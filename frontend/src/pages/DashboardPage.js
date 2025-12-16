@@ -303,6 +303,16 @@ const DashboardPage = ({ setIsAuthenticated }) => {
               Excel İndir
             </Button>
             <Button
+              onClick={handleResetAll}
+              disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0}
+              variant="outline"
+              className="rounded-none gap-2 uppercase tracking-wide text-destructive border-destructive hover:bg-destructive hover:text-white"
+              data-testid="reset-all-button"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Tabloları Sıfırla
+            </Button>
+            <Button
               onClick={handleLogout}
               variant="outline"
               className="rounded-none gap-2"
