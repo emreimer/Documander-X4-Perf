@@ -261,10 +261,10 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Faturayı düzenleyen firma/kişi adı
 - issuer_tax_id: Faturayı düzenleyen firmanın vergi kimlik numarası (TCKN veya VKN)
-- issuer_tax_office: Faturayı düzenleyen firmanın vergi dairesi
+- issuer_tax_office: Faturayı düzenleyen firmanın vergi dairesi (SADECE vergi dairesi adı, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "ERENKÖY VERGİ DAİRESİ MÜD." yerine sadece "Erenköy" yaz)
 - customer_name: Müşteri adı (faturanın kesildiği kişi/firma)
 - customer_tax_id: Müşterinin vergi kimlik numarası (TCKN veya VKN)
-- customer_tax_office: Müşterinin vergi dairesi
+- customer_tax_office: Müşterinin vergi dairesi (SADECE vergi dairesi adı, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "KADIKÖY VERGİ DAİRESİ" yerine sadece "Kadıköy" yaz)
 - description: Fatura içeriğinin ÇOK KISA özeti (maksimum 3-5 kelime, sadece ana konu)
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
