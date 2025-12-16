@@ -29,7 +29,7 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
   const getAuthHeader = () => {
     // Send visitor ID for user isolation
     const visitorId = localStorage.getItem('documander_visitor_id') || 'anonymous';
-    return { Authorization: `Bearer ${token}` };
+    return { 'X-Visitor-ID': visitorId };
   };
 
   const handleChange = (e) => {
