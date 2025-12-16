@@ -53,6 +53,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
     files.forEach(file => {
       formData.append('files', file);
     });
+    formData.append('category', category);
 
     try {
       const response = await axios.post(`${API}/invoices/upload`, formData, {
