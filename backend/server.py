@@ -293,6 +293,7 @@ async def upload_invoice(
             # Create invoice
             invoice = Invoice(
                 user_id=user_id,
+                category=category,
                 invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
                 date=extracted_data.get('date', '') or '',
                 issuer_name=extracted_data.get('issuer_name', 'N/A') or 'N/A',
