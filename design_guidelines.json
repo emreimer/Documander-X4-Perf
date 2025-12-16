@@ -1,0 +1,140 @@
+{
+  "identity": {
+    "name": "E1: The Anti-AI Designer",
+    "mission": "Create a 'Swiss Utility' finance tool that feels like a trusted physical ledger, not a generic SaaS.",
+    "vibe": "Old Money Tech. Precision. Authority. Calm.",
+    "archetype": "Swiss & High-Contrast (Archetype 4) mixed with Organic & Earthy (Archetype 1)"
+  },
+  "typography": {
+    "fonts": {
+      "heading": {
+        "family": "Cormorant Garamond",
+        "weights": ["400", "600", "700"],
+        "usage": "All H1-H3 headings. Use italic for emphasis."
+      },
+      "body": {
+        "family": "Manrope",
+        "weights": ["400", "500", "600"],
+        "usage": "General UI text, labels, buttons."
+      },
+      "mono": {
+        "family": "Geist Mono",
+        "weights": ["400", "500"],
+        "usage": "All financial data, invoice numbers, dates, table cells."
+      }
+    },
+    "rules": {
+      "headings": "Tight tracking (-0.02em). Leading none.",
+      "overline": "Uppercase, tracking-widest (0.2em), text-xs, font-medium.",
+      "numbers": "Tabular nums (tnum) mandatory for tables."
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": "#F5F5F0",
+      "foreground": "#1A1A1A",
+      "card": "#FFFFFF",
+      "card_foreground": "#1A1A1A",
+      "popover": "#FFFFFF",
+      "popover_foreground": "#1A1A1A",
+      "primary": "#004D40",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#E0E0D1",
+      "secondary_foreground": "#004D40",
+      "muted": "#E5E5E5",
+      "muted_foreground": "#737373",
+      "accent": "#D4AF37",
+      "accent_foreground": "#1A1A1A",
+      "destructive": "#991B1B",
+      "destructive_foreground": "#FFFFFF",
+      "border": "#D4D4D4",
+      "input": "#E5E5E5",
+      "ring": "#004D40"
+    },
+    "usage": {
+      "background": "Use #F5F5F0 (Paper White) for the main app background to reduce eye strain.",
+      "primary": "Use Deep Emerald (#004D40) for primary actions (Upload, Save).",
+      "accent": "Use Muted Gold (#D4AF37) sparingly for 'Premium' or 'Success' states.",
+      "text": "Never use pure black. Use #1A1A1A."
+    }
+  },
+  "layout": {
+    "grid_system": {
+      "dashboard": "Control Room Grid: grid-cols-12 gap-4. Sidebar col-span-2, Main Content col-span-10.",
+      "landing": "Tetris Grid: Asymmetrical bento box layout for features."
+    },
+    "spacing": {
+      "container_padding": "p-8 or p-12 (Generous)",
+      "element_gap": "gap-6 or gap-8",
+      "section_spacing": "py-24"
+    },
+    "radius": {
+      "default": "0px (Sharp)",
+      "buttons": "9999px (Pill) or 0px (Sharp) - Choose Sharp for this 'Ledger' feel.",
+      "cards": "0px (Sharp) with 1px border."
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "Sharp edges (rounded-none). Uppercase text. Tracking-wide.",
+      "hover": "Invert colors (bg-primary -> bg-transparent text-primary border-primary)."
+    },
+    "inputs": {
+      "style": "bg-transparent border-b-2 border-border focus:border-primary rounded-none px-0 transition-colors.",
+      "label": "Floating label or uppercase overline style."
+    },
+    "cards": {
+      "style": "bg-white border border-border shadow-sm hover:shadow-md transition-shadow rounded-none.",
+      "header": "Border-b border-border p-4 bg-muted/20."
+    },
+    "tables": {
+      "style": "Dense. Sticky header. Row hover: bg-muted/30.",
+      "header": "Uppercase, text-xs, text-muted-foreground, tracking-wider.",
+      "cell": "Font-mono for numbers. Right-align amounts."
+    },
+    "modals": {
+      "style": "Backdrop-blur-sm. Sharp corners. Heavy shadow."
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Add a subtle 'grain' overlay to the #F5F5F0 background to simulate paper.",
+    "shadows": "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] for a 'Brutalist' touch on primary cards, or soft diffuse for a 'Modern' touch. Let's go with Soft Diffuse: shadow-lg.",
+    "borders": "1px solid #D4D4D4. Use double borders for 'Total' rows in tables."
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "micro_interactions": "Buttons scale down slightly (0.98) on click.",
+    "loading": "Use a 'Scanning' line animation for file processing."
+  },
+  "media": {
+    "image_style": "Black and white or desaturated photos with high contrast. No generic stock people smiling.",
+    "image_urls": {
+      "landing_hero": "https://images.pexels.com/photos/4065906/pexels-photo-4065906.jpeg",
+      "features_abstract": "https://images.pexels.com/photos/2457278/pexels-photo-2457278.jpeg",
+      "login_bg": "https://images.pexels.com/photos/8534174/pexels-photo-8534174.jpeg"
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure 4.5:1 for text. Use APCA for large text.",
+    "focus": "Visible ring-2 ring-offset-2 ring-primary.",
+    "aria": "All interactive elements must have aria-labels."
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add 'Cormorant Garamond', 'Manrope', and 'Geist Mono' via Google Fonts or Fontsource in index.css.",
+    "2. CONFIGURE TAILWIND: Update tailwind.config.js with the specific color palette and font families defined above.",
+    "3. OVERRIDE SHADCN: When installing shadcn components, go into the file and REMOVE 'rounded-md' classes. Enforce 'rounded-none' for that sharp, professional ledger look.",
+    "4. LAYOUT: Use the 'Control Room' grid for the dashboard. Do not make it a single column. Use a sidebar layout.",
+    "5. TABLE DESIGN: This is an accounting app. The table is the most important component. Make it dense, readable, and beautiful. Use 'Geist Mono' for all numbers.",
+    "6. UPLOAD ZONE: Create a custom drag-and-drop zone that looks like a physical tray or scanner bed.",
+    "7. EXCEL EXPORT: Style the export button to look like a primary action, distinct from navigation.",
+    "8. LOGIN PAGE: Split screen. Left side: Login form (minimal). Right side: Abstract paper image (login_bg) with a quote about precision.",
+    "9. DATA-TESTID: Add data-testid to all inputs, buttons, and key containers."
+  ],
+  "universal_guidelines": [
+    "Do not use gradients for backgrounds. Use solid colors or subtle textures.",
+    "Do not center text in the dashboard. Left align text, right align numbers.",
+    "Use 'sonner' for notifications.",
+    "Use 'lucide-react' for icons. Pick thin, sharp icons.",
+    "Never use 'Inter' font."
+  ]
+}
