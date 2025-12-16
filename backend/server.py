@@ -320,6 +320,18 @@ async def get_invoices(user_id: str = Depends(get_current_user)):
     for invoice in invoices:
         if isinstance(invoice['created_at'], str):
             invoice['created_at'] = datetime.fromisoformat(invoice['created_at'])
+        
+        # Add missing fields for backward compatibility
+        if 'issuer_name' not in invoice:
+            invoice['issuer_name'] = 'N/A'
+        if 'issuer_tax_id' not in invoice:
+            invoice['issuer_tax_id'] = 'N/A'
+        if 'issuer_tax_office' not in invoice:
+            invoice['issuer_tax_office'] = 'N/A'
+        if 'customer_tax_id' not in invoice:
+            invoice['customer_tax_id'] = invoice.get('tax_id', 'N/A')
+        if 'customer_tax_office' not in invoice:
+            invoice['customer_tax_office'] = invoice.get('tax_office', 'N/A')
     
     return invoices
 
