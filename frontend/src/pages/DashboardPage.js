@@ -234,6 +234,23 @@ const DashboardPage = ({ setIsAuthenticated }) => {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot className="bg-muted/10 border-t-2 border-border">
+                  <tr>
+                    <td colSpan={type === 'income' ? 6 : 6} className="px-2 py-3 text-right font-semibold text-sm uppercase tracking-wider">
+                      Toplam:
+                    </td>
+                    <td className="px-2 py-3 font-mono text-xs text-right font-bold">
+                      {invoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                    </td>
+                    <td className="px-2 py-3 font-mono text-xs text-right font-bold">
+                      {invoices.reduce((sum, inv) => sum + inv.vat, 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                    </td>
+                    <td className="px-2 py-3 font-mono text-xs text-right font-bold">
+                      {invoices.reduce((sum, inv) => sum + inv.total, 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                    </td>
+                    <td className="px-2 py-3"></td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
