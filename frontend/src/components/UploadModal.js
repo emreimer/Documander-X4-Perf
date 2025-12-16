@@ -169,7 +169,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
                     id="file-input"
                     type="file"
                     multiple
-                    accept=".pdf,.jpg,.jpeg,.png,.xml"
+                    accept=".pdf,.jpg,.jpeg,.png,.xml,.html,.htm"
                     onChange={handleFileChange}
                     className="hidden"
                     data-testid="file-input"
