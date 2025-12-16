@@ -244,15 +244,23 @@ async def upload_invoice(
     
     extracted_data = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
     
-    # Create invoice
+    # Create invoice with safe type conversion
+    def safe_float(value, default=0.0):
+        try:
+            if value is None:
+                return default
+            return float(value)
+        except (ValueError, TypeError):
+            return default
+    
     invoice = Invoice(
         user_id=user_id,
-        invoice_number=extracted_data.get('invoice_number', 'N/A'),
-        date=extracted_data.get('date', ''),
-        customer_name=extracted_data.get('customer_name', 'N/A'),
-        amount=float(extracted_data.get('amount', 0)),
-        vat=float(extracted_data.get('vat', 0)),
-        total=float(extracted_data.get('total', 0)),
+        invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
+        date=extracted_data.get('date', '') or '',
+        customer_name=extracted_data.get('customer_name', 'N/A') or 'N/A',
+        amount=safe_float(extracted_data.get('amount')),
+        vat=safe_float(extracted_data.get('vat')),
+        total=safe_float(extracted_data.get('total')),
         file_name=file.filename,
         file_type=file.content_type
     )
