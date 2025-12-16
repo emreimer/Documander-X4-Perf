@@ -740,6 +740,13 @@ startxref
         self.test_invalid_login()
         self.test_protected_endpoint_without_token()
         
+        # Taxpayer Session Tests (NEW FEATURES)
+        print("\n📋 TAXPAYER SESSION TESTS (NEW FEATURES)")
+        print("-" * 30)
+        
+        session_success, session_id = self.test_create_session()
+        self.test_get_current_session()
+        
         # Invoice Tests
         print("\n📋 INVOICE MANAGEMENT TESTS")
         print("-" * 30)
@@ -753,14 +760,22 @@ startxref
             self.test_update_invoice(invoice_id)
             # Don't delete immediately, test export first
             
+        # Test date validation feature
+        self.test_invoice_upload_date_validation()
+        
+        # Test Excel export with session info
+        self.test_excel_export_with_session()
         self.test_excel_export()
         
         # Test new DELETE all invoices functionality
-        print("\n📋 NEW FEATURES TESTS")
+        print("\n📋 DELETE FEATURES TESTS")
         print("-" * 30)
         
         self.test_delete_all_invoices_by_category()
         self.test_delete_all_invoices()
+        
+        # Test session deletion
+        self.test_delete_session()
         
         # Clean up - delete the test invoice (if any remaining)
         if upload_success and invoice_id:
