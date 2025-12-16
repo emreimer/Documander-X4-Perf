@@ -19,6 +19,7 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
     customer_name: invoice.customer_name,
     customer_tax_id: invoice.customer_tax_id,
     customer_tax_office: invoice.customer_tax_office,
+    description: invoice.description,
     amount: invoice.amount,
     vat: invoice.vat,
     total: invoice.total
