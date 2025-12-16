@@ -207,53 +207,58 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="uppercase text-xs tracking-wider">
-                Net Tutar
-              </Label>
-              <Input
-                id="amount"
-                name="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
-                data-testid="edit-amount"
-              />
-            </div>
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
+              Tutar Bilgileri
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount" className="uppercase text-xs tracking-wider">
+                  Net Tutar
+                </Label>
+                <Input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
+                  data-testid="edit-amount"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="vat" className="uppercase text-xs tracking-wider">
-                KDV
-              </Label>
-              <Input
-                id="vat"
-                name="vat"
-                type="number"
-                step="0.01"
-                value={formData.vat}
-                onChange={handleChange}
-                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
-                data-testid="edit-vat"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="vat" className="uppercase text-xs tracking-wider">
+                  KDV
+                </Label>
+                <Input
+                  id="vat"
+                  name="vat"
+                  type="number"
+                  step="0.01"
+                  value={formData.vat}
+                  onChange={handleChange}
+                  className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
+                  data-testid="edit-vat"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="total" className="uppercase text-xs tracking-wider">
-                Toplam
-              </Label>
-              <Input
-                id="total"
-                name="total"
-                type="number"
-                step="0.01"
-                value={formData.total}
-                onChange={handleChange}
-                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
-                data-testid="edit-total"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="total" className="uppercase text-xs tracking-wider">
+                  Toplam
+                </Label>
+                <Input
+                  id="total"
+                  name="total"
+                  type="number"
+                  step="0.01"
+                  value={formData.total}
+                  onChange={handleChange}
+                  className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
+                  data-testid="edit-total"
+                />
+              </div>
             </div>
           </div>
 
