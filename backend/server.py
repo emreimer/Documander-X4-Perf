@@ -235,57 +235,73 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.
         logging.error(f"AI extraction error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"AI extraction failed: {str(e)}")
 
+# Helper function for safe float conversion
+def safe_float(value, default=0.0):
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 # Invoice Routes
 @api_router.post("/invoices/upload")
 async def upload_invoice(
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     user_id: str = Depends(get_current_user)
 ):
-    # Validate file type
     allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml']
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: PDF, JPG, PNG, XML")
+    uploaded_invoices = []
+    errors = []
     
-    # Read file
-    file_content = await file.read()
-    
-    # Extract data with AI
-    mime_type = file.content_type
-    if mime_type == 'image/jpg':
-        mime_type = 'image/jpeg'
-    
-    extracted_data = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
-    
-    # Create invoice with safe type conversion
-    def safe_float(value, default=0.0):
+    for file in files:
         try:
-            if value is None:
-                return default
-            return float(value)
-        except (ValueError, TypeError):
-            return default
+            # Validate file type
+            if file.content_type not in allowed_types:
+                errors.append(f"{file.filename}: Invalid file type")
+                continue
+            
+            # Read file
+            file_content = await file.read()
+            
+            # Extract data with AI
+            mime_type = file.content_type
+            if mime_type == 'image/jpg':
+                mime_type = 'image/jpeg'
+            
+            extracted_data = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
+            
+            # Create invoice
+            invoice = Invoice(
+                user_id=user_id,
+                invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
+                date=extracted_data.get('date', '') or '',
+                issuer_name=extracted_data.get('issuer_name', 'N/A') or 'N/A',
+                customer_name=extracted_data.get('customer_name', 'N/A') or 'N/A',
+                tax_id=extracted_data.get('tax_id', 'N/A') or 'N/A',
+                tax_office=extracted_data.get('tax_office', 'N/A') or 'N/A',
+                amount=safe_float(extracted_data.get('amount')),
+                vat=safe_float(extracted_data.get('vat')),
+                total=safe_float(extracted_data.get('total')),
+                file_name=file.filename,
+                file_type=file.content_type
+            )
+            
+            invoice_dict = invoice.model_dump()
+            invoice_dict['created_at'] = invoice_dict['created_at'].isoformat()
+            
+            await db.invoices.insert_one(invoice_dict)
+            uploaded_invoices.append(invoice)
+            
+        except Exception as e:
+            errors.append(f"{file.filename}: {str(e)}")
     
-    invoice = Invoice(
-        user_id=user_id,
-        invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
-        date=extracted_data.get('date', '') or '',
-        issuer_name=extracted_data.get('issuer_name', 'N/A') or 'N/A',
-        customer_name=extracted_data.get('customer_name', 'N/A') or 'N/A',
-        tax_id=extracted_data.get('tax_id', 'N/A') or 'N/A',
-        tax_office=extracted_data.get('tax_office', 'N/A') or 'N/A',
-        amount=safe_float(extracted_data.get('amount')),
-        vat=safe_float(extracted_data.get('vat')),
-        total=safe_float(extracted_data.get('total')),
-        file_name=file.filename,
-        file_type=file.content_type
-    )
-    
-    invoice_dict = invoice.model_dump()
-    invoice_dict['created_at'] = invoice_dict['created_at'].isoformat()
-    
-    await db.invoices.insert_one(invoice_dict)
-    
-    return invoice
+    return {
+        "success": len(uploaded_invoices),
+        "failed": len(errors),
+        "invoices": uploaded_invoices,
+        "errors": errors
+    }
 
 @api_router.get("/invoices", response_model=List[Invoice])
 async def get_invoices(user_id: str = Depends(get_current_user)):
