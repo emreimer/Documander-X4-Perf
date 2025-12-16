@@ -472,7 +472,7 @@ const DashboardPage = ({ setIsAuthenticated }) => {
               Dönem Değiştir
             </Button>
             <Button
-              onClick={handleExport}
+              onClick={() => handleExport()}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0 || !session}
               variant="outline"
               className="rounded-none gap-2 uppercase tracking-wide"
