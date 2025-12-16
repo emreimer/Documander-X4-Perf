@@ -789,7 +789,14 @@ app.add_middleware(
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-ALLOWED_DOMAINS = ["documander.com", "www.documander.com", "localhost:3000", "localhost"]
+ALLOWED_DOMAINS = [
+    "documander.com", 
+    "www.documander.com", 
+    "localhost:3000", 
+    "localhost",
+    "ac9e1a11-9445-4f64-848e-b5dc762e0e64.emergent.host",  # Production
+    "emergent.host"
+]
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
