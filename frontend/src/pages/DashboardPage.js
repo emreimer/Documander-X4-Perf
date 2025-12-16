@@ -265,7 +265,7 @@ const DashboardPage = ({ setIsAuthenticated }) => {
                       </>
                     )}
                     <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                      İçerik
+                      Açıklama
                     </th>
                     <th className="px-2 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Net
