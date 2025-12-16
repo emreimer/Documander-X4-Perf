@@ -508,7 +508,15 @@ async def delete_all_invoices(
 
 @api_router.get("/invoices/export/excel")
 async def export_to_excel(user_id: str = Depends(get_current_user)):
-    invoices = await db.invoices.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    # Get current session for filename
+    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
+    
+    # Build query
+    query = {"user_id": user_id}
+    if session:
+        query["session_id"] = session['id']
+    
+    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
     
     if not invoices:
         raise HTTPException(status_code=404, detail="No invoices found")
@@ -535,12 +543,30 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     income_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
     expense_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
     
+    # Turkish month names
+    month_names = {
+        1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+        7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+    }
+    
     # Create Excel workbook
     wb = Workbook()
     ws = wb.active
     ws.title = "Faturalar"
     
     current_row = 1
+    
+    # Add main title with taxpayer info if session exists
+    if session:
+        taxpayer_name = session.get('taxpayer_name', '')
+        year = session.get('year', '')
+        month = session.get('month', '')
+        month_name = month_names.get(month, '')
+        main_title = f"{taxpayer_name} - {month_name} {year}"
+        ws[f'A{current_row}'] = main_title
+        ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
+        current_row += 2
     
     # INCOME INVOICES SECTION
     if income_invoices:
