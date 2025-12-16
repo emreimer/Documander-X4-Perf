@@ -49,6 +49,49 @@ const DashboardPage = ({ setIsAuthenticated }) => {
     return { Authorization: `Bearer ${token}` };
   };
 
+  const fetchSession = async () => {
+    try {
+      const response = await axios.get(`${API}/sessions/current`, {
+        headers: getAuthHeader()
+      });
+      if (response.data) {
+        setSession(response.data);
+        setTaxpayerName(response.data.taxpayer_name);
+        setSelectedYear(response.data.year);
+        setSelectedMonth(response.data.month);
+      } else {
+        setShowSessionForm(true);
+        setLoading(false);
+      }
+    } catch (error) {
+      setShowSessionForm(true);
+      setLoading(false);
+    }
+  };
+
+  const createSession = async () => {
+    if (!taxpayerName.trim()) {
+      toast.error('Mükellef adı giriniz');
+      return;
+    }
+    try {
+      const response = await axios.post(`${API}/sessions`, {
+        taxpayer_name: taxpayerName.trim(),
+        year: selectedYear,
+        month: selectedMonth
+      }, { headers: getAuthHeader() });
+      setSession(response.data);
+      setShowSessionForm(false);
+      toast.success('İşlem dönemi oluşturuldu');
+    } catch (error) {
+      toast.error('Dönem oluşturulamadı');
+    }
+  };
+
+  const changeSession = () => {
+    setShowSessionForm(true);
+  };
+
   const fetchInvoices = async () => {
     try {
       setLoading(true);
