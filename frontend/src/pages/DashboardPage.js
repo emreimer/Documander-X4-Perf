@@ -174,40 +174,43 @@ const DashboardPage = ({ setIsAuthenticated }) => {
               <table className="w-full" data-testid="invoices-table">
                 <thead className="bg-muted/20 border-b border-border">
                   <tr>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Fatura No
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Tarih
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Düzenleyen
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       D. VKN
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       D. V.Dairesi
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Müşteri
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       M. VKN
                     </th>
-                    <th className="px-3 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       M. V.Dairesi
                     </th>
-                    <th className="px-3 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-left text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                      İçerik
+                    </th>
+                    <th className="px-2 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Net
                     </th>
-                    <th className="px-3 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       KDV
                     </th>
-                    <th className="px-3 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-right text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       Toplam
                     </th>
-                    <th className="px-3 py-3 text-center text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    <th className="px-2 py-3 text-center text-xs uppercase tracking-wider text-muted-foreground font-medium">
                       İşlem
                     </th>
                   </tr>
@@ -219,24 +222,27 @@ const DashboardPage = ({ setIsAuthenticated }) => {
                       className="hover:bg-muted/30 transition-colors"
                       data-testid={`invoice-row-${invoice.id}`}
                     >
-                      <td className="px-3 py-3 font-mono text-xs">{invoice.invoice_number}</td>
-                      <td className="px-3 py-3 font-mono text-xs">{invoice.date}</td>
-                      <td className="px-3 py-3 text-xs">{invoice.issuer_name}</td>
-                      <td className="px-3 py-3 font-mono text-xs">{invoice.issuer_tax_id}</td>
-                      <td className="px-3 py-3 text-xs">{invoice.issuer_tax_office}</td>
-                      <td className="px-3 py-3 text-xs">{invoice.customer_name}</td>
-                      <td className="px-3 py-3 font-mono text-xs">{invoice.customer_tax_id}</td>
-                      <td className="px-3 py-3 text-xs">{invoice.customer_tax_office}</td>
-                      <td className="px-3 py-3 font-mono text-xs text-right">
+                      <td className="px-2 py-3 font-mono text-xs">{invoice.invoice_number}</td>
+                      <td className="px-2 py-3 font-mono text-xs">{invoice.date}</td>
+                      <td className="px-2 py-3 text-xs">{invoice.issuer_name}</td>
+                      <td className="px-2 py-3 font-mono text-xs">{invoice.issuer_tax_id}</td>
+                      <td className="px-2 py-3 text-xs">{invoice.issuer_tax_office}</td>
+                      <td className="px-2 py-3 text-xs">{invoice.customer_name}</td>
+                      <td className="px-2 py-3 font-mono text-xs">{invoice.customer_tax_id}</td>
+                      <td className="px-2 py-3 text-xs">{invoice.customer_tax_office}</td>
+                      <td className="px-2 py-3 text-xs max-w-xs truncate" title={invoice.description}>
+                        {invoice.description}
+                      </td>
+                      <td className="px-2 py-3 font-mono text-xs text-right">
                         {invoice.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                       </td>
-                      <td className="px-3 py-3 font-mono text-xs text-right">
+                      <td className="px-2 py-3 font-mono text-xs text-right">
                         {invoice.vat.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                       </td>
-                      <td className="px-3 py-3 font-mono text-xs text-right font-semibold">
+                      <td className="px-2 py-3 font-mono text-xs text-right font-semibold">
                         {invoice.total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-2 py-3">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => setEditingInvoice(invoice)}
