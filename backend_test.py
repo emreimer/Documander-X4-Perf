@@ -9,8 +9,7 @@ class InvoiceAPITester:
     def __init__(self, base_url="https://accountingai-2.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
-        self.token = None
-        self.user_id = None
+        self.visitor_id = f"test_visitor_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
