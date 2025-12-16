@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { Upload, LogOut, Download, Pencil, Trash2, FileText } from 'lucide-react';
+import { Upload, LogOut, Download, Pencil, Trash2, FileText, RotateCcw } from 'lucide-react';
 import UploadModal from '../components/UploadModal.js';
 import EditModal from '../components/EditModal.js';
 
