@@ -63,17 +63,28 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
         }
       });
       
-      const { success, failed, errors } = response.data;
+      const { success, failed, errors, date_mismatches } = response.data;
       
       if (success > 0) {
         toast.success(`${success} fatura başarıyla yüklendi!`);
       }
-      if (failed > 0) {
+      
+      // Show date mismatch warnings prominently
+      if (date_mismatches && date_mismatches.length > 0) {
+        date_mismatches.forEach(msg => {
+          toast.warning(msg, { duration: 8000 });
+        });
+      }
+      
+      // Show other errors
+      if (errors && errors.length > 0) {
         errors.forEach(err => toast.error(err));
       }
       
       onSuccess();
-      onClose();
+      if (success > 0 || (date_mismatches && date_mismatches.length === 0 && errors.length === 0)) {
+        onClose();
+      }
     } catch (error) {
       const message = error.response?.data?.detail || 'Fatura yüklenemedi';
       toast.error(message);
