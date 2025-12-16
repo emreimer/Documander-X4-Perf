@@ -367,7 +367,12 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     ws.title = "Faturalar"
     
     # Headers
-    headers = ["Fatura No", "Tarih", "Faturayı Düzenleyen", "Müşteri", "Vergi Kimlik No", "Vergi Dairesi", "Net Tutar", "KDV", "Toplam"]
+    headers = [
+        "Fatura No", "Tarih", 
+        "Düzenleyen", "Düzenleyen VKN", "Düzenleyen V.Dairesi",
+        "Müşteri", "Müşteri VKN", "Müşteri V.Dairesi",
+        "Net Tutar", "KDV", "Toplam"
+    ]
     ws.append(headers)
     
     # Style headers
@@ -385,9 +390,11 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
             invoice.get('invoice_number', ''),
             invoice.get('date', ''),
             invoice.get('issuer_name', ''),
+            invoice.get('issuer_tax_id', ''),
+            invoice.get('issuer_tax_office', ''),
             invoice.get('customer_name', ''),
-            invoice.get('tax_id', ''),
-            invoice.get('tax_office', ''),
+            invoice.get('customer_tax_id', ''),
+            invoice.get('customer_tax_office', ''),
             invoice.get('amount', 0),
             invoice.get('vat', 0),
             invoice.get('total', 0)
