@@ -540,8 +540,8 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     income_invoices = [inv for inv in invoices if inv.get('category') == 'income']
     expense_invoices = [inv for inv in invoices if inv.get('category') == 'expense']
     
-    income_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
-    expense_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
+    income_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)  # Oldest first
+    expense_invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)  # Oldest first
     
     # Turkish month names
     month_names = {
