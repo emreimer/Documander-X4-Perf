@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { Upload, LogOut, Download, Pencil, Trash2, FileText, RotateCcw } from 'lucide-react';
+import { Upload, LogOut, Download, Pencil, Trash2, FileText, RotateCcw, Calendar, Building2 } from 'lucide-react';
 import UploadModal from '../components/UploadModal.js';
 import EditModal from '../components/EditModal.js';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+const MONTH_NAMES = {
+  1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+  7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+};
 
 const DashboardPage = ({ setIsAuthenticated }) => {
   const [incomeInvoices, setIncomeInvoices] = useState([]);
@@ -17,14 +22,27 @@ const DashboardPage = ({ setIsAuthenticated }) => {
   const [uploadCategory, setUploadCategory] = useState('income');
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [user, setUser] = useState(null);
+  
+  // Session state
+  const [session, setSession] = useState(null);
+  const [showSessionForm, setShowSessionForm] = useState(false);
+  const [taxpayerName, setTaxpayerName] = useState('');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
     }
-    fetchInvoices();
+    fetchSession();
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchInvoices();
+    }
+  }, [session]);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem('token');
