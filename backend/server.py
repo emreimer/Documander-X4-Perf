@@ -767,11 +767,19 @@ async def export_to_excel(
 
 app.include_router(api_router)
 
-# CORS for Wix embed - allow all origins
+# CORS for Wix embed - allow only documander.com
+ALLOWED_ORIGINS = [
+    "https://www.documander.com",
+    "https://documander.com",
+    "http://www.documander.com",
+    "http://documander.com",
+    "http://localhost:3000",  # For local development
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=False,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"]
