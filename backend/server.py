@@ -775,6 +775,7 @@ ALLOWED_ORIGINS = [
     "http://documander.com",
     "http://localhost:3000",
     "https://ac9e1a11-9445-4f64-848e-b5dc762e0e64.emergent.host",  # Production
+    "https://accountingai-2.preview.emergentagent.com",  # Preview
 ]
 
 app.add_middleware(
