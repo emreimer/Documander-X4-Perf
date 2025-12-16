@@ -205,15 +205,17 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
 - invoice_number: Fatura numarası
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Faturayı düzenleyen firma/kişi adı
+- issuer_tax_id: Faturayı düzenleyen firmanın vergi kimlik numarası (TCKN veya VKN)
+- issuer_tax_office: Faturayı düzenleyen firmanın vergi dairesi
 - customer_name: Müşteri adı (faturanın kesildiği kişi/firma)
-- tax_id: Vergi kimlik numarası (TCKN veya VKN)
-- tax_office: Vergi dairesi
+- customer_tax_id: Müşterinin vergi kimlik numarası (TCKN veya VKN)
+- customer_tax_office: Müşterinin vergi dairesi
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
 - total: Toplam tutar (sadece sayı)
 
 Sadece JSON formatında yanıt ver, başka açıklama ekleme.
-Örnek: {"invoice_number": "INV-2024-001", "date": "15/01/2024", "issuer_name": "ABC Ltd.", "customer_name": "XYZ A.Ş.", "tax_id": "1234567890", "tax_office": "Kadıköy", "amount": 1000.0, "vat": 180.0, "total": 1180.0}"""
+Örnek: {"invoice_number": "INV-2024-001", "date": "15/01/2024", "issuer_name": "ABC Ltd.", "issuer_tax_id": "1234567890", "issuer_tax_office": "Kadıköy", "customer_name": "XYZ A.Ş.", "customer_tax_id": "9876543210", "customer_tax_office": "Beşiktaş", "amount": 1000.0, "vat": 180.0, "total": 1180.0}"""
         
         message = UserMessage(
             text=prompt,
