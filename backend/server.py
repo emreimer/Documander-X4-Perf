@@ -308,6 +308,22 @@ def safe_float(value, default=0.0):
     except (ValueError, TypeError):
         return default
 
+# Helper to validate invoice date against session
+def validate_invoice_date(invoice_date: str, session_year: int, session_month: int) -> tuple:
+    """Returns (is_valid, error_message)"""
+    try:
+        # Parse DD/MM/YYYY format
+        parts = invoice_date.split('/')
+        if len(parts) == 3:
+            day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+            if month == session_month and year == session_year:
+                return True, None
+            else:
+                return False, f"Fatura tarihi ({invoice_date}) seçili dönemle uyuşmuyor ({session_month:02d}/{session_year})"
+    except:
+        pass
+    return True, None  # If we can't parse, allow it
+
 # Invoice Routes
 @api_router.post("/invoices/upload")
 async def upload_invoice(
@@ -318,9 +334,15 @@ async def upload_invoice(
     if category not in ['income', 'expense']:
         raise HTTPException(status_code=400, detail="Category must be 'income' or 'expense'")
     
+    # Get current session
+    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=400, detail="Önce mükellef bilgilerini girin")
+    
     allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml']
     uploaded_invoices = []
     errors = []
+    date_mismatches = []
     
     for file in files:
         try:
@@ -339,12 +361,21 @@ async def upload_invoice(
             
             extracted_data = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
             
+            # Validate invoice date against session period
+            invoice_date = extracted_data.get('date', '') or ''
+            is_valid, error_msg = validate_invoice_date(invoice_date, session['year'], session['month'])
+            
+            if not is_valid:
+                date_mismatches.append(f"{file.filename}: {error_msg}")
+                continue
+            
             # Create invoice
             invoice = Invoice(
                 user_id=user_id,
+                session_id=session['id'],
                 category=category,
                 invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
-                date=extracted_data.get('date', '') or '',
+                date=invoice_date,
                 issuer_name=extracted_data.get('issuer_name', 'N/A') or 'N/A',
                 issuer_tax_id=extracted_data.get('issuer_tax_id', 'N/A') or 'N/A',
                 issuer_tax_office=extracted_data.get('issuer_tax_office', 'N/A') or 'N/A',
@@ -370,9 +401,10 @@ async def upload_invoice(
     
     return {
         "success": len(uploaded_invoices),
-        "failed": len(errors),
+        "failed": len(errors) + len(date_mismatches),
         "invoices": uploaded_invoices,
-        "errors": errors
+        "errors": errors,
+        "date_mismatches": date_mismatches
     }
 
 @api_router.get("/invoices", response_model=List[Invoice])
