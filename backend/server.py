@@ -294,6 +294,7 @@ async def upload_invoice(
                 customer_name=extracted_data.get('customer_name', 'N/A') or 'N/A',
                 customer_tax_id=extracted_data.get('customer_tax_id', 'N/A') or 'N/A',
                 customer_tax_office=extracted_data.get('customer_tax_office', 'N/A') or 'N/A',
+                description=extracted_data.get('description', 'N/A') or 'N/A',
                 amount=safe_float(extracted_data.get('amount')),
                 vat=safe_float(extracted_data.get('vat')),
                 total=safe_float(extracted_data.get('total')),
