@@ -1,34 +1,30 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Minimal custom styles - Tailwind handles most styling */
+
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.upload-zone {
+  transition: all 0.3s ease-out;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.upload-zone:hover {
+  transform: translateY(-2px);
 }
 
-.App-link {
-    color: #61dafb;
+.upload-zone.drag-over {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--primary) / 0.05);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  transition: all 0.3s ease-out;
+}
+
+button:active {
+  transform: scale(0.98);
 }
