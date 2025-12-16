@@ -73,7 +73,7 @@ class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
-    session_id: str  # Reference to taxpayer session
+    session_id: Optional[str] = ""  # Reference to taxpayer session
     category: str  # "income" or "expense"
     invoice_number: str
     date: str
