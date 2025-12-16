@@ -439,8 +439,17 @@ const DashboardPage = ({ setIsAuthenticated }) => {
           </div>
           <div className="flex gap-3">
             <Button
+              onClick={changeSession}
+              variant="outline"
+              className="rounded-none gap-2 uppercase tracking-wide"
+              data-testid="change-session-button"
+            >
+              <Calendar className="w-4 h-4" />
+              Dönem Değiştir
+            </Button>
+            <Button
               onClick={handleExport}
-              disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0}
+              disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0 || !session}
               variant="outline"
               className="rounded-none gap-2 uppercase tracking-wide"
               data-testid="export-excel-button"
