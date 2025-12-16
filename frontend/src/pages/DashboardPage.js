@@ -479,7 +479,7 @@ const DashboardPage = ({ setIsAuthenticated }) => {
               data-testid="export-excel-button"
             >
               <Download className="w-4 h-4" />
-              Excel İndir
+              Tümünü İndir
             </Button>
             <Button
               onClick={handleResetAll}
