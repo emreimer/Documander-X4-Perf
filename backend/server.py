@@ -77,6 +77,7 @@ class Invoice(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvoiceCreate(BaseModel):
+    category: str
     invoice_number: str
     date: str
     issuer_name: str
@@ -91,6 +92,7 @@ class InvoiceCreate(BaseModel):
     total: float
 
 class InvoiceUpdate(BaseModel):
+    category: Optional[str] = None
     invoice_number: Optional[str] = None
     date: Optional[str] = None
     issuer_name: Optional[str] = None
