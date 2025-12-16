@@ -3,8 +3,8 @@ import axios from 'axios';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Upload, LogOut, Download, Pencil, Trash2, FileText } from 'lucide-react';
-import UploadModal from '../components/UploadModal';
-import EditModal from '../components/EditModal';
+import UploadModal from '../components/UploadModal.js';
+import EditModal from '../components/EditModal.js';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
