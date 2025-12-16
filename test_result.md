@@ -101,3 +101,31 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+## Test Session: 2025-12-16
+### New Features to Test:
+
+#### Feature 1: Reset All Invoices Button
+- **Location**: Dashboard header, next to "Excel İndir" button
+- **Endpoint**: DELETE /api/invoices
+- **Behavior**: 
+  - Shows confirmation dialog before deleting
+  - Deletes all invoices for current user
+  - Button is disabled when no invoices exist
+  - Shows success toast after deletion
+
+#### Feature 2: Excel Export with Subtotals
+- **Location**: Dashboard header, "Excel İndir" button
+- **Endpoint**: GET /api/invoices/export/excel
+- **Expected Excel structure**:
+  - GELİR FATURALARI section with subtotal row
+  - GİDER FATURALARI section with subtotal row
+  - Turkish number format (1.234,56)
+  - Subtotal rows highlighted in light green
+
+### Test Credentials:
+- Email: muhasebe2@test.com
+- Password: test123456
+
+### agent_communication:
+- agent: main
+- message: Implemented two new features - reset all invoices button and Excel subtotals. Backend endpoints working. Frontend has new button. Need to test full flow.
