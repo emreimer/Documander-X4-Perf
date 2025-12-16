@@ -47,9 +47,18 @@ const DashboardPage = () => {
     }
   }, [session]);
 
+  const getVisitorId = () => {
+    let visitorId = localStorage.getItem('documander_visitor_id');
+    if (!visitorId) {
+      visitorId = 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('documander_visitor_id', visitorId);
+    }
+    return visitorId;
+  };
+
   const getAuthHeader = () => {
-    // Send visitor ID for user isolation
-    const visitorId = localStorage.getItem('documander_visitor_id') || 'anonymous';
+    const visitorId = getVisitorId();
+    console.log('Using Visitor ID:', visitorId);
     return { 'X-Visitor-ID': visitorId };
   };
 
