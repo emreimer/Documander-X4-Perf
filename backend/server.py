@@ -61,7 +61,10 @@ class Invoice(BaseModel):
     user_id: str
     invoice_number: str
     date: str
+    issuer_name: str
     customer_name: str
+    tax_id: str
+    tax_office: str
     amount: float
     vat: float
     total: float
@@ -72,7 +75,10 @@ class Invoice(BaseModel):
 class InvoiceCreate(BaseModel):
     invoice_number: str
     date: str
+    issuer_name: str
     customer_name: str
+    tax_id: str
+    tax_office: str
     amount: float
     vat: float
     total: float
@@ -80,7 +86,10 @@ class InvoiceCreate(BaseModel):
 class InvoiceUpdate(BaseModel):
     invoice_number: Optional[str] = None
     date: Optional[str] = None
+    issuer_name: Optional[str] = None
     customer_name: Optional[str] = None
+    tax_id: Optional[str] = None
+    tax_office: Optional[str] = None
     amount: Optional[float] = None
     vat: Optional[float] = None
     total: Optional[float] = None
