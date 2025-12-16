@@ -387,13 +387,16 @@ startxref
         data = {'category': 'income'}
         
         # Upload a test invoice
-        success, _ = self.run_test(
-            "Upload Test Invoice for Delete All",
-            "POST",
-            "invoices/upload",
-            200,
-            files=files
-        )
+        url = f"{self.api_url}/invoices/upload"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        try:
+            response = requests.post(url, files=files, data=data, headers=headers)
+            success = response.status_code == 200
+            print(f"   Upload Test Invoice Status: {response.status_code}")
+        except Exception as e:
+            success = False
+            print(f"   Upload Test Invoice Error: {str(e)}")
         
         if not success:
             self.log_test("Delete All Invoices Setup", False, "Could not upload test invoice")
