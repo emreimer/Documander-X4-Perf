@@ -136,8 +136,6 @@ def create_token(user_id: str, email: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-from fastapi import Request, Header
-
 async def get_current_user(x_visitor_id: Optional[str] = Header(None)):
     # Get visitor ID from header for user isolation
     if x_visitor_id:
