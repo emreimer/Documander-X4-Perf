@@ -373,6 +373,89 @@ startxref
             self.log_test("Delete Invoice", False, "Failed to delete invoice")
             return False
 
+    def test_delete_all_invoices(self):
+        """Test deleting all invoices (new feature)"""
+        if not self.token:
+            self.log_test("Delete All Invoices", False, "No token available")
+            return False
+        
+        # First create some test invoices to delete
+        test_file = self.create_test_invoice_file()
+        files = {
+            'files': ('test_invoice.pdf', test_file, 'application/pdf'),
+            'category': (None, 'income')
+        }
+        
+        # Upload a test invoice
+        success, _ = self.run_test(
+            "Upload Test Invoice for Delete All",
+            "POST",
+            "invoices/upload",
+            200,
+            files=files
+        )
+        
+        if not success:
+            self.log_test("Delete All Invoices Setup", False, "Could not upload test invoice")
+            return False
+        
+        # Now test delete all invoices
+        success, response = self.run_test(
+            "Delete All Invoices",
+            "DELETE",
+            "invoices",
+            200
+        )
+        
+        if success and 'deleted_count' in response:
+            deleted_count = response['deleted_count']
+            print(f"   Deleted {deleted_count} invoices")
+            self.log_test("Delete All Invoices", True, f"Deleted {deleted_count} invoices")
+            return True
+        else:
+            self.log_test("Delete All Invoices", False, "No deleted_count in response")
+            return False
+
+    def test_delete_all_invoices_by_category(self):
+        """Test deleting all invoices by category"""
+        if not self.token:
+            self.log_test("Delete All Invoices by Category", False, "No token available")
+            return False
+        
+        # Create test invoices for both categories
+        test_file1 = self.create_test_invoice_file()
+        test_file2 = self.create_test_invoice_file()
+        
+        # Upload income invoice
+        files1 = {
+            'files': ('test_income.pdf', test_file1, 'application/pdf'),
+            'category': (None, 'income')
+        }
+        
+        # Upload expense invoice
+        files2 = {
+            'files': ('test_expense.pdf', test_file2, 'application/pdf'),
+            'category': (None, 'expense')
+        }
+        
+        self.run_test("Upload Income Invoice", "POST", "invoices/upload", 200, files=files1)
+        self.run_test("Upload Expense Invoice", "POST", "invoices/upload", 200, files=files2)
+        
+        # Delete only income invoices
+        success, response = self.run_test(
+            "Delete Income Invoices Only",
+            "DELETE",
+            "invoices?category=income",
+            200
+        )
+        
+        if success and 'deleted_count' in response:
+            self.log_test("Delete All Invoices by Category", True)
+            return True
+        else:
+            self.log_test("Delete All Invoices by Category", False, "Failed to delete by category")
+            return False
+
     def test_excel_export(self):
         """Test Excel export functionality"""
         if not self.token:
