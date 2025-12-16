@@ -393,6 +393,18 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     if not invoices:
         raise HTTPException(status_code=404, detail="No invoices found")
     
+    # Sort by date
+    def parse_date(date_str):
+        try:
+            parts = date_str.split('/')
+            if len(parts) == 3:
+                return datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+        except:
+            pass
+        return datetime.min
+    
+    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
+    
     # Create Excel workbook
     wb = Workbook()
     ws = wb.active
@@ -417,7 +429,7 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
         cell.font = header_font
         cell.alignment = Alignment(horizontal="center")
     
-    # Add data
+    # Add data with Turkish number format
     for invoice in invoices:
         ws.append([
             invoice.get('invoice_number', ''),
@@ -433,6 +445,15 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
             invoice.get('vat', 0),
             invoice.get('total', 0)
         ])
+    
+    # Apply Turkish number format to amount columns (J, K, L = 10, 11, 12)
+    for row in range(2, len(invoices) + 2):
+        # Net Tutar
+        ws[f'J{row}'].number_format = '#.##0,00'
+        # KDV
+        ws[f'K{row}'].number_format = '#.##0,00'
+        # Toplam
+        ws[f'L{row}'].number_format = '#.##0,00'
     
     # Auto-adjust column widths
     for column in ws.columns:
