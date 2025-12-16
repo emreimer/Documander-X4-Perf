@@ -30,20 +30,6 @@ const DashboardPage = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
-  useEffect(() => {
-    // Generate or retrieve unique browser ID for user isolation
-    const visitorId = getVisitorId();
-    console.log('Dashboard loaded with Visitor ID:', visitorId);
-    setUser({ visitorId });
-    fetchSession();
-  }, []);
-
-  useEffect(() => {
-    if (session) {
-      fetchInvoices();
-    }
-  }, [session]);
-
   const getVisitorId = () => {
     let visitorId = localStorage.getItem('documander_visitor_id');
     if (!visitorId) {
@@ -55,9 +41,23 @@ const DashboardPage = () => {
 
   const getAuthHeader = () => {
     const visitorId = getVisitorId();
-    console.log('Using Visitor ID:', visitorId);
     return { 'X-Visitor-ID': visitorId };
   };
+
+  useEffect(() => {
+    const visitorId = getVisitorId();
+    console.log('Dashboard loaded with Visitor ID:', visitorId);
+    setUser({ visitorId });
+    fetchSession();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchInvoices();
+    }
+    // eslint-disable-next-line
+  }, [session]);
 
   const fetchSession = async () => {
     try {
