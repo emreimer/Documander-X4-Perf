@@ -607,21 +607,11 @@ async def export_to_excel(
         current_row += 1
         
         # Style headers
-        header_fill = PatternFill(start_color="004D40", end_color="004D40", fill_type="solid")
-        header_font = Font(bold=True, color="FFFFFF")
-        
         for col_idx, _ in enumerate(income_headers, 1):
             cell = ws.cell(row=header_row, column=col_idx)
             cell.fill = header_fill
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center")
-        
-        # Helper function to format number as Turkish string (1.234,56)
-        def format_turkish(num):
-            formatted = f"{num:,.2f}"  # 1,234.56
-            # Swap . and , for Turkish format
-            formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
-            return formatted
         
         # Add income data
         for invoice in income_invoices:
