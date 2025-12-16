@@ -785,18 +785,44 @@ app.add_middleware(
     expose_headers=["Content-Disposition"]
 )
 
-# Middleware to allow iframe embedding only from documander.com
+# Middleware for security - iframe and referer check
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
-class IframeMiddleware(BaseHTTPMiddleware):
+ALLOWED_DOMAINS = ["documander.com", "www.documander.com", "localhost:3000", "localhost"]
+
+class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        # Check referer/origin for API calls
+        if request.url.path.startswith("/api"):
+            referer = request.headers.get("referer", "")
+            origin = request.headers.get("origin", "")
+            
+            # Allow if referer or origin is from allowed domains
+            is_allowed = False
+            for domain in ALLOWED_DOMAINS:
+                if domain in referer or domain in origin:
+                    is_allowed = True
+                    break
+            
+            # Also allow if no referer (for direct API testing during development)
+            # Remove this in production for maximum security
+            if not referer and not origin:
+                is_allowed = True
+            
+            if not is_allowed:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Access denied. This application can only be accessed from documander.com"}
+                )
+        
         response = await call_next(request)
         # Only allow iframe from documander.com
         response.headers["X-Frame-Options"] = "ALLOW-FROM https://www.documander.com"
         response.headers["Content-Security-Policy"] = "frame-ancestors https://www.documander.com https://documander.com"
         return response
 
-app.add_middleware(IframeMiddleware)
+app.add_middleware(SecurityMiddleware)
 
 logging.basicConfig(
     level=logging.INFO,
