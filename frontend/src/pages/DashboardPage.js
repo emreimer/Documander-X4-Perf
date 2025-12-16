@@ -159,8 +159,15 @@ const DashboardPage = () => {
       const contentDisposition = response.headers['content-disposition'];
       let filename = 'faturalar.xlsx';
       if (contentDisposition) {
-        const match = contentDisposition.match(/filename=(.+)/);
-        if (match) filename = match[1];
+        // Try RFC 5987 format first: filename*=UTF-8''encoded_name
+        const rfc5987Match = contentDisposition.match(/filename\*=UTF-8''(.+)/);
+        if (rfc5987Match) {
+          filename = decodeURIComponent(rfc5987Match[1]);
+        } else {
+          // Fallback to simple format: filename=name
+          const simpleMatch = contentDisposition.match(/filename=(.+)/);
+          if (simpleMatch) filename = simpleMatch[1];
+        }
       }
       
       const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
