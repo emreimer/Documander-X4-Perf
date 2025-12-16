@@ -667,6 +667,12 @@ async def export_to_excel(
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center")
         
+        # Helper function for Turkish number format (if not already defined)
+        def format_turkish(num):
+            formatted = f"{num:,.2f}"  # 1,234.56
+            formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+            return formatted
+        
         # Add expense data
         for invoice in expense_invoices:
             ws.append([
@@ -676,15 +682,14 @@ async def export_to_excel(
                 invoice.get('issuer_tax_id', ''),
                 invoice.get('issuer_tax_office', ''),
                 invoice.get('description', ''),
-                invoice.get('amount', 0),
-                invoice.get('vat', 0),
-                invoice.get('total', 0)
+                format_turkish(invoice.get('amount', 0)),
+                format_turkish(invoice.get('vat', 0)),
+                format_turkish(invoice.get('total', 0))
             ])
-            # Apply Turkish number format (G, H, I = 7, 8, 9)
-            turkish_num_format = '[$-41F]#.##0,00'
-            ws[f'G{current_row}'].number_format = turkish_num_format
-            ws[f'H{current_row}'].number_format = turkish_num_format
-            ws[f'I{current_row}'].number_format = turkish_num_format
+            # Right align number columns
+            ws[f'G{current_row}'].alignment = Alignment(horizontal="right")
+            ws[f'H{current_row}'].alignment = Alignment(horizontal="right")
+            ws[f'I{current_row}'].alignment = Alignment(horizontal="right")
             current_row += 1
         
         # Add subtotal row for expense
@@ -692,7 +697,7 @@ async def export_to_excel(
         expense_vat_total = sum(inv.get('vat', 0) for inv in expense_invoices)
         expense_total_total = sum(inv.get('total', 0) for inv in expense_invoices)
         
-        ws.append(['', '', '', '', '', 'TOPLAM:', expense_amount_total, expense_vat_total, expense_total_total])
+        ws.append(['', '', '', '', '', 'TOPLAM:', format_turkish(expense_amount_total), format_turkish(expense_vat_total), format_turkish(expense_total_total)])
         subtotal_fill = PatternFill(start_color="E8F5E9", end_color="E8F5E9", fill_type="solid")
         for col_idx in range(1, 10):
             cell = ws.cell(row=current_row, column=col_idx)
@@ -700,9 +705,8 @@ async def export_to_excel(
             cell.font = Font(bold=True)
             if col_idx == 6:
                 cell.alignment = Alignment(horizontal="right")
-        ws[f'G{current_row}'].number_format = turkish_num_format
-        ws[f'H{current_row}'].number_format = turkish_num_format
-        ws[f'I{current_row}'].number_format = turkish_num_format
+            if col_idx in [7, 8, 9]:
+                cell.alignment = Alignment(horizontal="right")
         current_row += 1
     
     # Auto-adjust column widths (skip merged cells)
