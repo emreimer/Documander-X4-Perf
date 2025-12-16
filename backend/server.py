@@ -674,12 +674,6 @@ async def export_to_excel(
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center")
         
-        # Helper function for Turkish number format (if not already defined)
-        def format_turkish(num):
-            formatted = f"{num:,.2f}"  # 1,234.56
-            formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
-            return formatted
-        
         # Add expense data
         for invoice in expense_invoices:
             ws.append([
