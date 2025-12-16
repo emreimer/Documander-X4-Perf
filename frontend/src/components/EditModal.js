@@ -13,7 +13,10 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     invoice_number: invoice.invoice_number,
     date: invoice.date,
+    issuer_name: invoice.issuer_name,
     customer_name: invoice.customer_name,
+    tax_id: invoice.tax_id,
+    tax_office: invoice.tax_office,
     amount: invoice.amount,
     vat: invoice.vat,
     total: invoice.total
