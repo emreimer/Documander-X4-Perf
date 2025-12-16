@@ -339,7 +339,7 @@ async def upload_invoice(
     if not session:
         raise HTTPException(status_code=400, detail="Önce mükellef bilgilerini girin")
     
-    allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml']
+    allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml', 'text/html']
     uploaded_invoices = []
     errors = []
     date_mismatches = []
