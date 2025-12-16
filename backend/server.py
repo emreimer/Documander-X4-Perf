@@ -726,11 +726,17 @@ async def export_to_excel(
     output.seek(0)
     
     # Generate filename based on session info and category
-    category_suffix = ""
+    # Turkish month names for filename
+    month_names_tr = {
+        1: 'Ocak', 2: 'Subat', 3: 'Mart', 4: 'Nisan', 5: 'Mayis', 6: 'Haziran',
+        7: 'Temmuz', 8: 'Agustos', 9: 'Eylul', 10: 'Ekim', 11: 'Kasim', 12: 'Aralik'
+    }
+    
+    category_name = "tumu"
     if category == 'income':
-        category_suffix = "-gelir"
+        category_name = "gelir"
     elif category == 'expense':
-        category_suffix = "-gider"
+        category_name = "gider"
     
     if session:
         taxpayer_name = session.get('taxpayer_name', 'faturalar')
@@ -738,10 +744,11 @@ async def export_to_excel(
         safe_name = "".join(c for c in taxpayer_name if c.isalnum() or c in (' ', '-', '_')).strip()
         safe_name = safe_name.replace(' ', '_')
         year = session.get('year', '')
-        month = session.get('month', '')
-        filename = f"{safe_name}-{year}-{month:02d}{category_suffix}.xlsx"
+        month = session.get('month', 1)
+        month_name = month_names_tr.get(month, '')
+        filename = f"{safe_name}_{month_name}_{year}_{category_name}.xlsx"
     else:
-        filename = f"faturalar{category_suffix}.xlsx"
+        filename = f"faturalar_{category_name}.xlsx"
     
     return StreamingResponse(
         output,
