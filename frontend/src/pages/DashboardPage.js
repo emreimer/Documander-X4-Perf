@@ -48,8 +48,9 @@ const DashboardPage = () => {
   }, [session]);
 
   const getAuthHeader = () => {
-    // No auth needed
-    return {};
+    // Send visitor ID for user isolation
+    const visitorId = localStorage.getItem('documander_visitor_id') || 'anonymous';
+    return { 'X-Visitor-ID': visitorId };
   };
 
   const fetchSession = async () => {
