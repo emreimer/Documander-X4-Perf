@@ -31,8 +31,13 @@ const DashboardPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
-    // No auth needed - set default user
-    setUser({ full_name: 'Kullanıcı' });
+    // Generate or retrieve unique browser ID for user isolation
+    let visitorId = localStorage.getItem('documander_visitor_id');
+    if (!visitorId) {
+      visitorId = 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem('documander_visitor_id', visitorId);
+    }
+    setUser({ visitorId });
     fetchSession();
   }, []);
 
