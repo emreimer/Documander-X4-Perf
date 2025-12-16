@@ -67,6 +67,7 @@ class Invoice(BaseModel):
     customer_name: str
     customer_tax_id: str
     customer_tax_office: str
+    description: str
     amount: float
     vat: float
     total: float
@@ -83,6 +84,7 @@ class InvoiceCreate(BaseModel):
     customer_name: str
     customer_tax_id: str
     customer_tax_office: str
+    description: str
     amount: float
     vat: float
     total: float
@@ -96,6 +98,7 @@ class InvoiceUpdate(BaseModel):
     customer_name: Optional[str] = None
     customer_tax_id: Optional[str] = None
     customer_tax_office: Optional[str] = None
+    description: Optional[str] = None
     amount: Optional[float] = None
     vat: Optional[float] = None
     total: Optional[float] = None
