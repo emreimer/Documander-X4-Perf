@@ -340,6 +340,19 @@ async def get_invoices(user_id: str = Depends(get_current_user)):
         if 'description' not in invoice:
             invoice['description'] = 'N/A'
     
+    # Sort by date (newest first)
+    def parse_date(date_str):
+        try:
+            # Parse DD/MM/YYYY format
+            parts = date_str.split('/')
+            if len(parts) == 3:
+                return datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+        except:
+            pass
+        return datetime.min
+    
+    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=True)
+    
     return invoices
 
 @api_router.put("/invoices/{invoice_id}")
