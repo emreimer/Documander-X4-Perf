@@ -185,11 +185,11 @@ const UploadModal = ({ onClose, onSuccess }) => {
           </Button>
           <Button
             onClick={handleUpload}
-            disabled={!file || uploading}
+            disabled={files.length === 0 || uploading}
             className="rounded-none uppercase tracking-wide"
             data-testid="submit-upload-button"
           >
-            {uploading ? 'İşleniyor...' : 'Yükle'}
+            {uploading ? 'İşleniyor...' : `Yükle (${files.length})`}
           </Button>
         </div>
       </div>
