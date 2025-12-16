@@ -137,17 +137,29 @@ const DashboardPage = ({ setIsAuthenticated }) => {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (category = null) => {
     try {
-      const response = await axios.get(`${API}/invoices/export/excel`, {
+      const url = category 
+        ? `${API}/invoices/export/excel?category=${category}`
+        : `${API}/invoices/export/excel`;
+      
+      const response = await axios.get(url, {
         headers: getAuthHeader(),
         responseType: 'blob'
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Get filename from response headers or generate default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'faturalar.xlsx';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename=(.+)/);
+        if (match) filename = match[1];
+      }
+      
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'faturalar.xlsx');
+      link.href = blobUrl;
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
