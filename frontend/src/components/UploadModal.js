@@ -114,7 +114,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
         {/* Body */}
         <div className="p-6">
           <p className="text-sm text-muted-foreground mb-6">
-            PDF, JPG, PNG, XML veya HTML formatında {category === 'income' ? 'gelir' : 'gider'} faturası yükleyin. AI otomatik olarak fatura bilgilerini çıkaracaktır.
+            PDF, JPG, PNG, XML veya HTML formatında {category === 'income' ? 'gelir' : 'gider'} faturası yükleyin.
           </p>
 
           {/* Drag & Drop Zone */}
