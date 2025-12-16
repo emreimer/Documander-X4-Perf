@@ -7,7 +7,7 @@ import { X, Upload as UploadIcon, FileText } from 'lucide-react';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const UploadModal = ({ onClose, onSuccess }) => {
+const UploadModal = ({ category, onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
