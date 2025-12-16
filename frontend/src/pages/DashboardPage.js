@@ -97,6 +97,22 @@ const DashboardPage = ({ setIsAuthenticated }) => {
     }
   };
 
+  const handleResetAll = async () => {
+    if (!window.confirm('Tüm faturaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/invoices`, {
+        headers: getAuthHeader()
+      });
+      toast.success('Tüm faturalar silindi');
+      fetchInvoices();
+    } catch (error) {
+      toast.error('Faturalar silinemedi');
+    }
+  };
+
   const openUploadModal = (category) => {
     setUploadCategory(category);
     setShowUploadModal(true);
