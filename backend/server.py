@@ -711,10 +711,22 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     wb.save(output)
     output.seek(0)
     
+    # Generate filename based on session info
+    if session:
+        taxpayer_name = session.get('taxpayer_name', 'faturalar')
+        # Clean taxpayer name for filename (remove special chars)
+        safe_name = "".join(c for c in taxpayer_name if c.isalnum() or c in (' ', '-', '_')).strip()
+        safe_name = safe_name.replace(' ', '_')
+        year = session.get('year', '')
+        month = session.get('month', '')
+        filename = f"{safe_name}-{year}-{month:02d}.xlsx"
+    else:
+        filename = "faturalar.xlsx"
+    
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=faturalar.xlsx"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 app.include_router(api_router)
