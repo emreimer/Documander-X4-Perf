@@ -482,15 +482,6 @@ const DashboardPage = () => {
               <RotateCcw className="w-4 h-4" />
               Tabloları Sıfırla
             </Button>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="rounded-none gap-2"
-              data-testid="logout-button"
-            >
-              <LogOut className="w-4 h-4" />
-              Çıkış
-            </Button>
           </div>
         </div>
       </header>
