@@ -10,9 +10,11 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const DashboardPage = ({ setIsAuthenticated }) => {
-  const [invoices, setInvoices] = useState([]);
+  const [incomeInvoices, setIncomeInvoices] = useState([]);
+  const [expenseInvoices, setExpenseInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState('income');
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [user, setUser] = useState(null);
 
