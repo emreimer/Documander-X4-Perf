@@ -337,6 +337,8 @@ async def get_invoices(user_id: str = Depends(get_current_user)):
             invoice['customer_tax_id'] = invoice.get('tax_id', 'N/A')
         if 'customer_tax_office' not in invoice:
             invoice['customer_tax_office'] = invoice.get('tax_office', 'N/A')
+        if 'description' not in invoice:
+            invoice['description'] = 'N/A'
     
     return invoices
 
