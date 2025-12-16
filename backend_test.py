@@ -287,22 +287,42 @@ startxref
         test_file = self.create_test_invoice_file()
         
         files = {
-            'file': ('test_invoice.pdf', test_file, 'application/pdf')
+            'files': ('test_invoice.pdf', test_file, 'application/pdf')
+        }
+        data = {
+            'category': 'income'
         }
         
-        success, response = self.run_test(
-            "Invoice Upload",
-            "POST",
-            "invoices/upload",
-            200,
-            files=files
-        )
+        # Manual upload since run_test doesn't handle form data properly
+        url = f"{self.api_url}/invoices/upload"
+        headers = {'Authorization': f'Bearer {self.token}'}
         
-        if success and 'id' in response:
-            self.log_test("Invoice Upload", True)
-            return True, response['id']
-        else:
-            self.log_test("Invoice Upload", False, "No invoice ID in response or upload failed")
+        try:
+            response = requests.post(url, files=files, data=data, headers=headers)
+            success = response.status_code == 200
+            
+            print(f"🔍 Testing Invoice Upload...")
+            print(f"   URL: {url}")
+            print(f"   Status: {response.status_code} {'✅' if success else '❌'}")
+            
+            if success:
+                response_data = response.json()
+                if 'invoices' in response_data and len(response_data['invoices']) > 0:
+                    invoice_id = response_data['invoices'][0]['id']
+                    self.log_test("Invoice Upload", True)
+                    return True, invoice_id
+                else:
+                    self.log_test("Invoice Upload", False, "No invoices in response")
+                    return False, None
+            else:
+                error_detail = response.text[:200]
+                print(f"   Error: {error_detail}")
+                self.log_test("Invoice Upload", False, f"Status {response.status_code}: {error_detail}")
+                return False, None
+                
+        except Exception as e:
+            print(f"   Exception: {str(e)} ❌")
+            self.log_test("Invoice Upload", False, f"Exception: {str(e)}")
             return False, None
 
     def test_get_invoices(self):
