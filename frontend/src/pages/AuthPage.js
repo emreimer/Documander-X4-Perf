@@ -148,13 +148,12 @@ const AuthPage = ({ setIsAuthenticated }) => {
       </div>
 
       {/* Right Side - Image */}
-      <div
-        className="hidden lg:block bg-cover bg-center relative"
-        style={{
-          backgroundImage: "url('/hero-auth.png')",
-          backgroundColor: "#000"
-        }}
-      >
+      <div className="hidden lg:flex items-center justify-center bg-white">
+        <img 
+          src="/hero-auth.png" 
+          alt="Documander" 
+          className="max-w-[80%] max-h-[80%] object-contain"
+        />
       </div>
     </div>
   );
