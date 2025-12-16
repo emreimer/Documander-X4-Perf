@@ -244,7 +244,7 @@ class InvoiceAPITester:
         test_file = self.create_test_invoice_file()
         
         files = {
-            'file': ('test_invoice.txt', test_file, 'text/plain')
+            'file': ('test_invoice.xml', test_file, 'application/xml')
         }
         
         success, response = self.run_test(
