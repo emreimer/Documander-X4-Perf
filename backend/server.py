@@ -327,14 +327,23 @@ async def upload_invoice(
     }
 
 @api_router.get("/invoices", response_model=List[Invoice])
-async def get_invoices(user_id: str = Depends(get_current_user)):
-    invoices = await db.invoices.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+async def get_invoices(
+    category: Optional[str] = None,
+    user_id: str = Depends(get_current_user)
+):
+    query = {"user_id": user_id}
+    if category:
+        query["category"] = category
+    
+    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
     
     for invoice in invoices:
         if isinstance(invoice['created_at'], str):
             invoice['created_at'] = datetime.fromisoformat(invoice['created_at'])
         
         # Add missing fields for backward compatibility
+        if 'category' not in invoice:
+            invoice['category'] = 'income'  # Default to income for old records
         if 'issuer_name' not in invoice:
             invoice['issuer_name'] = 'N/A'
         if 'issuer_tax_id' not in invoice:
