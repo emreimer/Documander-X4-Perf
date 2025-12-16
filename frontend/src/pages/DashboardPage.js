@@ -32,11 +32,8 @@ const DashboardPage = () => {
 
   useEffect(() => {
     // Generate or retrieve unique browser ID for user isolation
-    let visitorId = localStorage.getItem('documander_visitor_id');
-    if (!visitorId) {
-      visitorId = 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-      localStorage.setItem('documander_visitor_id', visitorId);
-    }
+    const visitorId = getVisitorId();
+    console.log('Dashboard loaded with Visitor ID:', visitorId);
     setUser({ visitorId });
     fetchSession();
   }, []);
