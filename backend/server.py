@@ -785,14 +785,15 @@ app.add_middleware(
     expose_headers=["Content-Disposition"]
 )
 
-# Middleware to allow iframe embedding
+# Middleware to allow iframe embedding only from documander.com
 from starlette.middleware.base import BaseHTTPMiddleware
 
 class IframeMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
-        response.headers["X-Frame-Options"] = "ALLOWALL"
-        response.headers["Content-Security-Policy"] = "frame-ancestors *"
+        # Only allow iframe from documander.com
+        response.headers["X-Frame-Options"] = "ALLOW-FROM https://www.documander.com"
+        response.headers["Content-Security-Policy"] = "frame-ancestors https://www.documander.com https://documander.com"
         return response
 
 app.add_middleware(IframeMiddleware)
