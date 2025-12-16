@@ -607,10 +607,11 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
                 invoice.get('vat', 0),
                 invoice.get('total', 0)
             ])
-            # Apply Turkish number format (G, H, I = 7, 8, 9)
-            ws[f'G{current_row}'].number_format = '#,##0.00'
-            ws[f'H{current_row}'].number_format = '#,##0.00'
-            ws[f'I{current_row}'].number_format = '#,##0.00'
+            # Apply Turkish number format (G, H, I = 7, 8, 9) - uses dot as thousands, comma as decimal
+            turkish_num_format = '[$-41F]#.##0,00'
+            ws[f'G{current_row}'].number_format = turkish_num_format
+            ws[f'H{current_row}'].number_format = turkish_num_format
+            ws[f'I{current_row}'].number_format = turkish_num_format
             current_row += 1
         
         # Add subtotal row for income
@@ -626,9 +627,9 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
             cell.font = Font(bold=True)
             if col_idx == 6:
                 cell.alignment = Alignment(horizontal="right")
-        ws[f'G{current_row}'].number_format = '#.##0,00'
-        ws[f'H{current_row}'].number_format = '#.##0,00'
-        ws[f'I{current_row}'].number_format = '#.##0,00'
+        ws[f'G{current_row}'].number_format = turkish_num_format
+        ws[f'H{current_row}'].number_format = turkish_num_format
+        ws[f'I{current_row}'].number_format = turkish_num_format
         current_row += 1
         
         current_row += 2  # Empty rows between sections
