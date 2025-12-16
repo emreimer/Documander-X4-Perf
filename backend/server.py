@@ -543,6 +543,24 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
             ws[f'H{current_row}'].number_format = '#.##0,00'
             ws[f'I{current_row}'].number_format = '#.##0,00'
             current_row += 1
+        
+        # Add subtotal row for expense
+        expense_amount_total = sum(inv.get('amount', 0) for inv in expense_invoices)
+        expense_vat_total = sum(inv.get('vat', 0) for inv in expense_invoices)
+        expense_total_total = sum(inv.get('total', 0) for inv in expense_invoices)
+        
+        ws.append(['', '', '', '', '', 'TOPLAM:', expense_amount_total, expense_vat_total, expense_total_total])
+        subtotal_fill = PatternFill(start_color="E8F5E9", end_color="E8F5E9", fill_type="solid")
+        for col_idx in range(1, 10):
+            cell = ws.cell(row=current_row, column=col_idx)
+            cell.fill = subtotal_fill
+            cell.font = Font(bold=True)
+            if col_idx == 6:
+                cell.alignment = Alignment(horizontal="right")
+        ws[f'G{current_row}'].number_format = '#.##0,00'
+        ws[f'H{current_row}'].number_format = '#.##0,00'
+        ws[f'I{current_row}'].number_format = '#.##0,00'
+        current_row += 1
     
     # Auto-adjust column widths
     for column in ws.columns:
