@@ -208,13 +208,13 @@ class InvoiceAPITester:
             "Protected Endpoint Without Token",
             "GET",
             "invoices",
-            401
+            403  # FastAPI returns 403 for missing auth
         )
         
         # Restore token
         self.token = original_token
         
-        # For this test, success means we got 401 as expected
+        # For this test, success means we got 403 as expected
         self.log_test("Protected Endpoint Without Token", success)
         return success
 
