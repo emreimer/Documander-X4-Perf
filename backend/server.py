@@ -412,7 +412,12 @@ async def get_invoices(
     category: Optional[str] = None,
     user_id: str = Depends(get_current_user)
 ):
+    # Get current session
+    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
+    
     query = {"user_id": user_id}
+    if session:
+        query["session_id"] = session['id']
     if category:
         query["category"] = category
     
@@ -424,7 +429,9 @@ async def get_invoices(
         
         # Add missing fields for backward compatibility
         if 'category' not in invoice:
-            invoice['category'] = 'income'  # Default to income for old records
+            invoice['category'] = 'income'
+        if 'session_id' not in invoice:
+            invoice['session_id'] = ''
         if 'issuer_name' not in invoice:
             invoice['issuer_name'] = 'N/A'
         if 'issuer_tax_id' not in invoice:
@@ -441,7 +448,6 @@ async def get_invoices(
     # Sort by date (newest first)
     def parse_date(date_str):
         try:
-            # Parse DD/MM/YYYY format
             parts = date_str.split('/')
             if len(parts) == 3:
                 return datetime(int(parts[2]), int(parts[1]), int(parts[0]))
