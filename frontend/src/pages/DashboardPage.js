@@ -167,10 +167,14 @@ const DashboardPage = () => {
       
       toast.success('Excel dosyası indirildi');
     } catch (error) {
+      console.error('Excel export error:', error);
+      console.error('Error response:', error.response);
+      
       if (error.response?.status === 404) {
         toast.error('İndirilecek fatura bulunamadı');
       } else {
-        toast.error('Excel dışa aktarma başarısız');
+        const errorMsg = error.response?.data?.detail || error.message || 'Bilinmeyen hata';
+        toast.error(`Excel dışa aktarma başarısız: ${errorMsg}`);
       }
     }
   };
