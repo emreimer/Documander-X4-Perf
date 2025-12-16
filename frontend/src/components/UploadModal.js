@@ -13,8 +13,9 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
   const [dragOver, setDragOver] = useState(false);
 
   const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return { Authorization: `Bearer ${token}` };
+    // Send visitor ID for user isolation
+    const visitorId = localStorage.getItem('documander_visitor_id') || 'anonymous';
+    return { 'X-Visitor-ID': visitorId };
   };
 
   const handleFileChange = (e) => {
