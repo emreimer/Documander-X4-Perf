@@ -112,13 +112,6 @@ const DashboardPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    toast.success('Çıkış başarılı');
-  };
-
   const handleDelete = async (invoiceId) => {
     if (!window.confirm('Bu faturayı silmek istediğinizden emin misiniz?')) {
       return;
