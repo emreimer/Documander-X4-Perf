@@ -112,23 +112,30 @@ const UploadModal = ({ onClose, onSuccess }) => {
             }`}
             data-testid="upload-drop-zone"
           >
-            {file ? (
+            {files.length > 0 ? (
               <div className="space-y-4">
                 <FileText className="w-12 h-12 text-primary mx-auto" strokeWidth={1.5} />
-                <div>
-                  <p className="font-medium text-sm">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(file.size / 1024).toFixed(2)} KB
-                  </p>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {files.map((file, index) => (
+                    <div key={index} className="text-sm">
+                      <p className="font-medium">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(file.size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-sm font-medium text-primary">
+                  {files.length} dosya seçildi
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setFile(null)}
+                  onClick={() => setFiles([])}
                   className="rounded-none"
                   data-testid="clear-file-button"
                 >
-                  Dosyayı Değiştir
+                  Dosyaları Temizle
                 </Button>
               </div>
             ) : (
@@ -136,7 +143,7 @@ const UploadModal = ({ onClose, onSuccess }) => {
                 <UploadIcon className="w-12 h-12 text-muted mx-auto" strokeWidth={1.5} />
                 <div>
                   <p className="font-medium text-sm mb-2">
-                    Dosyayı buraya sürükleyin
+                    Dosyaları buraya sürükleyin
                   </p>
                   <p className="text-xs text-muted-foreground mb-4">veya</p>
                   <label htmlFor="file-input">
@@ -147,6 +154,7 @@ const UploadModal = ({ onClose, onSuccess }) => {
                   <input
                     id="file-input"
                     type="file"
+                    multiple
                     accept=".pdf,.jpg,.jpeg,.png,.xml"
                     onChange={handleFileChange}
                     className="hidden"
@@ -155,6 +163,9 @@ const UploadModal = ({ onClose, onSuccess }) => {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Desteklenen formatlar: PDF, JPG, PNG, XML
+                </p>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Toplu yükleme desteklenir
                 </p>
               </div>
             )}
