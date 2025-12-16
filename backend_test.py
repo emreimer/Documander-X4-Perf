@@ -32,14 +32,10 @@ class InvoiceAPITester:
     def run_test(self, name, method, endpoint, expected_status, data=None, files=None, response_type='json'):
         """Run a single API test"""
         url = f"{self.api_url}/{endpoint}"
-        headers = {'Content-Type': 'application/json'}
+        headers = {'X-Visitor-ID': self.visitor_id}
         
-        if self.token:
-            headers['Authorization'] = f'Bearer {self.token}'
-        
-        if files:
-            # Remove Content-Type for file uploads
-            headers.pop('Content-Type', None)
+        if not files:
+            headers['Content-Type'] = 'application/json'
 
         print(f"\n🔍 Testing {name}...")
         print(f"   URL: {url}")
