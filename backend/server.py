@@ -263,8 +263,12 @@ def safe_float(value, default=0.0):
 @api_router.post("/invoices/upload")
 async def upload_invoice(
     files: List[UploadFile] = File(...),
+    category: str = Form(...),
     user_id: str = Depends(get_current_user)
 ):
+    if category not in ['income', 'expense']:
+        raise HTTPException(status_code=400, detail="Category must be 'income' or 'expense'")
+    
     allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml']
     uploaded_invoices = []
     errors = []
