@@ -197,6 +197,40 @@ async def get_me(user_id: str = Depends(get_current_user)):
     
     return User(**user_dict)
 
+# Taxpayer Session Routes
+@api_router.post("/sessions")
+async def create_session(session_data: TaxpayerSessionCreate, user_id: str = Depends(get_current_user)):
+    # Delete any existing session for this user
+    await db.taxpayer_sessions.delete_many({"user_id": user_id})
+    # Also delete all invoices for this user (new session = fresh start)
+    await db.invoices.delete_many({"user_id": user_id})
+    
+    session = TaxpayerSession(
+        user_id=user_id,
+        taxpayer_name=session_data.taxpayer_name,
+        year=session_data.year,
+        month=session_data.month
+    )
+    
+    session_dict = session.model_dump()
+    session_dict['created_at'] = session_dict['created_at'].isoformat()
+    
+    await db.taxpayer_sessions.insert_one(session_dict)
+    return session
+
+@api_router.get("/sessions/current")
+async def get_current_session(user_id: str = Depends(get_current_user)):
+    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
+    if not session:
+        return None
+    return session
+
+@api_router.delete("/sessions")
+async def delete_session(user_id: str = Depends(get_current_user)):
+    await db.taxpayer_sessions.delete_many({"user_id": user_id})
+    await db.invoices.delete_many({"user_id": user_id})
+    return {"message": "Session and invoices deleted"}
+
 # Invoice AI Processing
 async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime_type: str) -> dict:
     try:
