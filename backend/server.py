@@ -507,7 +507,10 @@ async def delete_all_invoices(
     }
 
 @api_router.get("/invoices/export/excel")
-async def export_to_excel(user_id: str = Depends(get_current_user)):
+async def export_to_excel(
+    category: Optional[str] = None,
+    user_id: str = Depends(get_current_user)
+):
     # Get current session for filename
     session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
     
@@ -515,6 +518,8 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
     query = {"user_id": user_id}
     if session:
         query["session_id"] = session['id']
+    if category and category in ['income', 'expense']:
+        query["category"] = category
     
     invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
     
