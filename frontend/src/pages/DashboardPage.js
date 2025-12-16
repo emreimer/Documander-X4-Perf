@@ -443,10 +443,10 @@ const DashboardPage = ({ setIsAuthenticated }) => {
       {/* Header */}
       <header className="border-b border-border bg-card shadow-sm">
         <div className="px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FileText className="w-7 h-7 text-primary" strokeWidth={1.5} />
-            <div>
-              <h1 className="text-2xl font-heading font-bold tracking-tight">
+          <div className="flex items-center gap-4">
+            <img src="/logo.png" alt="Documander" className="h-10" />
+            <div className="border-l border-border pl-4">
+              <h1 className="text-xl font-heading font-bold tracking-tight">
                 {session ? `${session.taxpayer_name}` : 'Fatura Yönetim'}
               </h1>
               <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
