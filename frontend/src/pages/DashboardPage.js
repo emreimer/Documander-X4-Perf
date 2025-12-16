@@ -34,10 +34,18 @@ const DashboardPage = ({ setIsAuthenticated }) => {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/invoices`, {
+      
+      // Fetch income invoices
+      const incomeResponse = await axios.get(`${API}/invoices?category=income`, {
         headers: getAuthHeader()
       });
-      setInvoices(response.data);
+      setIncomeInvoices(incomeResponse.data);
+      
+      // Fetch expense invoices
+      const expenseResponse = await axios.get(`${API}/invoices?category=expense`, {
+        headers: getAuthHeader()
+      });
+      setExpenseInvoices(expenseResponse.data);
     } catch (error) {
       toast.error('Faturalar yüklenemedi');
     } finally {
