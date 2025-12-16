@@ -18,6 +18,9 @@ const DashboardPage = ({ setIsAuthenticated }) => {
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [user, setUser] = useState(null);
 
+  // Combine income and expense invoices
+  const invoices = [...incomeInvoices, ...expenseInvoices];
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
