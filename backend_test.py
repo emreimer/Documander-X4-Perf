@@ -539,7 +539,14 @@ startxref
             
         self.test_excel_export()
         
-        # Clean up - delete the test invoice
+        # Test new DELETE all invoices functionality
+        print("\n📋 NEW FEATURES TESTS")
+        print("-" * 30)
+        
+        self.test_delete_all_invoices_by_category()
+        self.test_delete_all_invoices()
+        
+        # Clean up - delete the test invoice (if any remaining)
         if upload_success and invoice_id:
             self.test_delete_invoice(invoice_id)
         
