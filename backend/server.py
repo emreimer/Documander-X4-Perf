@@ -264,7 +264,7 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
 - issuer_tax_office: Faturayı düzenleyen firmanın vergi dairesi (SADECE vergi dairesi adı, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "ERENKÖY VERGİ DAİRESİ MÜD." yerine sadece "ERENKÖY" yaz)
 - customer_name: Müşteri adı (faturanın kesildiği kişi/firma)
 - customer_tax_id: Müşterinin vergi kimlik numarası (TCKN veya VKN)
-- customer_tax_office: Müşterinin vergi dairesi (SADECE vergi dairesi adı, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "KADIKÖY VERGİ DAİRESİ" yerine sadece "Kadıköy" yaz)
+- customer_tax_office: Müşterinin vergi dairesi (SADECE vergi dairesi adı, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "KADIKÖY VERGİ DAİRESİ" yerine sadece "KADIKÖY" yaz)
 - description: Fatura içeriğinin ÇOK KISA özeti (maksimum 3-5 kelime, sadece ana konu)
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
