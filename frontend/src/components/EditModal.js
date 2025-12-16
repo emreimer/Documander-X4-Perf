@@ -105,61 +105,105 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="issuer_name" className="uppercase text-xs tracking-wider">
-              Faturayı Düzenleyen
-            </Label>
-            <Input
-              id="issuer_name"
-              name="issuer_name"
-              value={formData.issuer_name}
-              onChange={handleChange}
-              className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
-              data-testid="edit-issuer-name"
-            />
-          </div>
+          <div className="border-b border-border pb-4 mb-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
+              Düzenleyen Bilgileri
+            </p>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="issuer_name" className="uppercase text-xs tracking-wider">
+                  Firma/Kişi Adı
+                </Label>
+                <Input
+                  id="issuer_name"
+                  name="issuer_name"
+                  value={formData.issuer_name}
+                  onChange={handleChange}
+                  className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                  data-testid="edit-issuer-name"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="customer_name" className="uppercase text-xs tracking-wider">
-              Müşteri Adı
-            </Label>
-            <Input
-              id="customer_name"
-              name="customer_name"
-              value={formData.customer_name}
-              onChange={handleChange}
-              className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
-              data-testid="edit-customer-name"
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="issuer_tax_id" className="uppercase text-xs tracking-wider">
+                    Vergi Kimlik No
+                  </Label>
+                  <Input
+                    id="issuer_tax_id"
+                    name="issuer_tax_id"
+                    value={formData.issuer_tax_id}
+                    onChange={handleChange}
+                    className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
+                    data-testid="edit-issuer-tax-id"
+                  />
+                </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="tax_id" className="uppercase text-xs tracking-wider">
-                Vergi Kimlik No
-              </Label>
-              <Input
-                id="tax_id"
-                name="tax_id"
-                value={formData.tax_id}
-                onChange={handleChange}
-                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
-                data-testid="edit-tax-id"
-              />
+                <div className="space-y-2">
+                  <Label htmlFor="issuer_tax_office" className="uppercase text-xs tracking-wider">
+                    Vergi Dairesi
+                  </Label>
+                  <Input
+                    id="issuer_tax_office"
+                    name="issuer_tax_office"
+                    value={formData.issuer_tax_office}
+                    onChange={handleChange}
+                    className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                    data-testid="edit-issuer-tax-office"
+                  />
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tax_office" className="uppercase text-xs tracking-wider">
-                Vergi Dairesi
-              </Label>
-              <Input
-                id="tax_office"
-                name="tax_office"
-                value={formData.tax_office}
-                onChange={handleChange}
-                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
-                data-testid="edit-tax-office"
-              />
+          <div className="border-b border-border pb-4 mb-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
+              Müşteri Bilgileri
+            </p>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="customer_name" className="uppercase text-xs tracking-wider">
+                  Müşteri Adı
+                </Label>
+                <Input
+                  id="customer_name"
+                  name="customer_name"
+                  value={formData.customer_name}
+                  onChange={handleChange}
+                  className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                  data-testid="edit-customer-name"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customer_tax_id" className="uppercase text-xs tracking-wider">
+                    Vergi Kimlik No
+                  </Label>
+                  <Input
+                    id="customer_tax_id"
+                    name="customer_tax_id"
+                    value={formData.customer_tax_id}
+                    onChange={handleChange}
+                    className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0 font-mono"
+                    data-testid="edit-customer-tax-id"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customer_tax_office" className="uppercase text-xs tracking-wider">
+                    Vergi Dairesi
+                  </Label>
+                  <Input
+                    id="customer_tax_office"
+                    name="customer_tax_office"
+                    value={formData.customer_tax_office}
+                    onChange={handleChange}
+                    className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                    data-testid="edit-customer-tax-office"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
