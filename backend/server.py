@@ -725,7 +725,13 @@ async def export_to_excel(
     wb.save(output)
     output.seek(0)
     
-    # Generate filename based on session info
+    # Generate filename based on session info and category
+    category_suffix = ""
+    if category == 'income':
+        category_suffix = "-gelir"
+    elif category == 'expense':
+        category_suffix = "-gider"
+    
     if session:
         taxpayer_name = session.get('taxpayer_name', 'faturalar')
         # Clean taxpayer name for filename (remove special chars)
@@ -733,9 +739,9 @@ async def export_to_excel(
         safe_name = safe_name.replace(' ', '_')
         year = session.get('year', '')
         month = session.get('month', '')
-        filename = f"{safe_name}-{year}-{month:02d}.xlsx"
+        filename = f"{safe_name}-{year}-{month:02d}{category_suffix}.xlsx"
     else:
-        filename = "faturalar.xlsx"
+        filename = f"faturalar{category_suffix}.xlsx"
     
     return StreamingResponse(
         output,
