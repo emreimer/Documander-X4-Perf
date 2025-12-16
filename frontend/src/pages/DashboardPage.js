@@ -140,8 +140,12 @@ const DashboardPage = () => {
         ? `${API}/invoices/export/excel?category=${category}`
         : `${API}/invoices/export/excel`;
       
+      const headers = getAuthHeader();
+      console.log('Export headers:', headers);
+      console.log('Export URL:', url);
+      
       const response = await axios.get(url, {
-        headers: getAuthHeader(),
+        headers: headers,
         responseType: 'blob'
       });
       
