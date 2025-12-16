@@ -744,8 +744,10 @@ async def export_to_excel(
     
     if session:
         taxpayer_name = session.get('taxpayer_name', 'faturalar')
-        # Clean taxpayer name for filename (remove special chars)
-        safe_name = "".join(c for c in taxpayer_name if c.isalnum() or c in (' ', '-', '_')).strip()
+        # Clean taxpayer name for filename - convert Turkish chars to ASCII
+        turkish_map = str.maketrans('İıĞğÜüŞşÖöÇç', 'IiGgUuSsOoCc')
+        safe_name = taxpayer_name.translate(turkish_map)
+        safe_name = "".join(c for c in safe_name if c.isalnum() or c in (' ', '-', '_')).strip()
         safe_name = safe_name.replace(' ', '_')
         year = session.get('year', '')
         month = session.get('month', 1)
@@ -753,10 +755,14 @@ async def export_to_excel(
     else:
         filename = f"faturalar_{category_name}.xlsx"
     
+    # URL encode filename for Content-Disposition header (RFC 5987)
+    from urllib.parse import quote
+    encoded_filename = quote(filename)
+    
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"}
     )
 
 app.include_router(api_router)
