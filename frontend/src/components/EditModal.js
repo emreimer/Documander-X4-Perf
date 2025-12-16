@@ -27,7 +27,8 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
   const [saving, setSaving] = useState(false);
 
   const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
+    // Send visitor ID for user isolation
+    const visitorId = localStorage.getItem('documander_visitor_id') || 'anonymous';
     return { Authorization: `Bearer ${token}` };
   };
 
