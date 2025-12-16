@@ -87,7 +87,9 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
       <div className="bg-card border border-border shadow-lg max-w-lg w-full">
         {/* Header */}
         <div className="border-b border-border p-4 flex items-center justify-between bg-muted/20">
-          <h3 className="text-xl font-heading font-semibold">Fatura Yükle</h3>
+          <h3 className="text-xl font-heading font-semibold">
+            {category === 'income' ? 'Gelir Faturaları Yükle' : 'Gider Faturaları Yükle'}
+          </h3>
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground"
@@ -100,7 +102,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
         {/* Body */}
         <div className="p-6">
           <p className="text-sm text-muted-foreground mb-6">
-            PDF, JPG, PNG veya XML formatında fatura yükleyin. AI otomatik olarak fatura bilgilerini çıkaracaktır.
+            PDF, JPG, PNG veya XML formatında {category === 'income' ? 'gelir' : 'gider'} faturası yükleyin. AI otomatik olarak fatura bilgilerini çıkaracaktır.
           </p>
 
           {/* Drag & Drop Zone */}
