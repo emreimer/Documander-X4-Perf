@@ -151,15 +151,10 @@ const AuthPage = ({ setIsAuthenticated }) => {
       <div
         className="hidden lg:block bg-cover bg-center relative"
         style={{
-          backgroundImage: "url('https://images.pexels.com/photos/8534174/pexels-photo-8534174.jpeg')",
+          backgroundImage: "url('/hero-auth.png')",
+          backgroundColor: "#000"
         }}
       >
-        <div className="absolute inset-0 bg-primary/20"></div>
-        <div className="absolute bottom-12 left-12 right-12 text-white">
-          <p className="text-xl font-heading italic leading-relaxed">
-            "Hassasiyet, güvenin temelidir."
-          </p>
-        </div>
       </div>
     </div>
   );
