@@ -693,18 +693,25 @@ async def export_to_excel(user_id: str = Depends(get_current_user)):
         ws[f'I{current_row}'].number_format = '#.##0,00'
         current_row += 1
     
-    # Auto-adjust column widths
+    # Auto-adjust column widths (skip merged cells)
+    from openpyxl.cell.cell import MergedCell
     for column in ws.columns:
         max_length = 0
-        column_letter = column[0].column_letter
+        column_letter = None
         for cell in column:
+            # Skip merged cells
+            if isinstance(cell, MergedCell):
+                continue
+            if column_letter is None:
+                column_letter = cell.column_letter
             try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
+                if cell.value and len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
             except:
                 pass
-        adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column_letter].width = adjusted_width
+        if column_letter:
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
     
     # Save to BytesIO
     output = io.BytesIO()
