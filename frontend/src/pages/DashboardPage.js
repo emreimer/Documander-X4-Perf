@@ -445,10 +445,8 @@ const DashboardPage = () => {
                   <>
                     <Calendar className="w-3 h-3" />
                     {MONTH_NAMES[session.month]} {session.year}
-                    <span className="mx-2">•</span>
                   </>
                 )}
-                {user?.full_name}
               </p>
             </div>
           </div>
