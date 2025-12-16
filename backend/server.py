@@ -805,10 +805,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     is_allowed = True
                     break
             
-            # Also allow if no referer (for direct API testing during development)
-            # Remove this in production for maximum security
-            if not referer and not origin:
-                is_allowed = True
+            # No referer/origin = direct access = blocked
+            # Only documander.com can access
             
             if not is_allowed:
                 return JSONResponse(
