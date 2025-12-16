@@ -14,7 +14,7 @@ const MONTH_NAMES = {
   7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
 };
 
-const DashboardPage = ({ setIsAuthenticated }) => {
+const DashboardPage = () => {
   const [incomeInvoices, setIncomeInvoices] = useState([]);
   const [expenseInvoices, setExpenseInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
