@@ -567,6 +567,17 @@ async def export_to_excel(
     
     current_row = 1
     
+    # Define common styles for headers
+    header_fill = PatternFill(start_color="004D40", end_color="004D40", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    
+    # Helper function to format number as Turkish string (1.234,56)
+    def format_turkish(num):
+        formatted = f"{num:,.2f}"  # 1,234.56
+        # Swap . and , for Turkish format
+        formatted = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
+        return formatted
+    
     # Add main title with taxpayer info if session exists
     if session:
         taxpayer_name = session.get('taxpayer_name', '')
