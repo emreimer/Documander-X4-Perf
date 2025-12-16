@@ -198,13 +198,16 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
         prompt = """Bu faturadan şu bilgileri çıkar ve JSON formatında döndür:
 - invoice_number: Fatura numarası
 - date: Fatura tarihi (GG/AA/YYYY formatında)
-- customer_name: Müşteri adı
+- issuer_name: Faturayı düzenleyen firma/kişi adı
+- customer_name: Müşteri adı (faturanın kesildiği kişi/firma)
+- tax_id: Vergi kimlik numarası (TCKN veya VKN)
+- tax_office: Vergi dairesi
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
 - total: Toplam tutar (sadece sayı)
 
 Sadece JSON formatında yanıt ver, başka açıklama ekleme.
-Örnek: {"invoice_number": "INV-2024-001", "date": "15/01/2024", "customer_name": "ABC Ltd.", "amount": 1000.0, "vat": 180.0, "total": 1180.0}"""
+Örnek: {"invoice_number": "INV-2024-001", "date": "15/01/2024", "issuer_name": "ABC Ltd.", "customer_name": "XYZ A.Ş.", "tax_id": "1234567890", "tax_office": "Kadıköy", "amount": 1000.0, "vat": 180.0, "total": 1180.0}"""
         
         message = UserMessage(
             text=prompt,
