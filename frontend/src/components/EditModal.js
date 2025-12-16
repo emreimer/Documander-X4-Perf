@@ -208,6 +208,26 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
             </div>
           </div>
 
+          <div className="border-b border-border pb-4 mb-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
+              Fatura İçeriği
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="uppercase text-xs tracking-wider">
+                İçerik Açıklaması
+              </Label>
+              <Input
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Ürün/hizmet açıklaması..."
+                className="rounded-none border-0 border-b-2 px-0 focus-visible:ring-0"
+                data-testid="edit-description"
+              />
+            </div>
+          </div>
+
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
               Tutar Bilgileri
