@@ -8,7 +8,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const UploadModal = ({ onClose, onSuccess }) => {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
@@ -18,9 +18,9 @@ const UploadModal = ({ onClose, onSuccess }) => {
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 0) {
+      setFiles(selectedFiles);
     }
   };
 
