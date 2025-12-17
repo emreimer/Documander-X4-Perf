@@ -767,16 +767,22 @@ async def export_to_excel(
 
 app.include_router(api_router)
 
-# CORS for Wix embed and production
-ALLOWED_ORIGINS = [
-    "https://www.documander.com",
-    "https://documander.com",
-    "http://www.documander.com",
-    "http://documander.com",
-    "http://localhost:3000",
-    "https://ac9e1a11-9445-4f64-848e-b5dc762e0e64.emergent.host",  # Production
-    "https://accountingai-2.preview.emergentagent.com",  # Preview
-]
+# CORS - read from env or use defaults
+_cors_origins = os.environ.get('CORS_ORIGINS', '*')
+if _cors_origins == '*':
+    ALLOWED_ORIGINS = ["*"]
+else:
+    ALLOWED_ORIGINS = [
+        "https://www.documander.com",
+        "https://documander.com",
+        "http://www.documander.com",
+        "http://documander.com",
+        "http://localhost:3000",
+    ]
+    # Add any custom origins from env
+    for origin in _cors_origins.split(','):
+        if origin.strip() and origin.strip() not in ALLOWED_ORIGINS:
+            ALLOWED_ORIGINS.append(origin.strip())
 
 app.add_middleware(
     CORSMiddleware,
