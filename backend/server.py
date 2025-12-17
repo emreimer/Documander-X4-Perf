@@ -791,16 +791,16 @@ app.add_middleware(
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-ALLOWED_DOMAINS = [
-    "documander.com", 
-    "www.documander.com", 
+# Read allowed domains from env or use defaults
+_env_domains = os.environ.get('ALLOWED_DOMAINS', 'documander.com,www.documander.com')
+ALLOWED_DOMAINS = [d.strip() for d in _env_domains.split(',')] + [
     "localhost:3000", 
     "localhost",
-    "ac9e1a11-9445-4f64-848e-b5dc762e0e64.emergent.host",  # Production
     "emergent.host",
-    "accountingai-2.preview.emergentagent.com",  # Preview
     "preview.emergentagent.com"
 ]
+# Add any emergent.host subdomain dynamically
+ALLOWED_DOMAINS = list(set(ALLOWED_DOMAINS))
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
