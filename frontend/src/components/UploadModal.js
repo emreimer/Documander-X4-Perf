@@ -66,10 +66,15 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
         }
       });
       
-      const { success, failed, errors, date_mismatches } = response.data;
+      const { success, failed, errors, date_mismatches, quota_warning, remaining_quota } = response.data;
       
       if (success > 0) {
         toast.success(`${success} fatura başarıyla yüklendi!`);
+      }
+      
+      // Show quota warning if low
+      if (quota_warning) {
+        toast.warning(quota_warning, { duration: 6000 });
       }
       
       // Show date mismatch warnings prominently
@@ -84,13 +89,22 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
         errors.forEach(err => toast.error(err));
       }
       
-      onSuccess();
+      onSuccess(remaining_quota);
       if (success > 0 || (date_mismatches && date_mismatches.length === 0 && errors.length === 0)) {
         onClose();
       }
     } catch (error) {
+      const errorStatus = error.response?.status;
       const message = error.response?.data?.detail || 'Fatura yüklenemedi';
-      toast.error(message);
+      
+      // Special handling for quota exceeded
+      if (errorStatus === 403 && message.includes('limit')) {
+        toast.error(message, { duration: 10000 });
+        // Trigger plan upgrade modal
+        window.dispatchEvent(new CustomEvent('showPlansModal'));
+      } else {
+        toast.error(message);
+      }
     } finally {
       setUploading(false);
     }
