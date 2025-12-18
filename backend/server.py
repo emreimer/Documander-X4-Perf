@@ -158,6 +158,87 @@ def create_token(user_id: str, email: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
+# Subscription Helper Functions
+async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
+    """Get existing subscription or create trial"""
+    query = {"user_id": user_id}
+    if wix_member_id:
+        query = {"$or": [{"user_id": user_id}, {"wix_member_id": wix_member_id}]}
+    
+    sub = await db.subscriptions.find_one(query, {"_id": 0})
+    
+    if not sub:
+        # Create new trial subscription
+        sub = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "wix_member_id": wix_member_id,
+            "plan": "trial",
+            "monthly_uploads": 0,
+            "month_reset": datetime.now(timezone.utc).strftime("%Y-%m"),
+            "trial_used": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.subscriptions.insert_one(sub)
+    
+    # Check if month changed - reset counter
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if sub.get("month_reset") != current_month and sub.get("plan") != "trial":
+        await db.subscriptions.update_one(
+            {"user_id": user_id},
+            {"$set": {"monthly_uploads": 0, "month_reset": current_month, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        sub["monthly_uploads"] = 0
+        sub["month_reset"] = current_month
+    
+    return sub
+
+async def check_upload_limit(user_id: str, file_count: int = 1):
+    """Check if user can upload more files. Returns (can_upload, message, remaining)"""
+    sub = await get_or_create_subscription(user_id)
+    plan = sub.get("plan", "trial")
+    plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
+    limit = plan_info["monthly_limit"]
+    current = sub.get("monthly_uploads", 0)
+    
+    # Unlimited plan
+    if limit == -1:
+        return True, None, -1
+    
+    # Check trial
+    if plan == "trial":
+        if sub.get("trial_used", False) or current >= limit:
+            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", 0
+        remaining = limit - current
+        return True, None, remaining
+    
+    # Check paid plans
+    remaining = limit - current
+    if current + file_count > limit:
+        return False, f"Aylık fatura limitinize ({limit}) ulaştınız. Planınızı yükseltebilirsiniz.", remaining
+    
+    return True, None, remaining
+
+async def increment_upload_count(user_id: str, count: int = 1):
+    """Increment the upload counter"""
+    sub = await get_or_create_subscription(user_id)
+    new_count = sub.get("monthly_uploads", 0) + count
+    
+    update_data = {
+        "monthly_uploads": new_count,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Mark trial as used if it's trial plan
+    if sub.get("plan") == "trial":
+        update_data["trial_used"] = True
+    
+    await db.subscriptions.update_one(
+        {"user_id": user_id},
+        {"$set": update_data}
+    )
+
 async def get_current_user(x_visitor_id: Optional[str] = Header(None)):
     # Get visitor ID from header for user isolation
     if x_visitor_id:
