@@ -168,7 +168,8 @@ async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
     sub = await db.subscriptions.find_one(query, {"_id": 0})
     
     if not sub:
-        # Create new trial subscription
+        # Create new trial subscription with 7 days expiry
+        trial_expires = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
         sub = {
             "id": str(uuid.uuid4()),
             "user_id": user_id,
@@ -177,6 +178,7 @@ async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
             "monthly_uploads": 0,
             "month_reset": datetime.now(timezone.utc).strftime("%Y-%m"),
             "trial_used": False,
+            "expires_at": trial_expires,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
