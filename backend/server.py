@@ -69,6 +69,28 @@ class TaxpayerSessionCreate(BaseModel):
     year: int
     month: int
 
+# Subscription Plans
+SUBSCRIPTION_PLANS = {
+    "trial": {"name": "Deneme", "monthly_limit": 20, "price": 0},
+    "starter": {"name": "Başlangıç", "monthly_limit": 1000, "price": 699},
+    "professional": {"name": "Profesyonel", "monthly_limit": 2500, "price": 1399},
+    "business": {"name": "İşletme", "monthly_limit": 5000, "price": 2399},
+    "enterprise": {"name": "Kurumsal", "monthly_limit": 10000, "price": 3999},
+    "unlimited": {"name": "Sınırsız", "monthly_limit": -1, "price": -1},  # -1 = unlimited/contact
+}
+
+class UserSubscription(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # visitor_id or wix_member_id
+    wix_member_id: Optional[str] = None
+    plan: str = "trial"  # trial, starter, professional, business, enterprise, unlimited
+    monthly_uploads: int = 0
+    month_reset: str = ""  # YYYY-MM format to track when to reset
+    trial_used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
