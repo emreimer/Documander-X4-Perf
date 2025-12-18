@@ -527,14 +527,21 @@ const DashboardPage = () => {
               <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">SÜRESİ DOLDU</span>
             )}
           </div>
-          {/* Bitiş Tarihi */}
-          {expires_at && (
+          {/* Bitiş Tarihi (sadece deneme planı için) */}
+          {expires_at && !is_monthly_plan && (
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Bitiş Tarihi:</span>
               <span className={expiryWarning ? 'text-yellow-600 font-semibold' : ''}>
                 {formatDate(expires_at)}
                 {expiryWarning && !is_expired && ` (${days_remaining} gün kaldı!)`}
               </span>
+            </div>
+          )}
+          {/* Kota Yenileme Tarihi (aylık planlar için) */}
+          {is_monthly_plan && next_reset_date && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Kota Yenileme:</span>
+              <span>{formatDate(next_reset_date)} ({days_remaining} gün)</span>
             </div>
           )}
           {/* Kalan Kota */}
