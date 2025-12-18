@@ -340,6 +340,141 @@ async def delete_session(user_id: str = Depends(get_current_user)):
     await db.invoices.delete_many({"user_id": user_id})
     return {"message": "Session and invoices deleted"}
 
+# Subscription API Routes
+@api_router.get("/subscription/plans")
+async def get_subscription_plans():
+    """Get all available subscription plans"""
+    plans = []
+    for plan_id, plan_data in SUBSCRIPTION_PLANS.items():
+        plans.append({
+            "id": plan_id,
+            "name": plan_data["name"],
+            "monthly_limit": plan_data["monthly_limit"],
+            "price": plan_data["price"],
+            "annual_price": int(plan_data["price"] * 10) if plan_data["price"] > 0 else -1,  # 2 months free
+            "is_contact": plan_id == "unlimited"
+        })
+    return {"plans": plans}
+
+@api_router.get("/subscription/status")
+async def get_subscription_status(user_id: str = Depends(get_current_user)):
+    """Get current user's subscription status and remaining quota"""
+    sub = await get_or_create_subscription(user_id)
+    plan = sub.get("plan", "trial")
+    plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
+    
+    monthly_uploads = sub.get("monthly_uploads", 0)
+    limit = plan_info["monthly_limit"]
+    
+    # Calculate remaining
+    if limit == -1:
+        remaining = -1  # Unlimited
+    else:
+        remaining = max(0, limit - monthly_uploads)
+    
+    return {
+        "plan": plan,
+        "plan_name": plan_info["name"],
+        "monthly_limit": limit,
+        "monthly_uploads": monthly_uploads,
+        "remaining": remaining,
+        "is_trial": plan == "trial",
+        "trial_used": sub.get("trial_used", False),
+        "is_unlimited": limit == -1,
+        "month_reset": sub.get("month_reset", ""),
+        "wix_member_id": sub.get("wix_member_id")
+    }
+
+@api_router.post("/subscription/upgrade")
+async def upgrade_subscription(
+    plan_id: str = Form(...),
+    wix_member_id: str = Form(None),
+    user_id: str = Depends(get_current_user)
+):
+    """Upgrade user subscription (called after Wix payment confirmation)"""
+    if plan_id not in SUBSCRIPTION_PLANS:
+        raise HTTPException(status_code=400, detail="Geçersiz plan")
+    
+    if plan_id == "trial":
+        raise HTTPException(status_code=400, detail="Deneme planına geçiş yapılamaz")
+    
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    update_data = {
+        "plan": plan_id,
+        "monthly_uploads": 0,  # Reset counter on upgrade
+        "month_reset": current_month,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if wix_member_id:
+        update_data["wix_member_id"] = wix_member_id
+    
+    result = await db.subscriptions.update_one(
+        {"user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        # Create new subscription
+        sub = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "wix_member_id": wix_member_id,
+            "plan": plan_id,
+            "monthly_uploads": 0,
+            "month_reset": current_month,
+            "trial_used": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.subscriptions.insert_one(sub)
+    
+    plan_info = SUBSCRIPTION_PLANS[plan_id]
+    return {
+        "success": True,
+        "message": f"{plan_info['name']} planına geçiş yapıldı",
+        "plan": plan_id,
+        "monthly_limit": plan_info["monthly_limit"]
+    }
+
+@api_router.post("/subscription/link-wix")
+async def link_wix_member(
+    wix_member_id: str = Form(...),
+    user_id: str = Depends(get_current_user)
+):
+    """Link Wix Member ID to subscription for cross-device sync"""
+    # Check if wix_member_id already exists
+    existing = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    
+    if existing and existing.get("user_id") != user_id:
+        # Wix member already has a subscription - merge data
+        # Transfer subscription to current session
+        await db.subscriptions.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "plan": existing.get("plan", "trial"),
+                "monthly_uploads": existing.get("monthly_uploads", 0),
+                "month_reset": existing.get("month_reset", ""),
+                "trial_used": existing.get("trial_used", False),
+                "wix_member_id": wix_member_id,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        # Remove old subscription
+        await db.subscriptions.delete_one({"id": existing.get("id")})
+    else:
+        # Just link wix_member_id
+        await db.subscriptions.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "wix_member_id": wix_member_id,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    
+    return {"success": True, "message": "Wix hesabı bağlandı"}
+
 # Invoice AI Processing
 async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime_type: str) -> dict:
     try:
