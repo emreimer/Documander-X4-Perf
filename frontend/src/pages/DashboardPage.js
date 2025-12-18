@@ -447,11 +447,22 @@ const DashboardPage = () => {
     );
   };
 
+  // Format date for display
+  const formatDate = (isoDate) => {
+    if (!isoDate) return null;
+    try {
+      const date = new Date(isoDate);
+      return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch {
+      return null;
+    }
+  };
+
   // Quota badge component
   const QuotaBadge = () => {
     if (!subscription) return null;
     
-    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial } = subscription;
+    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, expires_at, is_expired, days_remaining } = subscription;
     
     if (is_unlimited) {
       return (
