@@ -497,10 +497,12 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
         "is_trial": plan == "trial",
         "trial_used": sub.get("trial_used", False),
         "is_unlimited": limit == -1,
+        "is_monthly_plan": is_monthly_plan,
         "month_reset": sub.get("month_reset", ""),
         "wix_member_id": sub.get("wix_member_id"),
         "started_at": sub.get("created_at"),
         "expires_at": expires_at,
+        "next_reset_date": next_reset_date,
         "is_expired": is_expired,
         "days_remaining": days_remaining
     }
