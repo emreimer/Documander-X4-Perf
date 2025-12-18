@@ -129,6 +129,13 @@ const DashboardPage = () => {
     setShowSessionForm(true);
   };
 
+  // Listen for show plans modal event from UploadModal
+  useEffect(() => {
+    const handleShowPlans = () => setShowPlansModal(true);
+    window.addEventListener('showPlansModal', handleShowPlans);
+    return () => window.removeEventListener('showPlansModal', handleShowPlans);
+  }, []);
+
   const fetchInvoices = async () => {
     try {
       setLoading(true);
