@@ -214,6 +214,11 @@ async def check_upload_limit(user_id: str, file_count: int = 1):
         except:
             pass
     
+    # Check if user had paid plan before and now downgraded to trial
+    # If they ever had a paid plan, they can't use trial anymore
+    if plan == "trial" and sub.get("had_paid_plan", False):
+        return False, "Üyeliğiniz sona erdi. Devam etmek için bir plan satın alın.", 0
+    
     # Unlimited plan
     if limit == -1:
         return True, None, -1
