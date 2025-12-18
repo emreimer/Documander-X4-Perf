@@ -494,6 +494,109 @@ async def link_wix_member(
     
     return {"success": True, "message": "Wix hesabı bağlandı"}
 
+# Admin API Key for secure operations
+ADMIN_API_KEY = os.environ.get('ADMIN_API_KEY', 'documander-admin-key-2025')
+
+@api_router.post("/admin/activate-subscription")
+async def admin_activate_subscription(
+    wix_member_id: str = Form(...),
+    plan: str = Form(...),
+    admin_key: str = Form(...)
+):
+    """
+    Admin endpoint to activate subscription after Wix payment.
+    Called manually or via Wix Webhook when payment is confirmed.
+    """
+    # Verify admin key
+    if admin_key != ADMIN_API_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    # Validate plan
+    if plan not in SUBSCRIPTION_PLANS or plan == "trial":
+        raise HTTPException(status_code=400, detail="Geçersiz plan")
+    
+    # Find subscription by Wix Member ID
+    existing = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    
+    if existing:
+        # Update existing subscription
+        await db.subscriptions.update_one(
+            {"wix_member_id": wix_member_id},
+            {"$set": {
+                "plan": plan,
+                "monthly_uploads": 0,
+                "month_reset": current_month,
+                "trial_used": True,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    else:
+        # Create new subscription for this Wix member
+        new_sub = {
+            "id": str(uuid.uuid4()),
+            "user_id": f"wix_{wix_member_id}",
+            "wix_member_id": wix_member_id,
+            "plan": plan,
+            "monthly_uploads": 0,
+            "month_reset": current_month,
+            "trial_used": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.subscriptions.insert_one(new_sub)
+    
+    plan_info = SUBSCRIPTION_PLANS[plan]
+    return {
+        "success": True,
+        "message": f"Abonelik aktive edildi: {plan_info['name']}",
+        "wix_member_id": wix_member_id,
+        "plan": plan,
+        "monthly_limit": plan_info["monthly_limit"]
+    }
+
+@api_router.get("/admin/subscriptions")
+async def admin_list_subscriptions(
+    admin_key: str
+):
+    """Admin endpoint to list all subscriptions"""
+    if admin_key != ADMIN_API_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    subs = await db.subscriptions.find({}, {"_id": 0}).to_list(1000)
+    
+    # Add plan details
+    for sub in subs:
+        plan = sub.get("plan", "trial")
+        plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
+        sub["plan_name"] = plan_info["name"]
+        sub["monthly_limit"] = plan_info["monthly_limit"]
+    
+    return {"subscriptions": subs, "total": len(subs)}
+
+@api_router.post("/admin/deactivate-subscription")
+async def admin_deactivate_subscription(
+    wix_member_id: str = Form(...),
+    admin_key: str = Form(...)
+):
+    """Admin endpoint to deactivate/downgrade subscription to trial"""
+    if admin_key != ADMIN_API_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    result = await db.subscriptions.update_one(
+        {"wix_member_id": wix_member_id},
+        {"$set": {
+            "plan": "trial",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Abonelik bulunamadı")
+    
+    return {"success": True, "message": "Abonelik iptal edildi"}
+
 # Invoice AI Processing
 async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime_type: str) -> dict:
     try:
