@@ -462,7 +462,7 @@ const DashboardPage = () => {
   const QuotaBadge = () => {
     if (!subscription) return null;
     
-    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, expires_at, is_expired, days_remaining } = subscription;
+    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, started_at, expires_at, is_expired, days_remaining } = subscription;
     
     if (is_unlimited) {
       return (
@@ -482,9 +482,6 @@ const DashboardPage = () => {
     
     const isLow = remaining <= 5 && remaining > 0;
     const isExhausted = remaining === 0;
-    const percentUsed = ((monthly_limit - remaining) / monthly_limit) * 100;
-    
-    const showExpiry = expires_at; // Show expiry for all plans including trial
     const expiryWarning = days_remaining !== null && days_remaining <= 7;
     
     return (
@@ -494,17 +491,19 @@ const DashboardPage = () => {
             ? 'bg-destructive/10 border-destructive/30'
             : isExhausted 
               ? 'bg-destructive/10 border-destructive/30' 
-              : isLow || expiryWarning
+              : expiryWarning
                 ? 'bg-yellow-500/10 border-yellow-500/30' 
                 : 'bg-muted/30 border-border hover:bg-muted/50'
         }`}
         onClick={() => setShowPlansModal(true)}
         title="Plan detayları için tıklayın"
       >
-        <CreditCard className={`w-5 h-5 ${is_expired || isExhausted ? 'text-destructive' : isLow || expiryWarning ? 'text-yellow-600' : 'text-primary'}`} />
-        <div className="flex flex-col">
+        <CreditCard className={`w-5 h-5 ${is_expired || isExhausted ? 'text-destructive' : expiryWarning ? 'text-yellow-600' : 'text-primary'}`} />
+        <div className="flex flex-col text-xs">
+          {/* Paket Türü */}
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">{plan_name}</span>
+            <span className="text-muted-foreground">Paket:</span>
+            <span className="font-semibold">{plan_name}</span>
             {is_trial && (
               <span className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 font-medium">DENEME</span>
             )}
@@ -512,26 +511,30 @@ const DashboardPage = () => {
               <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">SÜRESİ DOLDU</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-xs ${is_expired || isExhausted ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-              {is_expired ? 'Aboneliğinizi yenileyin' : isExhausted ? 'Limit doldu!' : `${remaining} / ${monthly_limit} fatura kaldı`}
-            </span>
-          </div>
-          {/* Expiry info */}
-          {showExpiry && !is_expired && (
-            <span className={`text-[10px] ${expiryWarning ? 'text-yellow-600 font-medium' : 'text-muted-foreground'}`}>
-              {formatDate(expires_at)} ({days_remaining} gün)
-            </span>
+          {/* Başlangıç Tarihi */}
+          {started_at && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Başlangıç:</span>
+              <span>{formatDate(started_at)}</span>
+            </div>
           )}
-          {/* Progress bar */}
+          {/* Bitiş Tarihi */}
+          {expires_at && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Bitiş:</span>
+              <span className={expiryWarning ? 'text-yellow-600 font-semibold' : ''}>
+                {formatDate(expires_at)}
+                {expiryWarning && !is_expired && ` (${days_remaining} gün kaldı!)`}
+              </span>
+            </div>
+          )}
+          {/* Kota */}
           {!is_expired && (
-            <div className="w-24 h-1 bg-muted rounded-full mt-1 overflow-hidden">
-              <div 
-                className={`h-full rounded-full transition-all ${
-                  isExhausted ? 'bg-destructive' : isLow ? 'bg-yellow-500' : 'bg-primary'
-                }`}
-                style={{ width: `${Math.min(percentUsed, 100)}%` }}
-              />
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Kota:</span>
+              <span className={isExhausted ? 'text-destructive font-semibold' : isLow ? 'text-yellow-600' : ''}>
+                {remaining} / {monthly_limit} fatura
+              </span>
             </div>
           )}
         </div>
