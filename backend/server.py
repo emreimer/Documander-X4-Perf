@@ -391,6 +391,21 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
     else:
         remaining = max(0, limit - monthly_uploads)
     
+    # Check expiration
+    expires_at = sub.get("expires_at")
+    is_expired = False
+    days_remaining = None
+    
+    if expires_at:
+        try:
+            exp_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+            now = datetime.now(timezone.utc)
+            is_expired = now > exp_date
+            if not is_expired:
+                days_remaining = (exp_date - now).days
+        except:
+            pass
+    
     return {
         "plan": plan,
         "plan_name": plan_info["name"],
@@ -401,7 +416,10 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
         "trial_used": sub.get("trial_used", False),
         "is_unlimited": limit == -1,
         "month_reset": sub.get("month_reset", ""),
-        "wix_member_id": sub.get("wix_member_id")
+        "wix_member_id": sub.get("wix_member_id"),
+        "expires_at": expires_at,
+        "is_expired": is_expired,
+        "days_remaining": days_remaining
     }
 
 @api_router.post("/subscription/upgrade")
