@@ -1139,9 +1139,6 @@ async def export_to_excel(
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center")
         
-        # Number format for Turkish locale (will show as 1.234,56 in Turkish Excel)
-        number_format = '#,##0.00'
-        
         # Add income data
         for invoice in income_invoices:
             ws.append([
