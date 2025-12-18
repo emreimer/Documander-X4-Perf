@@ -238,10 +238,18 @@ async def increment_upload_count(user_id: str, count: int = 1):
     if sub.get("plan") == "trial":
         update_data["trial_used"] = True
     
-    await db.subscriptions.update_one(
-        {"user_id": user_id},
-        {"$set": update_data}
-    )
+    # Update by wix_member_id if exists, otherwise by user_id
+    wix_member_id = sub.get("wix_member_id")
+    if wix_member_id:
+        await db.subscriptions.update_one(
+            {"wix_member_id": wix_member_id},
+            {"$set": update_data}
+        )
+    else:
+        await db.subscriptions.update_one(
+            {"user_id": user_id},
+            {"$set": update_data}
+        )
 
 async def get_current_user(
     x_visitor_id: Optional[str] = Header(None),
