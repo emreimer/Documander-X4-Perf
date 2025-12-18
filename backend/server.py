@@ -343,6 +343,7 @@ async def get_current_user(
                 "monthly_uploads": 0,
                 "month_reset": current_month,
                 "trial_used": False,
+                "had_paid_plan": new_plan and new_plan != "trial",  # Mark if starting with paid plan
                 "expires_at": expires_at,
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
