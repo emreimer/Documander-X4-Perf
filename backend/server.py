@@ -324,7 +324,7 @@ async def get_current_user(
             
             return user_id
         else:
-            # Create new subscription for this Wix member
+            # Create new subscription for this Wix member (use upsert to prevent duplicates)
             user_id = f"wix_{x_wix_member_id}"
             
             # Determine expiry
@@ -348,7 +348,12 @@ async def get_current_user(
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
-            await db.subscriptions.insert_one(new_sub)
+            # Use upsert to prevent duplicate entries
+            await db.subscriptions.update_one(
+                {"wix_member_id": x_wix_member_id},
+                {"$setOnInsert": new_sub},
+                upsert=True
+            )
             return user_id
     
     if x_visitor_id:
