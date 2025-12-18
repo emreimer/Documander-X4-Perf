@@ -613,6 +613,9 @@ async def export_to_excel(
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center")
         
+        # Number format for Turkish locale (will show as 1.234,56 in Turkish Excel)
+        number_format = '#,##0.00'
+        
         # Add income data
         for invoice in income_invoices:
             ws.append([
@@ -622,22 +625,25 @@ async def export_to_excel(
                 invoice.get('customer_tax_id', ''),
                 invoice.get('customer_tax_office', ''),
                 invoice.get('description', ''),
-                format_turkish(invoice.get('amount', 0)),
-                format_turkish(invoice.get('vat', 0)),
-                format_turkish(invoice.get('total', 0))
+                float(invoice.get('amount', 0) or 0),
+                float(invoice.get('vat', 0) or 0),
+                float(invoice.get('total', 0) or 0)
             ])
-            # Right align number columns
+            # Apply number format and alignment
+            ws[f'G{current_row}'].number_format = number_format
+            ws[f'H{current_row}'].number_format = number_format
+            ws[f'I{current_row}'].number_format = number_format
             ws[f'G{current_row}'].alignment = Alignment(horizontal="right")
             ws[f'H{current_row}'].alignment = Alignment(horizontal="right")
             ws[f'I{current_row}'].alignment = Alignment(horizontal="right")
             current_row += 1
         
         # Add subtotal row for income
-        income_amount_total = sum(inv.get('amount', 0) for inv in income_invoices)
-        income_vat_total = sum(inv.get('vat', 0) for inv in income_invoices)
-        income_total_total = sum(inv.get('total', 0) for inv in income_invoices)
+        income_amount_total = sum(float(inv.get('amount', 0) or 0) for inv in income_invoices)
+        income_vat_total = sum(float(inv.get('vat', 0) or 0) for inv in income_invoices)
+        income_total_total = sum(float(inv.get('total', 0) or 0) for inv in income_invoices)
         
-        ws.append(['', '', '', '', '', 'TOPLAM:', format_turkish(income_amount_total), format_turkish(income_vat_total), format_turkish(income_total_total)])
+        ws.append(['', '', '', '', '', 'TOPLAM:', income_amount_total, income_vat_total, income_total_total])
         subtotal_fill = PatternFill(start_color="E8F5E9", end_color="E8F5E9", fill_type="solid")
         for col_idx in range(1, 10):
             cell = ws.cell(row=current_row, column=col_idx)
@@ -646,6 +652,7 @@ async def export_to_excel(
             if col_idx == 6:
                 cell.alignment = Alignment(horizontal="right")
             if col_idx in [7, 8, 9]:
+                cell.number_format = number_format
                 cell.alignment = Alignment(horizontal="right")
         current_row += 1
         
