@@ -419,6 +419,7 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
         "is_unlimited": limit == -1,
         "month_reset": sub.get("month_reset", ""),
         "wix_member_id": sub.get("wix_member_id"),
+        "started_at": sub.get("created_at"),
         "expires_at": expires_at,
         "is_expired": is_expired,
         "days_remaining": days_remaining
