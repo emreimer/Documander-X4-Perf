@@ -725,7 +725,10 @@ const DashboardPage = () => {
         <UploadModal
           category={uploadCategory}
           onClose={() => setShowUploadModal(false)}
-          onSuccess={fetchInvoices}
+          onSuccess={() => {
+            fetchInvoices();
+            fetchSubscription();
+          }}
         />
       )}
 
