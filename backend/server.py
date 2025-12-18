@@ -653,13 +653,26 @@ async def upload_invoice(
         except Exception as e:
             errors.append(f"{file.filename}: {str(e)}")
     
-    return {
+    # Increment upload counter for successfully processed invoices
+    if len(uploaded_invoices) > 0:
+        await increment_upload_count(user_id, len(uploaded_invoices))
+    
+    # Get updated quota info
+    _, _, new_remaining = await check_upload_limit(user_id)
+    
+    response_data = {
         "success": len(uploaded_invoices),
         "failed": len(errors) + len(date_mismatches),
         "invoices": uploaded_invoices,
         "errors": errors,
-        "date_mismatches": date_mismatches
+        "date_mismatches": date_mismatches,
+        "remaining_quota": new_remaining
     }
+    
+    if quota_warning:
+        response_data["quota_warning"] = quota_warning
+    
+    return response_data
 
 @api_router.get("/invoices", response_model=List[Invoice])
 async def get_invoices(
