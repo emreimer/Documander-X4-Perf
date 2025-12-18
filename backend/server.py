@@ -353,7 +353,6 @@ async def get_subscription_plans():
             "name": plan_data["name"],
             "monthly_limit": plan_data["monthly_limit"],
             "price": plan_data["price"],
-            "annual_price": int(plan_data["price"] * 10) if plan_data["price"] > 0 else -1,  # 2 months free
             "is_contact": plan_id == "unlimited"
         })
     return {"plans": plans}

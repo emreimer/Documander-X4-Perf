@@ -508,7 +508,6 @@ const DashboardPage = () => {
                     ) : (
                       <div className="my-3">
                         <p className="text-2xl font-bold">₺{plan.price}<span className="text-sm font-normal text-muted-foreground">/ay</span></p>
-                        <p className="text-sm text-muted-foreground">Yıllık: ₺{plan.annual_price} <span className="text-primary">(2 ay bedava)</span></p>
                       </div>
                     )}
                     
