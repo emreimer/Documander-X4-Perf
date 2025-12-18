@@ -504,9 +504,6 @@ const DashboardPage = () => {
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Paket:</span>
             <span className="font-semibold">{plan_name}</span>
-            {is_trial && (
-              <span className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 font-medium">DENEME</span>
-            )}
             {is_expired && (
               <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">SÜRESİ DOLDU</span>
             )}
