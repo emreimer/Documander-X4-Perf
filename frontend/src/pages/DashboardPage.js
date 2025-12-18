@@ -520,7 +520,7 @@ const DashboardPage = () => {
           {/* Expiry info */}
           {showExpiry && !is_expired && (
             <span className={`text-[10px] ${expiryWarning ? 'text-yellow-600 font-medium' : 'text-muted-foreground'}`}>
-              {expiryWarning ? `${days_remaining} gün kaldı!` : `Bitiş: ${formatDate(expires_at)}`}
+              {formatDate(expires_at)} ({days_remaining} gün)
             </span>
           )}
           {/* Progress bar */}
