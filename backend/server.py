@@ -309,9 +309,11 @@ async def get_current_user(
                 # For paid monthly plans, no fixed expiry
                 else:
                     update_data["expires_at"] = None
+                    # Mark that user had a paid plan (can't go back to trial)
+                    update_data["had_paid_plan"] = True
                 
-                # Reset monthly counter if month changed
-                if existing_sub.get("month_reset") != current_month:
+                # Reset monthly counter if month changed (only for active paid plans)
+                if new_plan != "trial" and existing_sub.get("month_reset") != current_month:
                     update_data["monthly_uploads"] = 0
                     update_data["month_reset"] = current_month
                 
