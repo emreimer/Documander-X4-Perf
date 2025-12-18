@@ -452,10 +452,11 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
     else:
         remaining = max(0, limit - monthly_uploads)
     
-    # Check expiration
+    # Check expiration (only for trial plans - monthly plans have no expiry)
     expires_at = sub.get("expires_at")
     is_expired = False
     days_remaining = None
+    is_monthly_plan = plan != "trial" and expires_at is None
     
     if expires_at:
         try:
@@ -466,6 +467,26 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
                 days_remaining = (exp_date - now).days
         except:
             pass
+    
+    # For monthly plans, calculate days until quota reset
+    next_reset_date = None
+    if is_monthly_plan:
+        created_at = sub.get("created_at")
+        if created_at:
+            try:
+                start_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                now = datetime.now(timezone.utc)
+                # Find next monthly anniversary
+                months_passed = (now.year - start_date.year) * 12 + (now.month - start_date.month)
+                next_reset = start_date.replace(year=start_date.year + (start_date.month + months_passed) // 12,
+                                                 month=(start_date.month + months_passed) % 12 + 1)
+                if next_reset <= now:
+                    next_reset = start_date.replace(year=start_date.year + (start_date.month + months_passed + 1) // 12,
+                                                     month=(start_date.month + months_passed + 1) % 12 + 1)
+                next_reset_date = next_reset.isoformat()
+                days_remaining = (next_reset - now).days
+            except:
+                pass
     
     return {
         "plan": plan,
