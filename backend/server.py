@@ -519,11 +519,14 @@ ADMIN_API_KEY = os.environ.get('ADMIN_API_KEY', 'documander-admin-key-2025')
 async def admin_activate_subscription(
     wix_member_id: str = Form(...),
     plan: str = Form(...),
-    admin_key: str = Form(...)
+    admin_key: str = Form(...),
+    duration_days: int = Form(30)  # Default 30 days (1 month)
 ):
     """
     Admin endpoint to activate subscription after Wix payment.
     Called manually or via Wix Webhook when payment is confirmed.
+    
+    duration_days: Subscription duration in days (30=1 month, 365=1 year)
     """
     # Verify admin key
     if admin_key != ADMIN_API_KEY:
@@ -532,6 +535,9 @@ async def admin_activate_subscription(
     # Validate plan
     if plan not in SUBSCRIPTION_PLANS or plan == "trial":
         raise HTTPException(status_code=400, detail="Geçersiz plan")
+    
+    # Calculate expiration date
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=duration_days)).isoformat()
     
     # Find subscription by Wix Member ID
     existing = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
@@ -547,6 +553,7 @@ async def admin_activate_subscription(
                 "monthly_uploads": 0,
                 "month_reset": current_month,
                 "trial_used": True,
+                "expires_at": expires_at,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
@@ -560,6 +567,7 @@ async def admin_activate_subscription(
             "monthly_uploads": 0,
             "month_reset": current_month,
             "trial_used": True,
+            "expires_at": expires_at,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
@@ -571,7 +579,8 @@ async def admin_activate_subscription(
         "message": f"Abonelik aktive edildi: {plan_info['name']}",
         "wix_member_id": wix_member_id,
         "plan": plan,
-        "monthly_limit": plan_info["monthly_limit"]
+        "monthly_limit": plan_info["monthly_limit"],
+        "expires_at": expires_at
     }
 
 @api_router.get("/admin/subscriptions")
