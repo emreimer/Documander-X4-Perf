@@ -265,28 +265,32 @@ async def get_current_user(
         }
         
         new_plan = plan_mapping.get(x_wix_plan, None) if x_wix_plan else None
+        current_month = datetime.now(timezone.utc).strftime("%Y-%m")
         
         if existing_sub:
             user_id = existing_sub.get("user_id", x_visitor_id)
             
-            # Update plan if Wix sent a different one
-            if new_plan and new_plan != existing_sub.get("plan"):
-                current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+            # ALWAYS update plan from Wix (Wix is the source of truth)
+            if new_plan:
                 update_data = {
                     "plan": new_plan,
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
                 
                 # For trial plan, set expiry from Wix
-                if new_plan == "trial" and x_wix_expires:
-                    update_data["expires_at"] = x_wix_expires
-                # For paid monthly plans, no fixed expiry (renews monthly)
-                elif new_plan != "trial":
-                    update_data["expires_at"] = None  # No expiry for monthly plans
-                    # Reset monthly counter if plan changed
-                    if existing_sub.get("month_reset") != current_month:
-                        update_data["monthly_uploads"] = 0
-                        update_data["month_reset"] = current_month
+                if new_plan == "trial":
+                    if x_wix_expires:
+                        update_data["expires_at"] = x_wix_expires
+                    elif not existing_sub.get("expires_at"):
+                        update_data["expires_at"] = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+                # For paid monthly plans, no fixed expiry
+                else:
+                    update_data["expires_at"] = None
+                
+                # Reset monthly counter if month changed
+                if existing_sub.get("month_reset") != current_month:
+                    update_data["monthly_uploads"] = 0
+                    update_data["month_reset"] = current_month
                 
                 await db.subscriptions.update_one(
                     {"wix_member_id": x_wix_member_id},
@@ -296,13 +300,12 @@ async def get_current_user(
             return user_id
         else:
             # Create new subscription for this Wix member
-            user_id = x_visitor_id or f"wix_{x_wix_member_id}"
-            current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+            user_id = f"wix_{x_wix_member_id}"
             
             # Determine expiry
             if new_plan == "trial" and x_wix_expires:
                 expires_at = x_wix_expires
-            elif new_plan == "trial":
+            elif new_plan == "trial" or not new_plan:
                 expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
             else:
                 expires_at = None  # No expiry for monthly paid plans
