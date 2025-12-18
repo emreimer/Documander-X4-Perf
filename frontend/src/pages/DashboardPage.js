@@ -81,12 +81,18 @@ const DashboardPage = () => {
   const getAuthHeader = () => {
     const wixMemberId = getWixMemberId();
     const visitorId = getVisitorId();
+    const planInfo = getWixPlanInfo();
     
     const headers = { 'X-Visitor-ID': visitorId };
     
-    // If we have Wix Member ID, include it
     if (wixMemberId) {
       headers['X-Wix-Member-ID'] = wixMemberId;
+    }
+    if (planInfo.plan) {
+      headers['X-Wix-Plan'] = planInfo.plan;
+    }
+    if (planInfo.expires) {
+      headers['X-Wix-Expires'] = planInfo.expires;
     }
     
     return headers;
