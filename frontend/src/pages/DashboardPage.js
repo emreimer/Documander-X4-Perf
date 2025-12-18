@@ -669,7 +669,10 @@ const DashboardPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            {/* Quota Badge */}
+            <QuotaBadge />
+            
             <Button
               onClick={changeSession}
               variant="outline"
