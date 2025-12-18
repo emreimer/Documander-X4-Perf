@@ -1192,7 +1192,13 @@ ALLOWED_DOMAINS = [d.strip() for d in _env_domains.split(',')] + [
     "localhost:3000", 
     "localhost",
     "emergent.host",
-    "preview.emergentagent.com"
+    "preview.emergentagent.com",
+    # Wix domains
+    "wix.com",
+    "wixsite.com",
+    "editorx.io",
+    "editor.wix.com",
+    "manage.wix.com"
 ]
 # Add any emergent.host subdomain dynamically
 ALLOWED_DOMAINS = list(set(ALLOWED_DOMAINS))
