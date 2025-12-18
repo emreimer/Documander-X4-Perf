@@ -537,12 +537,8 @@ const DashboardPage = () => {
                       variant={isCurrentPlan ? "outline" : "default"}
                       disabled={isCurrentPlan}
                       onClick={() => {
-                        if (isContact) {
-                          window.open('mailto:info@documander.com?subject=Kurumsal Plan Teklifi', '_blank');
-                        } else {
-                          // Redirect to Wix payment page
-                          window.open(`https://www.documander.com/plans?plan=${plan.id}`, '_blank');
-                        }
+                        // Redirect to Wix pricing page
+                        window.open('https://www.documander.com/pricing-plans/list', '_blank');
                       }}
                     >
                       {isCurrentPlan ? 'Mevcut Plan' : isContact ? 'İletişime Geç' : 'Satın Al'}
