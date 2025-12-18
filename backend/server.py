@@ -211,6 +211,8 @@ async def check_upload_limit(user_id: str, file_count: int = 1):
         if sub.get("trial_used", False) or current >= limit:
             return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", 0
         remaining = limit - current
+        if current + file_count > limit:
+            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", remaining
         return True, None, remaining
     
     # Check paid plans
