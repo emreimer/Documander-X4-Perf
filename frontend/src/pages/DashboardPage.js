@@ -484,7 +484,7 @@ const DashboardPage = () => {
     const isExhausted = remaining === 0;
     const percentUsed = ((monthly_limit - remaining) / monthly_limit) * 100;
     
-    const showExpiry = !is_trial && expires_at;
+    const showExpiry = expires_at; // Show expiry for all plans including trial
     const expiryWarning = days_remaining !== null && days_remaining <= 7;
     
     return (
