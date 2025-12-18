@@ -35,6 +35,27 @@ const DashboardPage = () => {
   const [showPlansModal, setShowPlansModal] = useState(false);
   const [plans, setPlans] = useState([]);
 
+  // Get Wix Member ID from URL or fallback to visitor ID
+  const getWixMemberId = () => {
+    // Check URL for wixMemberId parameter (passed from Wix Velo)
+    const urlParams = new URLSearchParams(window.location.search);
+    const wixMemberId = urlParams.get('wixMemberId') || urlParams.get('memberId');
+    
+    if (wixMemberId) {
+      // Store it for future use
+      localStorage.setItem('documander_wix_member_id', wixMemberId);
+      return wixMemberId;
+    }
+    
+    // Check if we have a stored Wix Member ID
+    const storedWixId = localStorage.getItem('documander_wix_member_id');
+    if (storedWixId) {
+      return storedWixId;
+    }
+    
+    return null;
+  };
+
   const getVisitorId = () => {
     let visitorId = localStorage.getItem('documander_visitor_id');
     if (!visitorId) {
@@ -45,8 +66,17 @@ const DashboardPage = () => {
   };
 
   const getAuthHeader = () => {
+    const wixMemberId = getWixMemberId();
     const visitorId = getVisitorId();
-    return { 'X-Visitor-ID': visitorId };
+    
+    const headers = { 'X-Visitor-ID': visitorId };
+    
+    // If we have Wix Member ID, include it
+    if (wixMemberId) {
+      headers['X-Wix-Member-ID'] = wixMemberId;
+    }
+    
+    return headers;
   };
 
   useEffect(() => {
