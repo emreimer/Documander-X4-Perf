@@ -29,6 +29,11 @@ const DashboardPage = () => {
   const [taxpayerName, setTaxpayerName] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  
+  // Subscription state
+  const [subscription, setSubscription] = useState(null);
+  const [showPlansModal, setShowPlansModal] = useState(false);
+  const [plans, setPlans] = useState([]);
 
   const getVisitorId = () => {
     let visitorId = localStorage.getItem('documander_visitor_id');
