@@ -484,40 +484,56 @@ const DashboardPage = () => {
     const isExhausted = remaining === 0;
     const percentUsed = ((monthly_limit - remaining) / monthly_limit) * 100;
     
+    const showExpiry = !is_trial && expires_at;
+    const expiryWarning = days_remaining !== null && days_remaining <= 7;
+    
     return (
       <div 
         className={`flex items-center gap-3 px-4 py-2 border cursor-pointer transition-colors ${
-          isExhausted 
-            ? 'bg-destructive/10 border-destructive/30' 
-            : isLow 
-              ? 'bg-yellow-500/10 border-yellow-500/30' 
-              : 'bg-muted/30 border-border hover:bg-muted/50'
+          is_expired
+            ? 'bg-destructive/10 border-destructive/30'
+            : isExhausted 
+              ? 'bg-destructive/10 border-destructive/30' 
+              : isLow || expiryWarning
+                ? 'bg-yellow-500/10 border-yellow-500/30' 
+                : 'bg-muted/30 border-border hover:bg-muted/50'
         }`}
         onClick={() => setShowPlansModal(true)}
         title="Plan detayları için tıklayın"
       >
-        <CreditCard className={`w-5 h-5 ${isExhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-primary'}`} />
+        <CreditCard className={`w-5 h-5 ${is_expired || isExhausted ? 'text-destructive' : isLow || expiryWarning ? 'text-yellow-600' : 'text-primary'}`} />
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{plan_name}</span>
             {is_trial && (
               <span className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 font-medium">DENEME</span>
             )}
+            {is_expired && (
+              <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">SÜRESİ DOLDU</span>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-xs ${isExhausted ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
-              {isExhausted ? 'Limit doldu!' : `${remaining} / ${monthly_limit} fatura kaldı`}
+            <span className={`text-xs ${is_expired || isExhausted ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+              {is_expired ? 'Aboneliğinizi yenileyin' : isExhausted ? 'Limit doldu!' : `${remaining} / ${monthly_limit} fatura kaldı`}
             </span>
           </div>
+          {/* Expiry info */}
+          {showExpiry && !is_expired && (
+            <span className={`text-[10px] ${expiryWarning ? 'text-yellow-600 font-medium' : 'text-muted-foreground'}`}>
+              {expiryWarning ? `${days_remaining} gün kaldı!` : `Bitiş: ${formatDate(expires_at)}`}
+            </span>
+          )}
           {/* Progress bar */}
-          <div className="w-24 h-1 bg-muted rounded-full mt-1 overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all ${
-                isExhausted ? 'bg-destructive' : isLow ? 'bg-yellow-500' : 'bg-primary'
-              }`}
-              style={{ width: `${Math.min(percentUsed, 100)}%` }}
-            />
-          </div>
+          {!is_expired && (
+            <div className="w-24 h-1 bg-muted rounded-full mt-1 overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all ${
+                  isExhausted ? 'bg-destructive' : isLow ? 'bg-yellow-500' : 'bg-primary'
+                }`}
+                style={{ width: `${Math.min(percentUsed, 100)}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
     );
