@@ -417,8 +417,162 @@ const DashboardPage = () => {
     );
   };
 
+  // Quota badge component
+  const QuotaBadge = () => {
+    if (!subscription) return null;
+    
+    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, trial_used } = subscription;
+    
+    if (is_unlimited) {
+      return (
+        <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 text-sm">
+          <Zap className="w-4 h-4 text-primary" />
+          <span className="font-medium">{plan_name}</span>
+          <span className="text-muted-foreground">• Sınırsız</span>
+        </div>
+      );
+    }
+    
+    const isLow = remaining <= 5 && remaining > 0;
+    const isExhausted = remaining === 0;
+    
+    return (
+      <div 
+        className={`flex items-center gap-2 px-3 py-1 text-sm border cursor-pointer transition-colors ${
+          isExhausted 
+            ? 'bg-destructive/10 border-destructive/30 text-destructive' 
+            : isLow 
+              ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700' 
+              : 'bg-muted/50 border-border'
+        }`}
+        onClick={() => setShowPlansModal(true)}
+        title="Plan detayları için tıklayın"
+      >
+        <CreditCard className="w-4 h-4" />
+        <span className="font-medium">{plan_name}</span>
+        <span className="text-muted-foreground">•</span>
+        <span className={isExhausted ? 'font-bold' : ''}>
+          {isExhausted ? 'Limit doldu!' : `${remaining}/${monthly_limit} kaldı`}
+        </span>
+        {is_trial && !trial_used && (
+          <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 ml-1">DENEME</span>
+        )}
+      </div>
+    );
+  };
+
+  // Plans Modal Component
+  const PlansModal = () => {
+    if (!showPlansModal) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-card border border-border shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="border-b border-border p-4 flex items-center justify-between bg-muted/20">
+            <div>
+              <h2 className="text-xl font-heading font-semibold">Abonelik Planları</h2>
+              <p className="text-sm text-muted-foreground">İhtiyacınıza uygun planı seçin</p>
+            </div>
+            <button onClick={() => setShowPlansModal(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {/* Plans Grid */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {plans.filter(p => p.id !== 'trial').map((plan) => {
+                const isCurrentPlan = subscription?.plan === plan.id;
+                const isContact = plan.is_contact;
+                
+                return (
+                  <div 
+                    key={plan.id} 
+                    className={`border p-4 flex flex-col ${
+                      isCurrentPlan ? 'border-primary bg-primary/5' : 'border-border'
+                    }`}
+                  >
+                    {isCurrentPlan && (
+                      <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 w-fit mb-2">
+                        MEVCUT PLAN
+                      </span>
+                    )}
+                    <h3 className="font-heading font-semibold text-lg">{plan.name}</h3>
+                    
+                    {isContact ? (
+                      <div className="my-3">
+                        <p className="text-2xl font-bold">Özel Fiyat</p>
+                        <p className="text-sm text-muted-foreground">Teklif için iletişime geçin</p>
+                      </div>
+                    ) : (
+                      <div className="my-3">
+                        <p className="text-2xl font-bold">₺{plan.price}<span className="text-sm font-normal text-muted-foreground">/ay</span></p>
+                        <p className="text-sm text-muted-foreground">Yıllık: ₺{plan.annual_price} <span className="text-primary">(2 ay bedava)</span></p>
+                      </div>
+                    )}
+                    
+                    <ul className="space-y-2 text-sm flex-grow mb-4">
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-primary" />
+                        {plan.monthly_limit === -1 ? 'Sınırsız fatura' : `Aylık ${plan.monthly_limit.toLocaleString('tr-TR')} fatura`}
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-primary" />
+                        AI destekli veri çıkarma
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-primary" />
+                        Excel dışa aktarma
+                      </li>
+                      {plan.monthly_limit >= 5000 && (
+                        <li className="flex items-center gap-2">
+                          <Check className="w-4 h-4 text-primary" />
+                          Öncelikli destek
+                        </li>
+                      )}
+                    </ul>
+                    
+                    <Button
+                      className="w-full rounded-none uppercase tracking-wide"
+                      variant={isCurrentPlan ? "outline" : "default"}
+                      disabled={isCurrentPlan}
+                      onClick={() => {
+                        if (isContact) {
+                          window.open('mailto:info@documander.com?subject=Kurumsal Plan Teklifi', '_blank');
+                        } else {
+                          // Redirect to Wix payment page
+                          window.open(`https://www.documander.com/plans?plan=${plan.id}`, '_blank');
+                        }
+                      }}
+                    >
+                      {isCurrentPlan ? 'Mevcut Plan' : isContact ? 'İletişime Geç' : 'Satın Al'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Trial Info */}
+            {subscription?.is_trial && (
+              <div className="mt-6 p-4 bg-muted/50 border border-border">
+                <p className="text-sm">
+                  <strong>Deneme Hakkınız:</strong> {subscription.remaining} / {subscription.monthly_limit} fatura kaldı. 
+                  Deneme hakkınız bittiğinde, devam etmek için bir plan satın almanız gerekecektir.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen" data-testid="dashboard-page">
+      {/* Plans Modal */}
+      <PlansModal />
+      
       {/* Session Form Modal */}
       {showSessionForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
