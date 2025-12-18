@@ -204,25 +204,35 @@ async def check_upload_limit(user_id: str, file_count: int = 1):
     limit = plan_info["monthly_limit"]
     current = sub.get("monthly_uploads", 0)
     
+    # Check if subscription expired (for trial)
+    expires_at = sub.get("expires_at")
+    if expires_at:
+        try:
+            exp_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+            if datetime.now(timezone.utc) > exp_date:
+                return False, "Abonelik süreniz doldu. Devam etmek için bir plan satın alın.", 0
+        except:
+            pass
+    
     # Unlimited plan
     if limit == -1:
         return True, None, -1
     
     # Check trial
     if plan == "trial":
-        if sub.get("trial_used", False) or current >= limit:
-            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", 0
         remaining = limit - current
+        if current >= limit:
+            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", 0
         if current + file_count > limit:
-            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", remaining
-        return True, None, remaining
+            return False, f"Deneme hakkınız yetersiz. Kalan: {remaining}, İstenen: {file_count}", remaining
+        return True, None, remaining - file_count
     
     # Check paid plans
     remaining = limit - current
     if current + file_count > limit:
         return False, f"Aylık fatura limitinize ({limit}) ulaştınız. Planınızı yükseltebilirsiniz.", remaining
     
-    return True, None, remaining
+    return True, None, remaining - file_count
 
 async def increment_upload_count(user_id: str, count: int = 1):
     """Increment the upload counter"""
