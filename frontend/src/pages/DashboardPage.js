@@ -511,27 +511,20 @@ const DashboardPage = () => {
               <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">SÜRESİ DOLDU</span>
             )}
           </div>
-          {/* Başlangıç Tarihi */}
-          {started_at && (
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Başlangıç:</span>
-              <span>{formatDate(started_at)}</span>
-            </div>
-          )}
           {/* Bitiş Tarihi */}
           {expires_at && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Bitiş:</span>
+              <span className="text-muted-foreground">Bitiş Tarihi:</span>
               <span className={expiryWarning ? 'text-yellow-600 font-semibold' : ''}>
                 {formatDate(expires_at)}
                 {expiryWarning && !is_expired && ` (${days_remaining} gün kaldı!)`}
               </span>
             </div>
           )}
-          {/* Kota */}
+          {/* Kalan Kota */}
           {!is_expired && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Kota:</span>
+              <span className="text-muted-foreground">Kalan Kota:</span>
               <span className={isExhausted ? 'text-destructive font-semibold' : isLow ? 'text-yellow-600' : ''}>
                 {remaining} / {monthly_limit} fatura
               </span>
