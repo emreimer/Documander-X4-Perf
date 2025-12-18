@@ -156,3 +156,40 @@
 ### agent_communication:
 - agent: main
 - message: Added taxpayer session management. Dashboard now shows taxpayer name and period. Excel filename is dynamic. Invoice date validation added.
+
+## Test Session: 2025-12-18 - Subscription System Implementation
+### New Features to Test:
+
+#### Feature 1: Subscription Plans API
+- **GET /api/subscription/plans**: Returns all available plans with pricing
+- **Plans**: trial (20 free), starter (₺699, 1000), professional (₺1399, 2500), business (₺2399, 5000), enterprise (₺3999, 10000), unlimited (contact)
+- **Annual pricing**: 10 months = 2 months free
+
+#### Feature 2: Subscription Status API
+- **GET /api/subscription/status**: Returns user's current subscription status
+- **Fields**: plan, plan_name, monthly_limit, monthly_uploads, remaining, is_trial, trial_used
+- Auto-creates trial subscription for new users (20 free invoices)
+- Monthly counter resets on new month for paid plans
+
+#### Feature 3: Upload Limit Enforcement
+- **POST /api/invoices/upload**: Now checks subscription limits before processing
+- Returns 403 error with message when limit exceeded
+- Increments upload counter after successful upload
+- Returns remaining_quota and quota_warning in response
+
+#### Feature 4: Frontend Subscription UI
+- **Quota Badge**: Shows current plan and remaining quota in header
+- **Plans Modal**: Opens when clicking quota badge, shows all plans with pricing
+- **Trial Info**: Shows remaining trial invoices
+- **Low Quota Warning**: Toast notification when remaining < 5
+
+### Test Scenarios:
+1. New user gets trial plan with 20 free invoices
+2. Quota badge shows correct plan and remaining count
+3. Plans modal displays all plans with correct pricing
+4. Upload limit is enforced (try uploading when limit reached)
+5. Counter increments after successful upload
+
+### agent_communication:
+- agent: main
+- message: Implemented subscription system with trial (20 free), 5 paid plans. Backend enforces limits on upload. Frontend shows quota badge and plans modal. All APIs working. Need comprehensive testing.
