@@ -1101,6 +1101,8 @@ async def export_to_excel(
     header_font = Font(bold=True, color="FFFFFF")
     
     # Numbers are now formatted using Excel's built-in number format
+    # Number format for Turkish locale (will show as 1.234,56 in Turkish Excel)
+    number_format = '#,##0.00'
     
     # Add main title with taxpayer info if session exists
     if session:
