@@ -241,8 +241,26 @@ async def increment_upload_count(user_id: str, count: int = 1):
         {"$set": update_data}
     )
 
-async def get_current_user(x_visitor_id: Optional[str] = Header(None)):
-    # Get visitor ID from header for user isolation
+async def get_current_user(
+    x_visitor_id: Optional[str] = Header(None),
+    x_wix_member_id: Optional[str] = Header(None)
+):
+    """Get user identifier - prefer Wix Member ID if available"""
+    # If Wix Member ID is provided, link it to the visitor
+    if x_wix_member_id and x_visitor_id:
+        # Check if this Wix member already has a subscription
+        existing_sub = await db.subscriptions.find_one({"wix_member_id": x_wix_member_id}, {"_id": 0})
+        if existing_sub:
+            # Use the existing user_id from Wix subscription
+            return existing_sub.get("user_id", x_visitor_id)
+        else:
+            # Link Wix ID to current visitor's subscription
+            await db.subscriptions.update_one(
+                {"user_id": x_visitor_id},
+                {"$set": {"wix_member_id": x_wix_member_id, "updated_at": datetime.now(timezone.utc).isoformat()}},
+                upsert=False
+            )
+    
     if x_visitor_id:
         return x_visitor_id
     return "anonymous-user"
