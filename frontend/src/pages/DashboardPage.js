@@ -421,42 +421,63 @@ const DashboardPage = () => {
   const QuotaBadge = () => {
     if (!subscription) return null;
     
-    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, trial_used } = subscription;
+    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial } = subscription;
     
     if (is_unlimited) {
       return (
-        <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 text-sm">
-          <Zap className="w-4 h-4 text-primary" />
-          <span className="font-medium">{plan_name}</span>
-          <span className="text-muted-foreground">• Sınırsız</span>
+        <div 
+          className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+          onClick={() => setShowPlansModal(true)}
+          title="Plan detayları için tıklayın"
+        >
+          <Zap className="w-5 h-5 text-primary" />
+          <div className="flex flex-col">
+            <span className="font-semibold text-sm">{plan_name} Plan</span>
+            <span className="text-xs text-muted-foreground">Sınırsız fatura hakkı</span>
+          </div>
         </div>
       );
     }
     
     const isLow = remaining <= 5 && remaining > 0;
     const isExhausted = remaining === 0;
+    const percentUsed = ((monthly_limit - remaining) / monthly_limit) * 100;
     
     return (
       <div 
-        className={`flex items-center gap-2 px-3 py-1 text-sm border cursor-pointer transition-colors ${
+        className={`flex items-center gap-3 px-4 py-2 border cursor-pointer transition-colors ${
           isExhausted 
-            ? 'bg-destructive/10 border-destructive/30 text-destructive' 
+            ? 'bg-destructive/10 border-destructive/30' 
             : isLow 
-              ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700' 
-              : 'bg-muted/50 border-border'
+              ? 'bg-yellow-500/10 border-yellow-500/30' 
+              : 'bg-muted/30 border-border hover:bg-muted/50'
         }`}
         onClick={() => setShowPlansModal(true)}
         title="Plan detayları için tıklayın"
       >
-        <CreditCard className="w-4 h-4" />
-        <span className="font-medium">{plan_name}</span>
-        <span className="text-muted-foreground">•</span>
-        <span className={isExhausted ? 'font-bold' : ''}>
-          {isExhausted ? 'Limit doldu!' : `${remaining}/${monthly_limit} kaldı`}
-        </span>
-        {is_trial && !trial_used && (
-          <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 ml-1">DENEME</span>
-        )}
+        <CreditCard className={`w-5 h-5 ${isExhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-primary'}`} />
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm">{plan_name}</span>
+            {is_trial && (
+              <span className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 font-medium">DENEME</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs ${isExhausted ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+              {isExhausted ? 'Limit doldu!' : `${remaining} / ${monthly_limit} fatura kaldı`}
+            </span>
+          </div>
+          {/* Progress bar */}
+          <div className="w-24 h-1 bg-muted rounded-full mt-1 overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all ${
+                isExhausted ? 'bg-destructive' : isLow ? 'bg-yellow-500' : 'bg-primary'
+              }`}
+              style={{ width: `${Math.min(percentUsed, 100)}%` }}
+            />
+          </div>
+        </div>
       </div>
     );
   };
