@@ -54,8 +54,30 @@ const DashboardPage = () => {
     console.log('Dashboard loaded with Visitor ID:', visitorId);
     setUser({ visitorId });
     fetchSession();
+    fetchSubscription();
+    fetchPlans();
     // eslint-disable-next-line
   }, []);
+  
+  const fetchSubscription = async () => {
+    try {
+      const response = await axios.get(`${API}/subscription/status`, {
+        headers: getAuthHeader()
+      });
+      setSubscription(response.data);
+    } catch (error) {
+      console.error('Subscription fetch error:', error);
+    }
+  };
+  
+  const fetchPlans = async () => {
+    try {
+      const response = await axios.get(`${API}/subscription/plans`);
+      setPlans(response.data.plans);
+    } catch (error) {
+      console.error('Plans fetch error:', error);
+    }
+  };
 
   useEffect(() => {
     if (session) {
