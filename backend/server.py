@@ -245,23 +245,82 @@ async def increment_upload_count(user_id: str, count: int = 1):
 
 async def get_current_user(
     x_visitor_id: Optional[str] = Header(None),
-    x_wix_member_id: Optional[str] = Header(None)
+    x_wix_member_id: Optional[str] = Header(None),
+    x_wix_plan: Optional[str] = Header(None),
+    x_wix_expires: Optional[str] = Header(None)
 ):
     """Get user identifier - prefer Wix Member ID if available"""
-    # If Wix Member ID is provided, link it to the visitor
-    if x_wix_member_id and x_visitor_id:
-        # Check if this Wix member already has a subscription
+    # If Wix Member ID is provided, sync subscription from Wix
+    if x_wix_member_id:
         existing_sub = await db.subscriptions.find_one({"wix_member_id": x_wix_member_id}, {"_id": 0})
+        
+        # Map Wix plan to our plan
+        plan_mapping = {
+            "trial": "trial",
+            "starter": "starter", 
+            "professional": "professional",
+            "business": "business",
+            "enterprise": "enterprise",
+            "unlimited": "unlimited"
+        }
+        
+        new_plan = plan_mapping.get(x_wix_plan, None) if x_wix_plan else None
+        
         if existing_sub:
-            # Use the existing user_id from Wix subscription
-            return existing_sub.get("user_id", x_visitor_id)
+            user_id = existing_sub.get("user_id", x_visitor_id)
+            
+            # Update plan if Wix sent a different one
+            if new_plan and new_plan != existing_sub.get("plan"):
+                current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+                update_data = {
+                    "plan": new_plan,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                # For trial plan, set expiry from Wix
+                if new_plan == "trial" and x_wix_expires:
+                    update_data["expires_at"] = x_wix_expires
+                # For paid monthly plans, no fixed expiry (renews monthly)
+                elif new_plan != "trial":
+                    update_data["expires_at"] = None  # No expiry for monthly plans
+                    # Reset monthly counter if plan changed
+                    if existing_sub.get("month_reset") != current_month:
+                        update_data["monthly_uploads"] = 0
+                        update_data["month_reset"] = current_month
+                
+                await db.subscriptions.update_one(
+                    {"wix_member_id": x_wix_member_id},
+                    {"$set": update_data}
+                )
+            
+            return user_id
         else:
-            # Link Wix ID to current visitor's subscription
-            await db.subscriptions.update_one(
-                {"user_id": x_visitor_id},
-                {"$set": {"wix_member_id": x_wix_member_id, "updated_at": datetime.now(timezone.utc).isoformat()}},
-                upsert=False
-            )
+            # Create new subscription for this Wix member
+            user_id = x_visitor_id or f"wix_{x_wix_member_id}"
+            current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+            
+            # Determine expiry
+            if new_plan == "trial" and x_wix_expires:
+                expires_at = x_wix_expires
+            elif new_plan == "trial":
+                expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+            else:
+                expires_at = None  # No expiry for monthly paid plans
+            
+            new_sub = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "wix_member_id": x_wix_member_id,
+                "plan": new_plan or "trial",
+                "monthly_uploads": 0,
+                "month_reset": current_month,
+                "trial_used": False,
+                "expires_at": expires_at,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.subscriptions.insert_one(new_sub)
+            return user_id
     
     if x_visitor_id:
         return x_visitor_id
