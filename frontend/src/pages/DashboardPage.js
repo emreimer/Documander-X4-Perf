@@ -481,7 +481,7 @@ const DashboardPage = () => {
   const QuotaBadge = () => {
     if (!subscription) return null;
     
-    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, started_at, expires_at, is_expired, days_remaining } = subscription;
+    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, is_monthly_plan, expires_at, next_reset_date, is_expired, days_remaining } = subscription;
     
     if (is_unlimited) {
       return (
