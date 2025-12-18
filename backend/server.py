@@ -583,6 +583,16 @@ async def upload_invoice(
     if not session:
         raise HTTPException(status_code=400, detail="Önce mükellef bilgilerini girin")
     
+    # Check subscription limit BEFORE processing files
+    can_upload, limit_msg, remaining = await check_upload_limit(user_id, len(files))
+    if not can_upload:
+        raise HTTPException(status_code=403, detail=limit_msg)
+    
+    # Warn if remaining is low
+    quota_warning = None
+    if remaining != -1 and remaining <= 5:
+        quota_warning = f"Dikkat: Kalan fatura hakkınız: {remaining}"
+    
     allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml', 'text/html']
     uploaded_invoices = []
     errors = []
