@@ -45,12 +45,19 @@ function App() {
       // Inside iframe - check referrer
       try {
         const referrer = document.referrer.toLowerCase();
-        const isFromDocumander = referrer.includes('documander.com');
-        setIsAllowed(isFromDocumander);
+        const allowedDomains = [
+          'documander.com',
+          'wix.com',
+          'wixsite.com',
+          'editorx.io'
+        ];
+        const isAllowedDomain = allowedDomains.some(domain => referrer.includes(domain));
+        setIsAllowed(isAllowedDomain);
       } catch (e) {
         // Cross-origin iframe - check if referrer contains allowed domain
         const referrer = document.referrer.toLowerCase();
-        setIsAllowed(referrer.includes('documander.com'));
+        const allowedDomains = ['documander.com', 'wix.com', 'wixsite.com', 'editorx.io'];
+        setIsAllowed(allowedDomains.some(domain => referrer.includes(domain)));
       }
     };
 
