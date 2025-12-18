@@ -35,25 +35,38 @@ const DashboardPage = () => {
   const [showPlansModal, setShowPlansModal] = useState(false);
   const [plans, setPlans] = useState([]);
 
-  // Get Wix Member ID from URL or fallback to visitor ID
+  // Get Wix Member ID and plan info from URL
   const getWixMemberId = () => {
-    // Check URL for wixMemberId parameter (passed from Wix Velo)
     const urlParams = new URLSearchParams(window.location.search);
     const wixMemberId = urlParams.get('wixMemberId') || urlParams.get('memberId');
     
     if (wixMemberId) {
-      // Store it for future use
       localStorage.setItem('documander_wix_member_id', wixMemberId);
+      
+      // Also store plan info if present
+      const plan = urlParams.get('plan');
+      const expires = urlParams.get('expires');
+      if (plan) localStorage.setItem('documander_wix_plan', plan);
+      if (expires) localStorage.setItem('documander_wix_expires', expires);
+      
       return wixMemberId;
     }
     
-    // Check if we have a stored Wix Member ID
     const storedWixId = localStorage.getItem('documander_wix_member_id');
     if (storedWixId) {
       return storedWixId;
     }
     
     return null;
+  };
+  
+  // Get Wix plan info from URL or storage
+  const getWixPlanInfo = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      plan: urlParams.get('plan') || localStorage.getItem('documander_wix_plan') || null,
+      expires: urlParams.get('expires') || localStorage.getItem('documander_wix_expires') || null
+    };
   };
 
   const getVisitorId = () => {
