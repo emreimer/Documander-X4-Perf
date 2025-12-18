@@ -27,9 +27,15 @@ const EditModal = ({ invoice, onClose, onSuccess }) => {
   const [saving, setSaving] = useState(false);
 
   const getAuthHeader = () => {
-    // Send visitor ID for user isolation
+    // Send visitor ID and Wix Member ID for user isolation
     const visitorId = localStorage.getItem('documander_visitor_id') || 'anonymous';
-    return { 'X-Visitor-ID': visitorId };
+    const wixMemberId = localStorage.getItem('documander_wix_member_id');
+    
+    const headers = { 'X-Visitor-ID': visitorId };
+    if (wixMemberId) {
+      headers['X-Wix-Member-ID'] = wixMemberId;
+    }
+    return headers;
   };
 
   const handleChange = (e) => {
