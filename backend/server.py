@@ -22,10 +22,18 @@ import json
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
+# MongoDB connection - lazy initialization for production reliability
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'test_database')]
+db_name = os.environ.get('DB_NAME', 'test_database')
+
+# Initialize client with serverSelectionTimeoutMS to fail fast if DB unavailable
+client = AsyncIOMotorClient(
+    mongo_url,
+    serverSelectionTimeoutMS=5000,  # 5 second timeout
+    connectTimeoutMS=5000,
+    socketTimeoutMS=5000
+)
+db = client[db_name]
 
 # JWT Config
 JWT_SECRET = os.environ.get('JWT_SECRET', 'fatura-yonetim-secret-key-2024')
