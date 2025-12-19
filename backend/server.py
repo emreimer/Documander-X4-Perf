@@ -1394,6 +1394,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Root endpoint for basic connectivity check
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"service": "documander-api", "status": "running"}
+
 # Health check endpoint for deployment - MUST NOT require database
 @app.get("/health")
 async def health_check():
