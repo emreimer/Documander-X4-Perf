@@ -809,7 +809,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.
         return data
     except Exception as e:
         logging.error(f"AI extraction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"AI extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Fatura verisi okunamadı. Lütfen tekrar deneyin.")
 
 # Helper function for safe float conversion
 def safe_float(value, default=0.0):
