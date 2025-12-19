@@ -1359,7 +1359,7 @@ ALLOWED_DOMAINS = list(set(ALLOWED_DOMAINS))
 class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         # Allow health check endpoints without restrictions
-        if request.url.path in ["/health", "/api/health"]:
+        if request.url.path in ["/health", "/api/health", "/api/health/db", "/"]:
             return await call_next(request)
         
         # Check referer/origin for API calls
