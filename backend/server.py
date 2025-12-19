@@ -1365,7 +1365,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             if not is_allowed:
                 return JSONResponse(
                     status_code=403,
-                    content={"detail": "Access denied. This application can only be accessed from documander.com"}
+                    content={"detail": "Bu uygulamaya sadece documander.com üzerinden erişilebilir."}
                 )
         
         response = await call_next(request)
