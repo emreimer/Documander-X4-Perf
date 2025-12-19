@@ -1386,17 +1386,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Health check endpoint for deployment
+# Health check endpoint for deployment - MUST NOT require database
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for Kubernetes deployment"""
+    """Health check endpoint for Kubernetes deployment - no DB dependency"""
     return {"status": "healthy", "service": "documander-api"}
 
 @app.get("/api/health")
 async def api_health_check():
-    """API health check endpoint"""
+    """API health check endpoint - no DB dependency for basic health"""
+    return {"status": "healthy", "service": "documander-api"}
+
+@app.get("/api/health/db")
+async def api_db_health_check():
+    """Database health check endpoint"""
     try:
-        # Check MongoDB connection
         await db.command("ping")
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
