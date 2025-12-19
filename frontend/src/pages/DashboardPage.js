@@ -230,8 +230,7 @@ const DashboardPage = () => {
         : `${API}/invoices/export/excel`;
       
       const headers = getAuthHeader();
-      console.log('Export headers:', headers);
-      console.log('Export URL:', url);
+      // Export request
       
       const response = await axios.get(url, {
         headers: headers,
