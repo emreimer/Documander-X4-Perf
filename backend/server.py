@@ -1345,6 +1345,7 @@ ALLOWED_DOMAINS = [d.strip() for d in _env_domains.split(',')] + [
     "localhost:3000", 
     "localhost",
     "emergent.host",
+    "finance-assist-28.emergent.host",
     "preview.emergentagent.com",
     # Wix domains
     "wix.com",
