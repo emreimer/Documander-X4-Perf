@@ -25,20 +25,8 @@ function App() {
   const [isAllowed, setIsAllowed] = useState(null);
 
   useEffect(() => {
-    // TEMPORARILY DISABLED - Allow all access for testing
-    // TODO: Re-enable before production
-    setIsAllowed(true);
-    return;
-
-    /* ORIGINAL CODE - UNCOMMENT FOR PRODUCTION
     // Check if running inside iframe from allowed domain
     const checkAccess = () => {
-      // Allow localhost for development
-      if (window.location.hostname === 'localhost') {
-        setIsAllowed(true);
-        return;
-      }
-
       // Check if inside iframe
       const isInIframe = window.self !== window.top;
       
@@ -68,7 +56,6 @@ function App() {
     };
 
     checkAccess();
-    */
   }, []);
 
   // Loading state
