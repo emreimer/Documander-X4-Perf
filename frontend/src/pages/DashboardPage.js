@@ -100,7 +100,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const visitorId = getVisitorId();
-    console.log('Dashboard loaded with Visitor ID:', visitorId);
+    // Dashboard loaded
     setUser({ visitorId });
     fetchSession();
     fetchSubscription();
