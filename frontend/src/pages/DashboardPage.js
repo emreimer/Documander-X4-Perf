@@ -124,7 +124,7 @@ const DashboardPage = () => {
       const response = await axios.get(`${API}/subscription/plans`);
       setPlans(response.data.plans);
     } catch (error) {
-      console.error('Plans fetch error:', error);
+      // Plans fetch error
     }
   };
 
