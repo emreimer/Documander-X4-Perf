@@ -262,8 +262,7 @@ const DashboardPage = () => {
       
       toast.success('Excel dosyası indirildi');
     } catch (error) {
-      console.error('Excel export error:', error);
-      console.error('Error response:', error.response);
+      // Excel export error
       
       if (error.response?.status === 404) {
         toast.error('İndirilecek fatura bulunamadı');
