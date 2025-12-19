@@ -115,7 +115,7 @@ const DashboardPage = () => {
       });
       setSubscription(response.data);
     } catch (error) {
-      console.error('Subscription fetch error:', error);
+      // Subscription fetch error
     }
   };
   
