@@ -1457,6 +1457,13 @@ async def api_db_health_check():
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
+@app.on_event("startup")
+async def startup_event():
+    """Startup event - log that app is ready"""
+    logger.info("Documander API starting up...")
+    logger.info("Health check available at /api/health")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    logger.info("Documander API shutting down...")
     client.close()
