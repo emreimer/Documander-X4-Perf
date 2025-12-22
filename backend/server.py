@@ -871,79 +871,97 @@ async def upload_invoice(
     if not session:
         raise HTTPException(status_code=400, detail="Önce mükellef bilgilerini girin")
     
-    # Check subscription limit BEFORE processing files
-    can_upload, limit_msg, remaining = await check_upload_limit(user_id, len(files))
-    if not can_upload:
-        raise HTTPException(status_code=403, detail=limit_msg)
-    
-    # Warn if remaining is low
-    quota_warning = None
-    if remaining != -1 and remaining <= 5:
-        quota_warning = f"Dikkat: Kalan fatura hakkınız: {remaining}"
-    
     allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'text/xml', 'application/xml', 'text/html']
     uploaded_invoices = []
     errors = []
     date_mismatches = []
+    total_receipts_found = 0
     
     for file in files:
         try:
             # Validate file type
             if file.content_type not in allowed_types:
-                errors.append(f"{file.filename}: Invalid file type")
+                errors.append(f"{file.filename}: Geçersiz dosya türü")
                 continue
             
             # Read file
             file_content = await file.read()
             
-            # Extract data with AI
+            # Extract data with AI - now returns a list of invoices
             mime_type = file.content_type
             if mime_type == 'image/jpg':
                 mime_type = 'image/jpeg'
             
-            extracted_data = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
+            extracted_invoices = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
             
-            # Validate invoice date against session period
-            invoice_date = extracted_data.get('date', '') or ''
-            is_valid, error_msg = validate_invoice_date(invoice_date, session['year'], session['month'])
+            # Process each receipt found in the image
+            receipts_in_file = len(extracted_invoices) if isinstance(extracted_invoices, list) else 1
+            total_receipts_found += receipts_in_file
             
-            if not is_valid:
-                date_mismatches.append(f"{file.filename}: {error_msg}")
+            # Check quota BEFORE processing this file's receipts
+            can_upload, limit_msg, remaining = await check_upload_limit(user_id, receipts_in_file)
+            if not can_upload:
+                errors.append(f"{file.filename}: {limit_msg} (Bu dosyada {receipts_in_file} fiş bulundu)")
                 continue
             
-            # Create invoice
-            invoice = Invoice(
-                user_id=user_id,
-                session_id=session['id'],
-                category=category,
-                invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
-                date=invoice_date,
-                issuer_name=extracted_data.get('issuer_name', 'N/A') or 'N/A',
-                issuer_tax_id=extracted_data.get('issuer_tax_id', 'N/A') or 'N/A',
-                issuer_tax_office=extracted_data.get('issuer_tax_office', 'N/A') or 'N/A',
-                customer_name=extracted_data.get('customer_name', 'N/A') or 'N/A',
-                customer_tax_id=extracted_data.get('customer_tax_id', 'N/A') or 'N/A',
-                customer_tax_office=extracted_data.get('customer_tax_office', 'N/A') or 'N/A',
-                description=extracted_data.get('description', 'N/A') or 'N/A',
-                amount=safe_float(extracted_data.get('amount')),
-                vat=safe_float(extracted_data.get('vat')),
-                total=safe_float(extracted_data.get('total')),
-                file_name=file.filename,
-                file_type=file.content_type
-            )
+            # Process each extracted invoice/receipt
+            if not isinstance(extracted_invoices, list):
+                extracted_invoices = [extracted_invoices]
             
-            invoice_dict = invoice.model_dump()
-            invoice_dict['created_at'] = invoice_dict['created_at'].isoformat()
+            file_invoices_added = 0
+            file_date_mismatches = []
             
-            await db.invoices.insert_one(invoice_dict)
-            uploaded_invoices.append(invoice)
+            for idx, extracted_data in enumerate(extracted_invoices):
+                # Validate invoice date against session period
+                invoice_date = extracted_data.get('date', '') or ''
+                is_valid, error_msg = validate_invoice_date(invoice_date, session['year'], session['month'])
+                
+                if not is_valid:
+                    receipt_label = f"Fiş {idx + 1}" if len(extracted_invoices) > 1 else "Fiş"
+                    file_date_mismatches.append(f"{receipt_label}: {error_msg}")
+                    continue
+                
+                # Create invoice
+                invoice = Invoice(
+                    user_id=user_id,
+                    session_id=session['id'],
+                    category=category,
+                    invoice_number=extracted_data.get('invoice_number', 'N/A') or 'N/A',
+                    date=invoice_date,
+                    issuer_name=extracted_data.get('issuer_name', 'N/A') or 'N/A',
+                    issuer_tax_id=extracted_data.get('issuer_tax_id', 'N/A') or 'N/A',
+                    issuer_tax_office=extracted_data.get('issuer_tax_office', 'N/A') or 'N/A',
+                    customer_name=extracted_data.get('customer_name', 'N/A') or 'N/A',
+                    customer_tax_id=extracted_data.get('customer_tax_id', 'N/A') or 'N/A',
+                    customer_tax_office=extracted_data.get('customer_tax_office', 'N/A') or 'N/A',
+                    description=extracted_data.get('description', 'N/A') or 'N/A',
+                    amount=safe_float(extracted_data.get('amount')),
+                    vat=safe_float(extracted_data.get('vat')),
+                    total=safe_float(extracted_data.get('total')),
+                    file_name=file.filename,
+                    file_type=file.content_type
+                )
+                
+                invoice_dict = invoice.model_dump()
+                invoice_dict['created_at'] = invoice_dict['created_at'].isoformat()
+                
+                await db.invoices.insert_one(invoice_dict)
+                uploaded_invoices.append(invoice)
+                file_invoices_added += 1
+            
+            # Add date mismatch warnings for this file
+            if file_date_mismatches:
+                if len(extracted_invoices) > 1:
+                    date_mismatches.append(f"{file.filename} ({len(extracted_invoices)} fiş bulundu): " + "; ".join(file_date_mismatches))
+                else:
+                    date_mismatches.append(f"{file.filename}: {file_date_mismatches[0]}")
+            
+            # Increment quota for successfully added invoices from this file
+            if file_invoices_added > 0:
+                await increment_upload_count(user_id, file_invoices_added)
             
         except Exception as e:
             errors.append(f"{file.filename}: {str(e)}")
-    
-    # Increment upload counter for successfully processed invoices
-    if len(uploaded_invoices) > 0:
-        await increment_upload_count(user_id, len(uploaded_invoices))
     
     # Get updated quota info
     _, _, new_remaining = await check_upload_limit(user_id)
