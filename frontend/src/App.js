@@ -25,18 +25,19 @@ function App() {
   const [isAllowed, setIsAllowed] = useState(null);
 
   useEffect(() => {
-    // Check if running inside iframe from allowed domain
+    // TEMPORARILY DISABLED FOR TESTING
+    setIsAllowed(true);
+    return;
+    
+    /* PRODUCTION CODE - UNCOMMENT WHEN READY
     const checkAccess = () => {
-      // Check if inside iframe
       const isInIframe = window.self !== window.top;
       
       if (!isInIframe) {
-        // Direct access - not allowed
         setIsAllowed(false);
         return;
       }
 
-      // Inside iframe - check referrer
       try {
         const referrer = document.referrer.toLowerCase();
         const allowedDomains = [
@@ -48,7 +49,6 @@ function App() {
         const isAllowedDomain = allowedDomains.some(domain => referrer.includes(domain));
         setIsAllowed(isAllowedDomain);
       } catch (e) {
-        // Cross-origin iframe - check if referrer contains allowed domain
         const referrer = document.referrer.toLowerCase();
         const allowedDomains = ['documander.com', 'wix.com', 'wixsite.com', 'editorx.io'];
         setIsAllowed(allowedDomains.some(domain => referrer.includes(domain)));
@@ -56,6 +56,7 @@ function App() {
     };
 
     checkAccess();
+    */
   }, []);
 
   // Loading state
