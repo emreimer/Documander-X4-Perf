@@ -820,7 +820,13 @@ SADECE JSON formatında yanıt ver.
         response_text = response_text.strip()
         
         data = json.loads(response_text)
-        return data
+        
+        # Normalize response to always return a list of invoices
+        if "invoices" in data:
+            return data["invoices"]
+        else:
+            # Single invoice in old format - wrap in list
+            return [data]
     except Exception as e:
         logging.error(f"AI extraction error: {str(e)}")
         raise HTTPException(status_code=500, detail="Fatura verisi okunamadı. Lütfen tekrar deneyin.")
