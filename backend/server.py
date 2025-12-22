@@ -775,23 +775,29 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
             mime_type=mime_type
         )
         
-        # Extract data
-        prompt = """Bu faturadan şu bilgileri çıkar ve JSON formatında döndür:
-- invoice_number: Fatura numarası
+        # Extract data - support multiple receipts in one image
+        prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
+
+Her fiş/fatura için şu bilgileri çıkar:
+- invoice_number: Fatura/fiş numarası
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Faturayı düzenleyen firma/kişi adı
-- issuer_tax_id: Faturayı düzenleyen firmanın vergi kimlik numarası (TCKN veya VKN)
-- issuer_tax_office: Faturayı düzenleyen firmanın vergi dairesi (SADECE vergi dairesi adı, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "ERENKÖY VERGİ DAİRESİ MÜD." yerine sadece "ERENKÖY" yaz)
-- customer_name: Müşteri adı (faturanın kesildiği kişi/firma)
-- customer_tax_id: Müşterinin vergi kimlik numarası (TCKN veya VKN)
-- customer_tax_office: Müşterinin vergi dairesi (SADECE vergi dairesi adı, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D.", "MÜD." gibi ekler OLMADAN. Örnek: "KADIKÖY VERGİ DAİRESİ" yerine sadece "KADIKÖY" yaz)
-- description: Fatura içeriğinin ÇOK KISA özeti (maksimum 3-5 kelime, sadece ana konu)
+- issuer_tax_id: Vergi kimlik numarası (TCKN veya VKN)
+- issuer_tax_office: Vergi dairesi (SADECE isim, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D." gibi ekler OLMADAN)
+- customer_name: Müşteri adı (varsa)
+- customer_tax_id: Müşteri vergi numarası (varsa)
+- customer_tax_office: Müşteri vergi dairesi (varsa)
+- description: Fatura içeriğinin KISA özeti (3-5 kelime)
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
 - total: Toplam tutar (sadece sayı)
 
-Sadece JSON formatında yanıt ver, başka açıklama ekleme.
-Örnek: {"invoice_number": "INV-2024-001", "date": "15/01/2024", "issuer_name": "ABC Ltd.", "issuer_tax_id": "1234567890", "issuer_tax_office": "KADIKÖY", "customer_name": "XYZ A.Ş.", "customer_tax_id": "9876543210", "customer_tax_office": "BEŞİKTAŞ", "description": "Yazılım danışmanlık", "amount": 1000.0, "vat": 180.0, "total": 1180.0}"""
+SADECE JSON formatında yanıt ver. 
+- Tek fiş varsa: {"invoices": [{ ... fiş bilgileri ... }]}
+- Birden fazla fiş varsa: {"invoices": [{ fiş1 }, { fiş2 }, ...]}
+
+Örnek:
+{"invoices": [{"invoice_number": "FIS-001", "date": "15/01/2024", "issuer_name": "ABC Market", "issuer_tax_id": "1234567890", "issuer_tax_office": "KADIKÖY", "customer_name": "", "customer_tax_id": "", "customer_tax_office": "", "description": "Market alışverişi", "amount": 100.0, "vat": 18.0, "total": 118.0}]}"""
         
         message = UserMessage(
             text=prompt,
