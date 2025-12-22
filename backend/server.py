@@ -1395,36 +1395,33 @@ ALLOWED_DOMAINS = list(set(ALLOWED_DOMAINS))
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        # TEMPORARILY DISABLED FOR TESTING
-        response = await call_next(request)
-        return response
-        
-        # --- PRODUCTION CODE BELOW - UNCOMMENT WHEN READY ---
         # Allow health check endpoints without restrictions
-        # if request.url.path in ["/health", "/api/health", "/api/health/db", "/"]:
-        #     return await call_next(request)
-        # 
-        # # Check referer/origin for API calls
-        # if request.url.path.startswith("/api"):
-        #     referer = request.headers.get("referer", "")
-        #     origin = request.headers.get("origin", "")
-        #     
-        #     is_allowed = False
-        #     for domain in ALLOWED_DOMAINS:
-        #         if domain in referer or domain in origin:
-        #             is_allowed = True
-        #             break
-        #     
-        #     if not is_allowed:
-        #         return JSONResponse(
-        #             status_code=403,
-        #             content={"detail": "Bu uygulamaya sadece documander.com üzerinden erişilebilir."}
-        #         )
-        # 
-        # response = await call_next(request)
-        # response.headers["X-Frame-Options"] = "ALLOW-FROM https://www.documander.com"
-        # response.headers["Content-Security-Policy"] = "frame-ancestors https://www.documander.com https://documander.com"
-        # return response
+        if request.url.path in ["/health", "/api/health", "/api/health/db", "/"]:
+            return await call_next(request)
+        
+        # Check referer/origin for API calls
+        if request.url.path.startswith("/api"):
+            referer = request.headers.get("referer", "")
+            origin = request.headers.get("origin", "")
+            
+            # Allow if referer or origin is from allowed domains
+            is_allowed = False
+            for domain in ALLOWED_DOMAINS:
+                if domain in referer or domain in origin:
+                    is_allowed = True
+                    break
+            
+            if not is_allowed:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Bu uygulamaya sadece documander.com üzerinden erişilebilir."}
+                )
+        
+        response = await call_next(request)
+        # Only allow iframe from documander.com
+        response.headers["X-Frame-Options"] = "ALLOW-FROM https://www.documander.com"
+        response.headers["Content-Security-Policy"] = "frame-ancestors https://www.documander.com https://documander.com"
+        return response
 
 app.add_middleware(SecurityMiddleware)
 
