@@ -26,12 +26,15 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 db_name = os.environ.get('DB_NAME', 'test_database')
 
-# Initialize client with serverSelectionTimeoutMS to fail fast if DB unavailable
+# Initialize client with appropriate timeouts for production
+# Motor/PyMongo connects lazily - actual connection happens on first operation
 client = AsyncIOMotorClient(
     mongo_url,
-    serverSelectionTimeoutMS=5000,  # 5 second timeout
-    connectTimeoutMS=5000,
-    socketTimeoutMS=5000
+    serverSelectionTimeoutMS=10000,  # 10 second timeout for server selection
+    connectTimeoutMS=10000,          # 10 second connection timeout
+    socketTimeoutMS=30000,           # 30 second socket timeout
+    maxPoolSize=10,                  # Connection pool size
+    retryWrites=True                 # Enable retry for write operations
 )
 db = client[db_name]
 
