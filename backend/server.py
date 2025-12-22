@@ -966,9 +966,15 @@ async def upload_invoice(
     # Get updated quota info
     _, _, new_remaining = await check_upload_limit(user_id)
     
+    # Prepare quota warning
+    quota_warning = None
+    if new_remaining != -1 and new_remaining <= 5:
+        quota_warning = f"Dikkat: Kalan fiş hakkınız: {new_remaining}"
+    
     response_data = {
         "success": len(uploaded_invoices),
         "failed": len(errors) + len(date_mismatches),
+        "total_receipts_found": total_receipts_found,
         "invoices": uploaded_invoices,
         "errors": errors,
         "date_mismatches": date_mismatches,
