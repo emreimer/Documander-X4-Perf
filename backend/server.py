@@ -187,7 +187,6 @@ async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
             "wix_member_id": wix_member_id,
             "plan": "trial",
             "monthly_uploads": 0,
-            "month_reset": datetime.now(timezone.utc).strftime("%Y-%m"),
             "trial_used": False,
             "expires_at": trial_expires,
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -195,16 +194,7 @@ async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
         }
         await db.subscriptions.insert_one(sub)
     
-    # Check if month changed - reset counter
-    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
-    if sub.get("month_reset") != current_month and sub.get("plan") != "trial":
-        await db.subscriptions.update_one(
-            {"user_id": user_id},
-            {"$set": {"monthly_uploads": 0, "month_reset": current_month, "updated_at": datetime.now(timezone.utc).isoformat()}}
-        )
-        sub["monthly_uploads"] = 0
-        sub["month_reset"] = current_month
-    
+    # No monthly reset for any plan - quotas are total for the subscription period
     return sub
 
 async def check_upload_limit(user_id: str, file_count: int = 1):
