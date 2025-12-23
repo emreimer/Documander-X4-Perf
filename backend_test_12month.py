@@ -29,7 +29,11 @@ class TwelveMonthSubscriptionTester:
 
     def get_headers(self, wix_member_id=None, wix_plan=None, wix_expires=None):
         """Get headers for API requests"""
-        headers = {'X-Visitor-ID': self.visitor_id}
+        headers = {
+            'X-Visitor-ID': self.visitor_id,
+            'Referer': 'https://invoice-extract-10.preview.emergentagent.com/',
+            'Origin': 'https://invoice-extract-10.preview.emergentagent.com'
+        }
         if wix_member_id:
             headers['X-Wix-Member-ID'] = wix_member_id
         if wix_plan:
