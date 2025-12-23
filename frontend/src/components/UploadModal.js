@@ -296,15 +296,17 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
     }
   };
 
+  // Handle showing plans modal
+  const handleShowPlans = () => {
+    setUploadResult(null);
+    onClose();
+    window.dispatchEvent(new CustomEvent('showPlansModal'));
+  };
+
   // Handle result overlay close
   const handleResultClose = () => {
     const result = uploadResult;
     setUploadResult(null);
-    
-    // If there was a quota error, show plans modal
-    if (result?.isQuotaError) {
-      window.dispatchEvent(new CustomEvent('showPlansModal'));
-    }
     
     // If there were successful uploads and no critical errors, close upload modal
     if (result?.success > 0) {
@@ -318,7 +320,13 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
       {uploading && <ProcessingOverlay fileCount={files.length} />}
       
       {/* Result Overlay - Shows after upload completes with warnings/errors */}
-      {uploadResult && <ResultOverlay result={uploadResult} onClose={handleResultClose} />}
+      {uploadResult && (
+        <ResultOverlay 
+          result={uploadResult} 
+          onClose={handleResultClose} 
+          onShowPlans={handleShowPlans}
+        />
+      )}
       
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" data-testid="upload-modal">
         <div className="bg-card border border-border shadow-lg max-w-lg w-full">
