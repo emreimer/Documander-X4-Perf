@@ -148,7 +148,11 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" data-testid="upload-modal">
+    <>
+      {/* Processing Overlay - Full Screen */}
+      {uploading && <ProcessingOverlay fileCount={files.length} />}
+      
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" data-testid="upload-modal">
       <div className="bg-card border border-border shadow-lg max-w-lg w-full">
         {/* Header */}
         <div className="border-b border-border p-4 flex items-center justify-between bg-muted/20">
