@@ -202,16 +202,19 @@ async def check_upload_limit(user_id: str, file_count: int = 1):
     sub = await get_or_create_subscription(user_id)
     plan = sub.get("plan", "trial")
     plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
-    limit = plan_info["monthly_limit"]
+    limit = plan_info["monthly_limit"]  # Now represents total limit for 12 months
     current = sub.get("monthly_uploads", 0)
     
-    # Check if subscription expired (for trial)
+    # Check if subscription expired
     expires_at = sub.get("expires_at")
     if expires_at:
         try:
             exp_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
             if datetime.now(timezone.utc) > exp_date:
-                return False, "Abonelik süreniz doldu. Devam etmek için bir plan satın alın.", 0
+                if plan == "trial":
+                    return False, "Deneme süreniz doldu. Devam etmek için bir plan satın alın.", 0
+                else:
+                    return False, "Abonelik süreniz doldu. Devam etmek için yeni bir plan satın alın.", 0
         except:
             pass
     
@@ -224,19 +227,15 @@ async def check_upload_limit(user_id: str, file_count: int = 1):
     if limit == -1:
         return True, None, -1
     
-    # Check trial
-    if plan == "trial":
-        remaining = limit - current
-        if current >= limit:
-            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", 0
-        if current + file_count > limit:
-            return False, f"Deneme hakkınız yetersiz. Kalan: {remaining}, İstenen: {file_count}", remaining
-        return True, None, remaining - file_count
-    
-    # Check paid plans
+    # Check quota (same logic for trial and paid plans - total quota, no monthly reset)
     remaining = limit - current
+    if current >= limit:
+        if plan == "trial":
+            return False, "Deneme hakkınız doldu. Devam etmek için bir plan satın alın.", 0
+        else:
+            return False, "Fatura kotanız doldu. Devam etmek için yeni bir plan satın alın.", 0
     if current + file_count > limit:
-        return False, f"Aylık fatura limitinize ({limit}) ulaştınız. Planınızı yükseltebilirsiniz.", remaining
+        return False, f"Kota yetersiz. Kalan: {remaining}, İstenen: {file_count}", remaining
     
     return True, None, remaining - file_count
 
