@@ -616,7 +616,7 @@ const DashboardPage = () => {
                     <ul className="space-y-2 text-sm flex-grow mb-4">
                       <li className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-primary" />
-                        {plan.monthly_limit === -1 ? 'Sınırsız fatura' : `Aylık ${plan.monthly_limit.toLocaleString('tr-TR')} fatura`}
+                        {plan.monthly_limit === -1 ? 'Sınırsız fatura' : `12 ay için ${plan.monthly_limit.toLocaleString('tr-TR')} fatura`}
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-primary" />
