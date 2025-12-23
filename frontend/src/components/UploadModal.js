@@ -142,6 +142,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null); // For result overlay
 
   const getAuthHeader = () => {
     // Send visitor ID and Wix Member ID for user isolation
