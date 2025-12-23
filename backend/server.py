@@ -650,13 +650,13 @@ async def admin_activate_subscription(
     wix_member_id: str = Form(...),
     plan: str = Form(...),
     admin_key: str = Form(...),
-    duration_days: int = Form(30)  # Default 30 days (1 month)
+    duration_days: int = Form(365)  # Default 365 days (12 months) for paid plans
 ):
     """
     Admin endpoint to activate subscription after Wix payment.
     Called manually or via Wix Webhook when payment is confirmed.
     
-    duration_days: Subscription duration in days (30=1 month, 365=1 year)
+    duration_days: Subscription duration in days (7=trial, 365=1 year for paid plans)
     """
     # Verify admin key
     if admin_key != ADMIN_API_KEY:
