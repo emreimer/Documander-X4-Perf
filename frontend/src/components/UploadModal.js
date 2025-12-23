@@ -265,6 +265,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
           </Button>
         </div>
       </div>
+    </div>
     </>
   );
 };
