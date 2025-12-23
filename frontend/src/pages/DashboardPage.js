@@ -620,10 +620,6 @@ const DashboardPage = () => {
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-primary" />
-                        AI destekli veri çıkarma
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-primary" />
                         Excel dışa aktarma
                       </li>
                       {plan.monthly_limit >= 5000 && (
