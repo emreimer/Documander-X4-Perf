@@ -609,7 +609,7 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <div className="my-3">
-                        <p className="text-2xl font-bold">₺{plan.price}<span className="text-sm font-normal text-muted-foreground">/ay</span></p>
+                        <p className="text-2xl font-bold">₺{plan.price}<span className="text-sm font-normal text-muted-foreground">/12 ay</span></p>
                       </div>
                     )}
                     
