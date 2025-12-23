@@ -235,7 +235,11 @@ class TwelveMonthSubscriptionTester:
         
         # Create a trial user (20 file limit)
         trial_visitor_id = f"test_quota_block_{datetime.now().strftime('%H%M%S')}"
-        headers = {'X-Visitor-ID': trial_visitor_id}
+        headers = {
+            'X-Visitor-ID': trial_visitor_id,
+            'Referer': 'https://invoice-extract-10.preview.emergentagent.com/',
+            'Origin': 'https://invoice-extract-10.preview.emergentagent.com'
+        }
         
         # First create a session (required for upload)
         session_data = {
