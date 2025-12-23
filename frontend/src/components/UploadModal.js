@@ -188,6 +188,7 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
     }
 
     setUploading(true);
+    setUploadResult(null);
     const formData = new FormData();
     files.forEach(file => {
       formData.append('files', file);
@@ -196,7 +197,6 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
 
     try {
       const headers = getAuthHeader();
-      // Upload request
       
       const response = await axios.post(`${API}/invoices/upload`, formData, {
         headers: {
@@ -206,45 +206,65 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
       
       const { success, failed, errors, date_mismatches, quota_warning, remaining_quota } = response.data;
       
-      if (success > 0) {
+      // Check if there are any warnings or errors to show in overlay
+      const hasIssues = (date_mismatches && date_mismatches.length > 0) || 
+                        quota_warning || 
+                        (errors && errors.length > 0);
+      
+      if (hasIssues) {
+        // Show result overlay with warnings/errors
+        setUploadResult({ success, errors: errors || [], date_mismatches: date_mismatches || [], quota_warning });
+      } else if (success > 0) {
+        // Pure success - just show toast and close
         toast.success(`${success} fatura başarıyla yüklendi!`);
-      }
-      
-      // Show quota warning if low
-      if (quota_warning) {
-        toast.warning(quota_warning, { duration: 6000 });
-      }
-      
-      // Show date mismatch warnings prominently
-      if (date_mismatches && date_mismatches.length > 0) {
-        date_mismatches.forEach(msg => {
-          toast.warning(msg, { duration: 8000 });
-        });
-      }
-      
-      // Show other errors
-      if (errors && errors.length > 0) {
-        errors.forEach(err => toast.error(err));
-      }
-      
-      onSuccess(remaining_quota);
-      if (success > 0 || (date_mismatches && date_mismatches.length === 0 && errors.length === 0)) {
+        onSuccess(remaining_quota);
         onClose();
       }
+      
+      // Always call onSuccess to refresh the list
+      if (success > 0) {
+        onSuccess(remaining_quota);
+      }
+      
     } catch (error) {
       const errorStatus = error.response?.status;
       const message = error.response?.data?.detail || 'Fatura yüklenemedi';
       
       // Special handling for quota exceeded
-      if (errorStatus === 403 && message.includes('limit')) {
-        toast.error(message, { duration: 10000 });
-        // Trigger plan upgrade modal
-        window.dispatchEvent(new CustomEvent('showPlansModal'));
+      if (errorStatus === 403 && (message.includes('limit') || message.includes('kota') || message.includes('Kota'))) {
+        setUploadResult({ 
+          success: 0, 
+          errors: [message], 
+          date_mismatches: [], 
+          quota_warning: null,
+          isQuotaError: true 
+        });
       } else {
-        toast.error(message);
+        setUploadResult({ 
+          success: 0, 
+          errors: [message], 
+          date_mismatches: [], 
+          quota_warning: null 
+        });
       }
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Handle result overlay close
+  const handleResultClose = () => {
+    const result = uploadResult;
+    setUploadResult(null);
+    
+    // If there was a quota error, show plans modal
+    if (result?.isQuotaError) {
+      window.dispatchEvent(new CustomEvent('showPlansModal'));
+    }
+    
+    // If there were successful uploads and no critical errors, close upload modal
+    if (result?.success > 0) {
+      onClose();
     }
   };
 
