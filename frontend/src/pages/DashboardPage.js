@@ -654,8 +654,18 @@ const DashboardPage = () => {
             {subscription?.is_trial && (
               <div className="mt-6 p-4 bg-muted/50 border border-border">
                 <p className="text-sm">
-                  <strong>Deneme Hakkınız:</strong> {subscription.remaining} / {subscription.monthly_limit} fatura kaldı. 
+                  <strong>Deneme Hakkınız:</strong> {subscription.remaining} / {subscription.total_limit || subscription.monthly_limit} fatura kaldı. 
                   Deneme hakkınız bittiğinde, devam etmek için bir plan satın almanız gerekecektir.
+                </p>
+              </div>
+            )}
+            
+            {/* Quota exhausted info */}
+            {subscription?.is_quota_exhausted && !subscription?.is_trial && (
+              <div className="mt-6 p-4 bg-destructive/10 border border-destructive/30">
+                <p className="text-sm text-destructive">
+                  <strong>Kotanız Doldu!</strong> Fatura yüklemeye devam etmek için yeni bir plan satın alın. 
+                  Mevcut planınız ({subscription.plan_name}) için tüm kotanızı kullandınız.
                 </p>
               </div>
             )}
