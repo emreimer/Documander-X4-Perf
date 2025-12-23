@@ -481,20 +481,20 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
     plan = sub.get("plan", "trial")
     plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
     
-    monthly_uploads = sub.get("monthly_uploads", 0)
-    limit = plan_info["monthly_limit"]
+    total_uploads = sub.get("monthly_uploads", 0)  # Now represents total usage
+    limit = plan_info["monthly_limit"]  # Total limit for the subscription period
     
     # Calculate remaining
     if limit == -1:
         remaining = -1  # Unlimited
     else:
-        remaining = max(0, limit - monthly_uploads)
+        remaining = max(0, limit - total_uploads)
     
-    # Check expiration (only for trial plans - monthly plans have no expiry)
+    # Check expiration
     expires_at = sub.get("expires_at")
     is_expired = False
     days_remaining = None
-    is_monthly_plan = plan != "trial" and expires_at is None
+    is_annual_plan = plan != "trial" and plan != "unlimited"
     
     if expires_at:
         try:
@@ -506,43 +506,28 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
         except:
             pass
     
-    # For monthly plans, calculate days until quota reset
-    next_reset_date = None
-    if is_monthly_plan:
-        created_at = sub.get("created_at")
-        if created_at:
-            try:
-                start_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-                now = datetime.now(timezone.utc)
-                # Find next monthly anniversary
-                months_passed = (now.year - start_date.year) * 12 + (now.month - start_date.month)
-                next_reset = start_date.replace(year=start_date.year + (start_date.month + months_passed) // 12,
-                                                 month=(start_date.month + months_passed) % 12 + 1)
-                if next_reset <= now:
-                    next_reset = start_date.replace(year=start_date.year + (start_date.month + months_passed + 1) // 12,
-                                                     month=(start_date.month + months_passed + 1) % 12 + 1)
-                next_reset_date = next_reset.isoformat()
-                days_remaining = (next_reset - now).days
-            except:
-                pass
+    # Check if quota is exhausted
+    is_quota_exhausted = remaining == 0 and limit != -1
     
     return {
         "plan": plan,
         "plan_name": plan_info["name"],
-        "monthly_limit": limit,
-        "monthly_uploads": monthly_uploads,
+        "total_limit": limit,  # Renamed from monthly_limit
+        "total_uploads": total_uploads,  # Renamed from monthly_uploads
         "remaining": remaining,
         "is_trial": plan == "trial",
         "trial_used": sub.get("trial_used", False),
         "is_unlimited": limit == -1,
-        "is_monthly_plan": is_monthly_plan,
-        "month_reset": sub.get("month_reset", ""),
+        "is_annual_plan": is_annual_plan,
         "wix_member_id": sub.get("wix_member_id"),
-        "started_at": sub.get("created_at"),
+        "plan_start_date": sub.get("plan_start_date"),
         "expires_at": expires_at,
-        "next_reset_date": next_reset_date,
         "is_expired": is_expired,
-        "days_remaining": days_remaining
+        "is_quota_exhausted": is_quota_exhausted,
+        "days_remaining": days_remaining,
+        # Legacy fields for backward compatibility
+        "monthly_limit": limit,
+        "monthly_uploads": total_uploads
     }
 
 @api_router.post("/subscription/upgrade")
