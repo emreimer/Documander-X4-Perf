@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import { X, Upload as UploadIcon, FileText, Loader2 } from 'lucide-react';
+import { X, Upload as UploadIcon, FileText, Loader2, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -37,6 +37,106 @@ const ProcessingOverlay = ({ fileCount }) => (
     </div>
   </div>
 );
+
+// Result Overlay Component - Shows upload results with warnings/errors
+const ResultOverlay = ({ result, onClose }) => {
+  const { success, errors, date_mismatches, quota_warning } = result;
+  
+  const hasWarnings = (date_mismatches && date_mismatches.length > 0) || quota_warning;
+  const hasErrors = errors && errors.length > 0;
+  const isSuccess = success > 0 && !hasErrors;
+  
+  // Determine overlay type
+  let type = 'success';
+  let title = 'İşlem Tamamlandı';
+  let borderColor = 'border-green-500';
+  let Icon = CheckCircle2;
+  let iconColor = 'text-green-500';
+  
+  if (hasErrors && success === 0) {
+    type = 'error';
+    title = 'Yükleme Başarısız';
+    borderColor = 'border-destructive';
+    Icon = XCircle;
+    iconColor = 'text-destructive';
+  } else if (hasWarnings || hasErrors) {
+    type = 'warning';
+    title = 'Dikkat Edilmesi Gerekenler';
+    borderColor = 'border-yellow-500';
+    Icon = AlertTriangle;
+    iconColor = 'text-yellow-500';
+  }
+  
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center">
+      <div className={`bg-card border-2 ${borderColor} shadow-2xl p-8 max-w-lg w-full mx-4`}>
+        {/* Header */}
+        <div className="text-center mb-6">
+          <Icon className={`w-16 h-16 ${iconColor} mx-auto mb-4`} />
+          <h3 className="text-xl font-heading font-bold">{title}</h3>
+        </div>
+        
+        {/* Success Message */}
+        {success > 0 && (
+          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded">
+            <p className="text-sm text-green-700 font-medium flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              {success} fatura başarıyla yüklendi
+            </p>
+          </div>
+        )}
+        
+        {/* Date Mismatch Warnings */}
+        {date_mismatches && date_mismatches.length > 0 && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded">
+            <p className="text-sm font-medium text-yellow-700 mb-2 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Tarih Uyuşmazlığı
+            </p>
+            <ul className="text-xs text-yellow-600 space-y-1 ml-6">
+              {date_mismatches.map((msg, idx) => (
+                <li key={idx}>• {msg}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {/* Quota Warning */}
+        {quota_warning && (
+          <div className="mb-4 p-3 bg-orange-500/10 border border-orange-500/30 rounded">
+            <p className="text-sm text-orange-700 font-medium flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              {quota_warning}
+            </p>
+          </div>
+        )}
+        
+        {/* Errors */}
+        {errors && errors.length > 0 && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded">
+            <p className="text-sm font-medium text-destructive mb-2 flex items-center gap-2">
+              <XCircle className="w-4 h-4" />
+              Hatalar
+            </p>
+            <ul className="text-xs text-destructive/80 space-y-1 ml-6">
+              {errors.map((err, idx) => (
+                <li key={idx}>• {err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        {/* Close Button */}
+        <Button
+          onClick={onClose}
+          className="w-full rounded-none uppercase tracking-wide mt-4"
+        >
+          Tamam
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const UploadModal = ({ category, onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
