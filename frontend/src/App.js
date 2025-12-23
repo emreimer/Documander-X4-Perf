@@ -27,6 +27,13 @@ function App() {
   useEffect(() => {
     // Check if running inside iframe from allowed domain
     const checkAccess = () => {
+      // Development mode bypass - check for localhost
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocalhost) {
+        setIsAllowed(true);
+        return;
+      }
+      
       // Check if inside iframe
       const isInIframe = window.self !== window.top;
       
