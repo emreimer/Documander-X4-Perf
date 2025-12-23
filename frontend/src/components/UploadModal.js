@@ -39,28 +39,72 @@ const ProcessingOverlay = ({ fileCount }) => (
 );
 
 // Result Overlay Component - Shows upload results with warnings/errors
-const ResultOverlay = ({ result, onClose }) => {
-  const { success, errors, date_mismatches, quota_warning } = result;
+const ResultOverlay = ({ result, onClose, onShowPlans }) => {
+  const { success, errors, date_mismatches, quota_warning, isQuotaError } = result;
   
   const hasWarnings = (date_mismatches && date_mismatches.length > 0) || quota_warning;
   const hasErrors = errors && errors.length > 0;
-  const isSuccess = success > 0 && !hasErrors;
   
-  // Determine overlay type
-  let type = 'success';
+  // Special case for quota exhausted
+  if (isQuotaError) {
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center">
+        <div className="bg-card border-2 border-destructive shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+          {/* Icon */}
+          <div className="mb-6">
+            <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+              <XCircle className="w-12 h-12 text-destructive" />
+            </div>
+          </div>
+          
+          {/* Title */}
+          <h3 className="text-2xl font-heading font-bold text-destructive mb-2">Kota Doldu</h3>
+          <p className="text-muted-foreground mb-6">
+            Fatura yükleme kotanız dolmuştur. Devam etmek için yeni bir paket satın alın.
+          </p>
+          
+          {/* Error Detail */}
+          {errors && errors.length > 0 && (
+            <div className="mb-6 p-3 bg-destructive/10 border border-destructive/30 rounded text-left">
+              <p className="text-sm text-destructive">
+                {errors[0]}
+              </p>
+            </div>
+          )}
+          
+          {/* Buttons */}
+          <div className="space-y-3">
+            <Button
+              onClick={onShowPlans}
+              className="w-full rounded-none uppercase tracking-wide"
+            >
+              Paketleri İncele
+            </Button>
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="w-full rounded-none uppercase tracking-wide"
+            >
+              Kapat
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Determine overlay type for normal results
   let title = 'İşlem Tamamlandı';
   let borderColor = 'border-green-500';
   let Icon = CheckCircle2;
   let iconColor = 'text-green-500';
   
   if (hasErrors && success === 0) {
-    type = 'error';
     title = 'Yükleme Başarısız';
     borderColor = 'border-destructive';
     Icon = XCircle;
     iconColor = 'text-destructive';
   } else if (hasWarnings || hasErrors) {
-    type = 'warning';
     title = 'Dikkat Edilmesi Gerekenler';
     borderColor = 'border-yellow-500';
     Icon = AlertTriangle;
