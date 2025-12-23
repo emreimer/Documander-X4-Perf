@@ -19,7 +19,7 @@ const ProcessingOverlay = ({ fileCount }) => (
       </div>
       <h3 className="text-xl font-heading font-bold mb-2">Faturalar İşleniyor</h3>
       <p className="text-muted-foreground mb-4">
-        {fileCount} dosya AI tarafından analiz ediliyor...
+        {fileCount} dosya analiz ediliyor...
       </p>
       <div className="space-y-2">
         <div className="h-2 bg-muted rounded-full overflow-hidden">
