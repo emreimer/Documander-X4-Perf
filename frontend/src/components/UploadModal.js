@@ -250,6 +250,11 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
       
       const { success, failed, errors, date_mismatches, quota_warning, remaining_quota } = response.data;
       
+      // Check if quota error in errors array
+      const quotaErrorInErrors = errors && errors.some(err => 
+        err.includes('kota') || err.includes('Kota') || err.includes('limit') || err.includes('doldu')
+      );
+      
       // Check if there are any warnings or errors to show in overlay
       const hasIssues = (date_mismatches && date_mismatches.length > 0) || 
                         quota_warning || 
@@ -257,7 +262,13 @@ const UploadModal = ({ category, onClose, onSuccess }) => {
       
       if (hasIssues) {
         // Show result overlay with warnings/errors
-        setUploadResult({ success, errors: errors || [], date_mismatches: date_mismatches || [], quota_warning });
+        setUploadResult({ 
+          success, 
+          errors: errors || [], 
+          date_mismatches: date_mismatches || [], 
+          quota_warning,
+          isQuotaError: quotaErrorInErrors && success === 0
+        });
       } else if (success > 0) {
         // Pure success - just show toast and close
         toast.success(`${success} fatura başarıyla yüklendi!`);
