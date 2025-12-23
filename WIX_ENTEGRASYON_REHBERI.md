@@ -18,7 +18,7 @@ import wixUsers from 'wix-users';
 import wixLocation from 'wix-location';
 
 $w.onReady(function () {
-    const baseUrl = "https://finance-assist-28.preview.emergentagent.com";
+    const baseUrl = "https://invoice-extract-10.preview.emergentagent.com";
     
     // Kullanıcı giriş yapmış mı kontrol et
     if (wixUsers.currentUser.loggedIn) {
@@ -47,7 +47,7 @@ Alternatif olarak HTML Embed kullanabilirsiniz:
 <div id="documander-container" style="width:100%; height:800px;">
     <iframe 
         id="documanderFrame"
-        src="https://finance-assist-28.preview.emergentagent.com"
+        src="https://invoice-extract-10.preview.emergentagent.com"
         style="width:100%; height:100%; border:none;"
         allow="clipboard-write"
     ></iframe>
@@ -68,7 +68,7 @@ Wix'te ödeme tamamlandığında, aboneliği aktive etmek için:
 Wix'ten ödeme bildirimi geldiğinde, bu API'yi çağırın:
 
 ```bash
-curl -X POST "https://finance-assist-28.preview.emergentagent.com/api/admin/activate-subscription" \
+curl -X POST "https://invoice-extract-10.preview.emergentagent.com/api/admin/activate-subscription" \
   -d "wix_member_id=KULLANICI_WIX_ID" \
   -d "plan=starter" \
   -d "admin_key=documander-admin-key-2025"
@@ -83,14 +83,14 @@ curl -X POST "https://finance-assist-28.preview.emergentagent.com/api/admin/acti
 
 ### Abonelik İptali
 ```bash
-curl -X POST "https://finance-assist-28.preview.emergentagent.com/api/admin/deactivate-subscription" \
+curl -X POST "https://invoice-extract-10.preview.emergentagent.com/api/admin/deactivate-subscription" \
   -d "wix_member_id=KULLANICI_WIX_ID" \
   -d "admin_key=documander-admin-key-2025"
 ```
 
 ### Tüm Abonelikleri Listele
 ```bash
-curl "https://finance-assist-28.preview.emergentagent.com/api/admin/subscriptions?admin_key=documander-admin-key-2025"
+curl "https://invoice-extract-10.preview.emergentagent.com/api/admin/subscriptions?admin_key=documander-admin-key-2025"
 ```
 
 ---
@@ -122,7 +122,7 @@ export async function onPlanPurchased(event) {
     // Documander API'sine bildir
     try {
         const response = await fetch(
-            "https://finance-assist-28.preview.emergentagent.com/api/admin/activate-subscription",
+            "https://invoice-extract-10.preview.emergentagent.com/api/admin/activate-subscription",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -150,7 +150,7 @@ export async function onPlanPurchased(event) {
 ## Önemli Notlar
 
 - **Admin Key**: `documander-admin-key-2025` (değiştirmeniz önerilir)
-- **iframe URL**: `https://finance-assist-28.preview.emergentagent.com`
+- **iframe URL**: `https://invoice-extract-10.preview.emergentagent.com`
 - **Wix Member ID**: Wix'te her kullanıcının benzersiz ID'si
 
 Sorularınız için: info@documander.com

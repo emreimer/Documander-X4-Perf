@@ -1,116 +1,123 @@
 <analysis>**original_problem_statement:**
-The user wants to build a platform for accountants. The core functionality is to allow users to upload customer invoices in various formats (XML, PDF, JPG), and in return, receive an Excel file that serves as an income and expense statement. This statement should contain summary information from the invoices. The user has specified that AI should be used to extract data from the uploaded invoice files.
+The user wants to build a platform called Documander for accountants, intended to be embedded in their Wix website (). The core functionality involves users uploading customer invoices (PDF, JPG, XML, HTML), with an AI extracting the data for categorization into Income and Expense. Users can then download an Excel file of these invoices.
 
-**PRODUCT REQUIREMENTS:**
-1.  User authentication (JWT-based).
-2.  Bulk invoice upload supporting PDF, JPG, and XML.
-3.  AI-powered data extraction from invoices.
-4.  Invoices categorized as Income and Expense, displayed in separate tables.
-5.  Each table should display a sub-total of the invoice amounts.
-6.  The UI should show specific columns for each category (e.g., 'Customer' for income, 'Issuer' for expense).
-7.  A single Download Excel button to export all invoices (both categories) into one file.
-8.  The exported Excel file and the UI should sort invoices by date.
-9.  The Excel file should use Turkish number formatting (e.g., 1.234,56).
-10. A paid subscription system using the PayTR payment gateway.
+PRODUCT REQUIREMENTS:
+1.  **Wix Integration:** The application must be embedded in a Wix website. User identification and data isolation are managed via the Wix Member ID, passed from the Wix page to the embedded iframe.
+2.  **Wix-based Subscription System:** Access and features are gated by a user's subscription plan purchased on Wix.
+    *   Plans have varying invoice upload limits (e.g., 1000, 2500, etc.).
+    *   A free trial of 20 invoices with a 7-day expiry is provided to new users.
+    *   **New Model:** Paid plans are valid for 12 months with a single, total quota for the entire period. Quotas do not reset monthly. If a user's quota runs out, they must purchase a new plan.
+3.  **Access Control:** The application must only be accessible when embedded within  or authorized Wix domains. Direct URL access is blocked in production.
+4.  **Taxpayer Sessions:** Users must create a session (taxpayer name, year, month) before they can upload or view invoices.
+5.  **AI Data Extraction:** An AI must extract data from uploaded invoices. This includes detecting and processing multiple distinct invoices from a single uploaded image. The system must also validate that the date on an extracted invoice matches the current taxpayer session period.
+6.  **Excel Export:** Provide separate export options for Income, Expense, and All invoices. Filenames must be dynamic () and numbers must use Turkish locale formatting.
+7.  **Luca-compatible Export:** (Future task) The Excel export format should be compatible with the Luca accounting software, based on a template the user will provide.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A full-stack application (FastAPI + React) with JWT-based user authentication. The dashboard displays two separate tables for Income and Expense invoices. Users can upload multiple files at once for each category. Each table shows a subtotal of the invoice amounts. A single button allows exporting all invoices to an Excel file, which is sorted by date and has Turkish number formatting. The database schema and API endpoints support all required fields, including customer/issuer details, tax information, and an invoice content summary.
+A full-stack FastAPI/React application. The app is fully integrated with Wix for user identification and subscription management. It uses a  passed from a Velo script to manage user data and enforce plan limits. The subscription system supports a trial plan and multiple paid tiers, with the backend dynamically updating a user's plan based on information received from Wix. The UI displays the current plan, quota usage (with a progress bar), and expiry/renewal date. Quota enforcement, blocking of expired paid users, and redirection to the Wix pricing page are all functional. A feature to extract multiple invoices from a single image has been implemented, including date validation against the current session. Numerous deployment-related issues have been resolved, making the app production-ready (e.g., health checks, lazy DB connections, security hardening).
 
 **Last working item**:
-*   **Last item agent was working:** The agent was beginning the implementation of a paid subscription system. After receiving the user's requirements (use PayTR, single plan, no trial period), the agent called the  tool to get the integration instructions for the PayTR payment gateway.
-*   **Status:** NOT STARTED
-*   **Agent Testing Done:** N/A
-*   **Which testing method agent to use?**: both
-*   **User Testing Done:** N/A
+-   **Last item agent was working:** The user requested a change to the subscription model for paid plans. Instead of monthly renewing quotas, paid plans will now be valid for 12 months and have a single, total quota for that entire period. The agent was just starting to implement this logic change after receiving confirmation from the user.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** both
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-There are no pending bugs or issues. All previously reported problems have been resolved.
+There are no known pending issues.
 
 **In progress Task List**:
-*   **Task 1: Implement Paid Subscription System with PayTR (P0)**
-    *   **Where to resume:** The agent is waiting for the response from the  tool. The next step is to analyze the provided playbook and begin implementing the backend and frontend changes for the subscription system.
-    *   **What will be achieved with this?** This will restrict application access to paying subscribers. It involves creating user subscription status models, handling payment processing and webhooks from PayTR, and building the UI for users to subscribe.
+*   **Task 1: Implement 12-Month Subscription Model (P0)**
+    *   **Where to resume:** The user has confirmed the new logic for paid plans (12-month validity, total non-renewing quota). The agent needs to modify the backend code in .
+    *   **Next Steps:**
+        1.  In  or related functions in , remove the monthly quota reset logic (based on the  field) for paid plans.
+        2.  Ensure that when a paid plan is activated, it has a start date and an end date set to 12 months later. The  should represent the total quota for this period.
+        3.  Update the frontend  component to correctly display information for these 12-month plans, showing the plan's final expiry date instead of a quota renewal date.
+    *   **What will be achieved with this?** The application's subscription logic will align with the user's updated business model for annual plans.
     *   **Status:** IN PROGRESS
     *   **Should Test frontend/backend/both after fix?** both
-    *   **Blocked on something:** Waiting for the  response.
+    *   **Blocked on something:** No.
 
 **Upcoming and Future Tasks**
-*   **Upcoming Tasks:**
-    *   **AI-powered Invoice Data Extraction (P1):** Implement the logic to automatically extract data (date, amount, customer/issuer info, etc.) from uploaded invoice files (PDF, JPG, XML). The  function in  needs to be modified to include a call to an OCR/data extraction service and populate the database with the extracted information, rather than relying on manual entry.
+*   **Luca-compatible Excel Export (P1):** The user requires the Excel export to match the specific format used by Luca Muhasebe Yazılımı. The agent is waiting for the user to provide a template file.
+*   **Implement Real AI Data Extraction (P1):** The core feature of parsing invoice data using AI is still a mock. The function  in  contains a placeholder prompt and needs to be integrated with an actual AI/OCR service (e.g., GPT-4o Vision) to parse uploaded files and return structured data.
 
 **Completed work in this session**
-- **Recently completed:**
-  - Initial application scaffold with JWT authentication (DONE)
-  - Bulk invoice upload functionality (DONE)
-  - UI refactor to support separate Income & Expense tables (DONE)
-  - Added subtotals for each invoice table on the dashboard (DONE)
-  - Implemented Excel export with date sorting and Turkish number formatting (DONE)
-  - Fixed a database validation bug caused by schema migration (DONE)
-  - Added new fields to the invoice model and UI (Tax IDs, offices, content summary) (DONE)
-
-**Earlier issues found/mentioned but not fixed**
-None.
-
-**Known issue recurrence from previous fork**
-N/A
+- **Feature: Full Wix-Integrated Subscription System** - Implemented a complete subscription system tied to Wix Velo, handling user identification, plan syncing, quota enforcement, and UI display.
+- **Feature: Dynamic Plan & User Syncing** - The backend now dynamically creates or updates user subscriptions based on , , and  parameters sent from the Wix Velo script on each visit.
+- **Feature: Block Expired Paid Users** - Logic was added to block users who previously had a paid plan and let it expire, preventing them from using trial credits.
+- **Feature: Multi-Invoice AI Extraction** - The backend was updated to process a single image, identify multiple invoices within it, and validate their dates against the user's active session.
+- **Feature: Production Deployment Hardening** - Added health endpoints, implemented lazy DB connections, increased connection timeouts, and removed s and external script references to make the application ready for deployment.
+- **Feature: UI/UX Refinements** - The subscription status display in the header was significantly improved to show plan name, quota usage with a progress bar, and expiry/renewal information clearly.
+- **Bug Fix: Excel Export Script error** - Resolved a  in the Excel generation logic in .
+- **Bug Fix: Incorrect Plan Displayed** - Fixed an issue caused by duplicate subscription records in the database by cleaning the data and implementing an  strategy.
+- **Security:** Re-enabled and tested access restrictions to ensure the app is only accessible via the  iframe in production.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend:** FastAPI
--   **Frontend:** React
--   **Database:** MongoDB
--   **Authentication:** JWT (JSON Web Tokens)
--   **File Handling:** Multi-file uploads
--   **Excel Generation:** openpyxl library
+- **Backend:** FastAPI
+- **Frontend:** React
+- **Database:** MongoDB
+- **Key Libraries:**  (Excel),  (async MongoDB driver).
+- **Integration:** Deep integration with Wix using Velo (, ) to pass user and plan data to the embedded iframe via URL query parameters.
+- **Deployment:** Production-ready with health checks, lazy DB connections, and CORS/security middleware configured for an iframe environment.
+- **Data Integrity:** Use of MongoDB's  operation to prevent duplicate user subscription records.
 
 **key DB schema**
--   **users**: 
--   **invoices**: 
-
-**changes in tech stack**
-None.
+-   **subscriptions** (collection):
+    -   : (string, Primary User Identifier)
+    -   : (string, e.g., 'trial', 'starter')
+    -   : (int)
+    -   : (int, tracks current usage)
+    -   : (string, e.g., '2025-12', for monthly plans)
+    -   , : (datetime, for fixed-term plans)
+    -   : (boolean, to block expired paid users)
 
 **All files of reference**
--   : Contains all backend logic, API endpoints, and database interactions.
--   : The main UI component that renders the two invoice tables and handles user interactions.
--   : Python dependencies (To use the fastapi command, please install "fastapi[standard]":
-
-	pip install "fastapi[standard]", , , , , , ).
--   : Frontend dependencies (, , , ).
+-   : Contains all critical backend logic.
+-   : Main frontend component managing state and API calls.
+-   : UI component for displaying plan status.
+-   : Contains the Velo code provided to the user.
 
 **Critical Info for New Agent**
-The immediate next task is to implement the PayTR subscription system. You must wait for the playbook from the integration agent and follow its instructions precisely. This will likely involve creating new database models for subscriptions, new API endpoints to handle payment initiation and webhooks, and new frontend components for the payment flow. Remember to restrict access to the dashboard based on the user's subscription status.
+1.  **Subscription Model Change:** The immediate task is to adapt the backend and frontend to the user's newly requested 12-month subscription model with a single, total quota. The current logic is based on monthly-resetting quotas and needs to be updated.
+2.  **Wix Integration is Central:** The application's entire user and subscription management system relies on parameters (, , ) passed in the iframe's URL from the user's Velo script. All user-specific logic depends on these headers.
+3.  **AI Extraction is still a Mock:** The core AI feature for data extraction from invoices is not yet implemented. The function  in  has a placeholder prompt and needs to be connected to a real vision AI service. This remains a top-priority future task.
 
-**Last 10 User Messages and any pending user messages**
-1.  **Request:** Add a subtotal under each table. (COMPLETED)
-2.  **Request:** Keep the content part short - just a few summary words. (COMPLETED)
-3.  **Request:** I will sell this as a service. Can we set up a membership system where users can register and use it for a monthly fee? (IN PROGRESS)
-4.  **User Response:** Confirmed choices for the subscription system: PayTR, single plan, no trial, no proration, immediate cancellation. (ACKNOWLEDGED)
-5.  **Request**: हर fatura eklendiğinde, exceli fatura tarihine göre sıralı tut. İndirilen Excel'de de sayı formatı bindeli, yüzdeli olsun (nokta virgül). (COMPLETED)
-6.  **Request**: İki ayrı kategoride fatura yükleme yapsın kullanıcı. (COMPLETED)
-7.  **Request**: Her bir tablonun altına dip toplam da ekle. (COMPLETED)
-8.  **Request**: İçerik kısmını da kısa tut - özet bir kaç kelime olsun sadece. (COMPLETED)
-9.  **Request**: Bunu hizmet olarak satacağım. Kullanıcılar kayıt olup aylık ücret karşılığında kullanabilecek. (IN PROGRESS)
-10. **User Response**: 1. PAYTR üyeliğim var onu kullanalım. 2. a. 3. b. 4. b. 5. a. (ACKNOWLEDGED)
+**documents and test_reports created in this job**
+- /app/WIX_ENTEGRASYON_REHBERI.md
+- /app/test_reports/iteration_5.json
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:** I changed the subscription packages in Wix. Except for the trial package, every package is now valid for 12 months. Can you revise the system accordingly?
+2.  **Agent:** I understand. One question: How will the quota work? Option A: Monthly quota that resets for 12 months? Option B: A total quota for the entire 12 months?
+3.  **User:** The quotas will be valid for 12 months. If the quota runs out, they will buy a new package.
+4.  **User:** Are you sure the cost per invoice is 0.008 TL?
+5.  **Agent:** (Explains that it's an estimate and advises checking the Emergent panel for real usage costs.)
+6.  **User:** Create a table for me to see the costs according to the subscription packages.
+7.  **Agent:** (Provides a cost analysis table.)
+8.  **User:** Is my subscription pricing good, is it profitable for me? How much credit have I spent per invoice so far? I'm doing a feasibility study.
+9.  **Agent:** (Provides usage statistics and a profitability analysis.)
+10. **User:** Okay, I will provide you with data for this feature [Luca export] later, don't do anything for now. You can put the documander.com restriction back on, the bulk receipt upload works great.
 
 **Project Health Check:**
-- **Working:** The core features of invoice upload, categorization into income/expense, and Excel export are functional.
-- **Broken:** None.
-- **Mocked:** The AI data extraction is currently mocked; all data is entered manually via the Edit modal.
+-   **Working:** Core application, including taxpayer sessions, Excel exports, and the entire Wix-integrated subscription system (based on the *previous* monthly model). Access control and multi-invoice upload are also working.
+-   **Broken:** Nothing is broken, but the subscription logic is now out of sync with the user's latest requirement.
+-   **Mocked:** The AI-powered data extraction from invoices remains a placeholder.
 
 **3rd Party Integrations**
--   **PayTR:** Requested for payment processing. Awaiting integration playbook.
--   **OCR/AI Data Extraction:** Part of the original request but not yet implemented. The initial integration call for this was made but not acted upon. This will require a suitable service (e.g., an LLM with vision capabilities).
+-   **Wix:** Deeply integrated for user authentication (Members Area) and subscription management (Pricing Plans). Communication is handled via a Velo script on the user's Wix site.
+-   **AI/OCR Service (Upcoming):** An AI service like GPT-4o Vision is required to implement the invoice data extraction feature.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (used once early in development).
--   **Troubleshoot agent used after agent stuck in loop:** NO.
+-   **Testing agent used after significant changes:** YES
+-   **Troubleshoot agent used after agent stuck in loop:** YES
 -   **Test files created:** None.
 -   **Known regressions:** None.
 
 **What agent forgot to execute**
-The most critical missing piece is the **AI-powered data extraction from invoices**. This was a core part of the original problem statement. While the UI and backend were built to store the data, the actual mechanism to extract it from uploaded files (PDFs, JPGs) was never implemented. The current workflow requires the user to manually edit each invoice to add the details.</analysis>
+The core AI data extraction functionality has been on the backlog for the entire session and is still not implemented beyond a placeholder.</analysis>

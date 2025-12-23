@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 class ExcelExportTester:
-    def __init__(self, base_url="https://finance-assist-28.preview.emergentagent.com"):
+    def __init__(self, base_url="https://invoice-extract-10.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.visitor_id = f"test_visitor_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
