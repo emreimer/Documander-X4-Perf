@@ -479,7 +479,10 @@ const DashboardPage = () => {
   const QuotaBadge = () => {
     if (!subscription) return null;
     
-    const { plan_name, remaining, monthly_limit, is_unlimited, is_trial, is_monthly_plan, expires_at, next_reset_date, is_expired, days_remaining } = subscription;
+    const { plan_name, remaining, total_limit, monthly_limit, is_unlimited, is_trial, is_annual_plan, expires_at, is_expired, is_quota_exhausted, days_remaining } = subscription;
+    
+    // Use total_limit if available, fallback to monthly_limit for backward compatibility
+    const limit = total_limit || monthly_limit;
     
     if (is_unlimited) {
       return (
@@ -498,24 +501,23 @@ const DashboardPage = () => {
     }
     
     const isLow = remaining <= 5 && remaining > 0;
-    const isExhausted = remaining === 0;
-    const expiryWarning = days_remaining !== null && days_remaining <= 7;
+    const expiryWarning = days_remaining !== null && days_remaining <= 30 && !is_trial;
+    const trialExpiryWarning = days_remaining !== null && days_remaining <= 3 && is_trial;
+    
+    // Determine badge color based on status
+    const getBadgeStyle = () => {
+      if (is_expired || is_quota_exhausted) return 'bg-destructive/10 border-destructive/30';
+      if (expiryWarning || trialExpiryWarning || isLow) return 'bg-yellow-500/10 border-yellow-500/30';
+      return 'bg-muted/30 border-border hover:bg-muted/50';
+    };
     
     return (
       <div 
-        className={`flex items-center gap-3 px-4 py-2 border cursor-pointer transition-colors ${
-          is_expired
-            ? 'bg-destructive/10 border-destructive/30'
-            : isExhausted 
-              ? 'bg-destructive/10 border-destructive/30' 
-              : expiryWarning
-                ? 'bg-yellow-500/10 border-yellow-500/30' 
-                : 'bg-muted/30 border-border hover:bg-muted/50'
-        }`}
+        className={`flex items-center gap-3 px-4 py-2 border cursor-pointer transition-colors ${getBadgeStyle()}`}
         onClick={() => setShowPlansModal(true)}
         title="Plan detayları için tıklayın"
       >
-        <CreditCard className={`w-5 h-5 ${is_expired || isExhausted ? 'text-destructive' : expiryWarning ? 'text-yellow-600' : 'text-primary'}`} />
+        <CreditCard className={`w-5 h-5 ${is_expired || is_quota_exhausted ? 'text-destructive' : (expiryWarning || trialExpiryWarning || isLow) ? 'text-yellow-600' : 'text-primary'}`} />
         <div className="flex flex-col text-xs">
           {/* Paket Türü */}
           <div className="flex items-center gap-2">
@@ -524,31 +526,36 @@ const DashboardPage = () => {
             {is_expired && (
               <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">SÜRESİ DOLDU</span>
             )}
+            {is_quota_exhausted && !is_expired && (
+              <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">KOTA DOLDU</span>
+            )}
           </div>
-          {/* Bitiş Tarihi (sadece deneme planı için) */}
-          {expires_at && !is_monthly_plan && (
+          
+          {/* Bitiş Tarihi - for both trial and annual plans */}
+          {expires_at && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Bitiş Tarihi:</span>
-              <span className={expiryWarning ? 'text-yellow-600 font-semibold' : ''}>
+              <span className="text-muted-foreground">{is_trial ? 'Deneme Bitiş:' : 'Plan Bitiş:'}</span>
+              <span className={((expiryWarning || trialExpiryWarning) && !is_expired) ? 'text-yellow-600 font-semibold' : ''}>
                 {formatDate(expires_at)}
-                {expiryWarning && !is_expired && ` (${days_remaining} gün kaldı!)`}
+                {days_remaining !== null && !is_expired && days_remaining <= 30 && ` (${days_remaining} gün)`}
               </span>
             </div>
           )}
-          {/* Kota Yenileme Tarihi (aylık planlar için) */}
-          {is_monthly_plan && next_reset_date && (
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Kota Yenileme:</span>
-              <span>{formatDate(next_reset_date)} ({days_remaining} gün)</span>
-            </div>
-          )}
+          
           {/* Kalan Kota */}
-          {!is_expired && (
+          {!is_expired && !is_quota_exhausted && (
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Kalan Kota:</span>
-              <span className={isExhausted ? 'text-destructive font-semibold' : isLow ? 'text-yellow-600' : ''}>
-                {remaining} / {monthly_limit} fatura
+              <span className={isLow ? 'text-yellow-600 font-semibold' : ''}>
+                {remaining} / {limit} fatura
               </span>
+            </div>
+          )}
+          
+          {/* Quota exhausted message */}
+          {is_quota_exhausted && !is_expired && (
+            <div className="text-destructive text-[10px] mt-1">
+              Yeni paket satın alın
             </div>
           )}
         </div>
