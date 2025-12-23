@@ -299,10 +299,10 @@ async def get_current_user(
         }
         
         new_plan = plan_mapping.get(x_wix_plan, None) if x_wix_plan else None
-        current_month = datetime.now(timezone.utc).strftime("%Y-%m")
         
         if existing_sub:
             user_id = existing_sub.get("user_id", x_visitor_id)
+            old_plan = existing_sub.get("plan")
             
             # ALWAYS update plan from Wix (Wix is the source of truth)
             if new_plan:
@@ -311,22 +311,25 @@ async def get_current_user(
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
                 
-                # For trial plan, set expiry from Wix
+                # For trial plan, set expiry from Wix (7 days)
                 if new_plan == "trial":
                     if x_wix_expires:
                         update_data["expires_at"] = x_wix_expires
                     elif not existing_sub.get("expires_at"):
                         update_data["expires_at"] = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
-                # For paid monthly plans, no fixed expiry
+                # For paid plans: 12 months validity, total quota (no monthly reset)
                 else:
-                    update_data["expires_at"] = None
                     # Mark that user had a paid plan (can't go back to trial)
                     update_data["had_paid_plan"] = True
-                
-                # Reset monthly counter if month changed (only for active paid plans)
-                if new_plan != "trial" and existing_sub.get("month_reset") != current_month:
-                    update_data["monthly_uploads"] = 0
-                    update_data["month_reset"] = current_month
+                    
+                    # Only set new expiry and reset quota if plan changed from different plan
+                    # This means user purchased a new package
+                    if old_plan != new_plan:
+                        # New plan purchased - set 12 month expiry and reset quota
+                        update_data["expires_at"] = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+                        update_data["monthly_uploads"] = 0  # Reset usage for new plan
+                        update_data["plan_start_date"] = datetime.now(timezone.utc).isoformat()
+                    # If same plan, keep existing expiry (don't reset)
                 
                 await db.subscriptions.update_one(
                     {"wix_member_id": x_wix_member_id},
@@ -344,7 +347,8 @@ async def get_current_user(
             elif new_plan == "trial" or not new_plan:
                 expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
             else:
-                expires_at = None  # No expiry for monthly paid plans
+                # Paid plans: 12 months validity
+                expires_at = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
             
             new_sub = {
                 "id": str(uuid.uuid4()),
@@ -352,10 +356,10 @@ async def get_current_user(
                 "wix_member_id": x_wix_member_id,
                 "plan": new_plan or "trial",
                 "monthly_uploads": 0,
-                "month_reset": current_month,
                 "trial_used": False,
                 "had_paid_plan": new_plan and new_plan != "trial",  # Mark if starting with paid plan
                 "expires_at": expires_at,
+                "plan_start_date": datetime.now(timezone.utc).isoformat() if new_plan and new_plan != "trial" else None,
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
