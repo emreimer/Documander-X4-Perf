@@ -80,13 +80,13 @@ class TaxpayerSessionCreate(BaseModel):
     year: int
     month: int
 
-# Subscription Plans
+# Subscription Plans - Limits represent TOTAL quota for 12 months (not monthly)
 SUBSCRIPTION_PLANS = {
-    "trial": {"name": "Deneme", "monthly_limit": 20, "price": 0},
-    "starter": {"name": "Başlangıç", "monthly_limit": 1000, "price": 699},
-    "professional": {"name": "Profesyonel", "monthly_limit": 2500, "price": 1399},
-    "business": {"name": "İşletme", "monthly_limit": 5000, "price": 2399},
-    "enterprise": {"name": "Kurumsal", "monthly_limit": 10000, "price": 3999},
+    "trial": {"name": "Deneme", "monthly_limit": 20, "price": 0},  # 20 total, 7 days
+    "starter": {"name": "Başlangıç", "monthly_limit": 1000, "price": 699},  # 1000 total for 12 months
+    "professional": {"name": "Profesyonel", "monthly_limit": 2500, "price": 1399},  # 2500 total for 12 months
+    "business": {"name": "İşletme", "monthly_limit": 5000, "price": 2399},  # 5000 total for 12 months
+    "enterprise": {"name": "Kurumsal", "monthly_limit": 10000, "price": 3999},  # 10000 total for 12 months
     "unlimited": {"name": "Sınırsız", "monthly_limit": -1, "price": -1},  # -1 = unlimited/contact
 }
 
