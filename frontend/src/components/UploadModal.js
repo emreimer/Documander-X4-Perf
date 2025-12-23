@@ -2,10 +2,41 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import { X, Upload as UploadIcon, FileText } from 'lucide-react';
+import { X, Upload as UploadIcon, FileText, Loader2 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Processing Overlay Component
+const ProcessingOverlay = ({ fileCount }) => (
+  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center">
+    <div className="bg-card border-2 border-primary shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+      <div className="relative mb-6">
+        <Loader2 className="w-16 h-16 text-primary mx-auto animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <FileText className="w-6 h-6 text-primary/50" />
+        </div>
+      </div>
+      <h3 className="text-xl font-heading font-bold mb-2">Faturalar İşleniyor</h3>
+      <p className="text-muted-foreground mb-4">
+        {fileCount} dosya AI tarafından analiz ediliyor...
+      </p>
+      <div className="space-y-2">
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: '100%' }} />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Bu işlem birkaç saniye sürebilir. Lütfen bekleyin...
+        </p>
+      </div>
+      <div className="mt-6 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded">
+        <p className="text-xs text-yellow-600 font-medium">
+          ⚠️ Sayfayı kapatmayın veya yenilemeyin
+        </p>
+      </div>
+    </div>
+  </div>
+);
 
 const UploadModal = ({ category, onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
