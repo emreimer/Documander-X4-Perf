@@ -69,7 +69,7 @@ Toplam: 1180.00 TL
     
     # Step 4: Upload the invoice
     print("\n4. Uploading test invoice...")
-    files = {'files': ('test_invoice.txt', invoice_content, 'text/plain')}
+    files = {'files': ('test_invoice.html', invoice_content, 'text/html')}
     data = {'category': 'income'}
     
     response = requests.post(f"{api_url}/invoices/upload", files=files, data=data, headers=headers)
