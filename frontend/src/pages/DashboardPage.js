@@ -376,10 +376,24 @@ const DashboardPage = () => {
     // Income VAT Detail Table Component
     const IncomeVatTable = () => (
       <div className="mb-8">
-        <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
-          <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-          KDV Detay Tablosu - Gelir
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-heading font-semibold tracking-tight flex items-center gap-2">
+            <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+            KDV Detay Tablosu - Gelir
+          </h2>
+          {incomeItems.length > 0 && (
+            <Button
+              onClick={() => handleVatExport('income')}
+              variant="outline"
+              size="sm"
+              className="rounded-none gap-2 text-xs"
+              data-testid="vat-income-excel-button"
+            >
+              <Download className="w-3 h-3" />
+              Excel İndir
+            </Button>
+          )}
+        </div>
         
         {incomeItems.length === 0 ? (
           <div className="bg-card border border-border p-8 text-center">
@@ -399,7 +413,6 @@ const DashboardPage = () => {
                   <th className="text-center p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV %</th>
                   <th className="text-right p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
                   <th className="text-right p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Tutarı</th>
-                  <th className="text-center p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tevkifat</th>
                 </tr>
               </thead>
               <tbody>
@@ -416,28 +429,19 @@ const DashboardPage = () => {
                     </td>
                     <td className="p-2 text-right font-mono text-xs">{formatCurrency(item.base_amount)} ₺</td>
                     <td className="p-2 text-right font-mono text-xs font-semibold">{formatCurrency(item.vat_amount)} ₺</td>
-                    <td className="p-2 text-center">
-                      {item.withholding ? (
-                        <span className="text-xs bg-yellow-500/10 text-yellow-700 px-1.5 py-0.5">
-                          {item.withholding_rate || 'Var'}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">-</span>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="bg-green-500/5 border-t-2 border-green-500/30">
                 <tr>
-                  <td colSpan={7} className="p-2 text-right font-semibold text-sm uppercase tracking-wider">Gelir Toplamı:</td>
+                  <td colSpan={6} className="p-2 text-right font-semibold text-sm uppercase tracking-wider">Gelir Toplamı:</td>
+                  <td className="p-2"></td>
                   <td className="p-2 text-right font-mono text-xs font-bold">
                     {formatCurrency(incomeItems.reduce((sum, item) => sum + (item.base_amount || 0), 0))} ₺
                   </td>
                   <td className="p-2 text-right font-mono text-xs font-bold text-green-700">
                     {formatCurrency(incomeItems.reduce((sum, item) => sum + (item.vat_amount || 0), 0))} ₺
                   </td>
-                  <td className="p-2"></td>
                 </tr>
               </tfoot>
             </table>
