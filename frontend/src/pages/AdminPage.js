@@ -419,6 +419,14 @@ const AdminPage = () => {
                         {user.total_remaining === -1 ? '∞' : user.total_remaining}
                       </p>
                     </div>
+                    {/* Delete User Button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm(user.wix_member_id); }}
+                      className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      title="Kullanıcıyı Sil"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
                 
