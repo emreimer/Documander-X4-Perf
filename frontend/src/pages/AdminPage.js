@@ -17,7 +17,8 @@ import {
   CreditCard,
   ChevronDown,
   ChevronUp,
-  Search
+  Search,
+  Trash2
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -34,6 +35,7 @@ const AdminPage = () => {
   const [expandedUsers, setExpandedUsers] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ total: 0, active: 0, expired: 0, exhausted: 0 });
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // 'all' or wix_member_id
 
   const fetchUsers = async (filterType = 'all') => {
     setLoading(true);
