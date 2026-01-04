@@ -1934,7 +1934,7 @@ async def export_to_excel(
                 cell.alignment = Alignment(horizontal="right")
         current_row += 1
     
-    # Auto-adjust column widths (skip merged cells)
+    # Auto-adjust column widths for Gelir-Gider sheet (skip merged cells)
     from openpyxl.cell.cell import MergedCell
     for column in ws.columns:
         max_length = 0
@@ -1953,6 +1953,180 @@ async def export_to_excel(
         if column_letter:
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # ============================================
+    # ADD KDV RAPORU SHEET (Second Sheet)
+    # ============================================
+    if not category:  # Only add KDV sheet when exporting all
+        ws_kdv = wb.create_sheet(title="KDV Raporu")
+        kdv_row = 1
+        
+        # Collect VAT items from all invoices
+        vat_items = []
+        for invoice in invoices:
+            vat_details = invoice.get('vat_details', [])
+            if not vat_details:
+                # Create single entry from total VAT
+                vat_amount = float(invoice.get('vat', 0) or 0)
+                net_amount = float(invoice.get('amount', 0) or 0)
+                if vat_amount > 0 and net_amount > 0:
+                    vat_rate = round((vat_amount / net_amount) * 100)
+                    if vat_rate not in [1, 10, 20]:
+                        vat_rate = 20
+                    vat_details = [{"vat_rate": vat_rate, "base_amount": net_amount, "vat_amount": vat_amount}]
+            
+            for detail in vat_details:
+                vat_items.append({
+                    "invoice_number": invoice.get('invoice_number', 'N/A'),
+                    "date": invoice.get('date', ''),
+                    "category": invoice.get('category', 'income'),
+                    "issuer_name": invoice.get('issuer_name', ''),
+                    "issuer_tax_id": invoice.get('issuer_tax_id', ''),
+                    "issuer_tax_office": invoice.get('issuer_tax_office', ''),
+                    "customer_name": invoice.get('customer_name', ''),
+                    "customer_tax_id": invoice.get('customer_tax_id', ''),
+                    "customer_tax_office": invoice.get('customer_tax_office', ''),
+                    "description": invoice.get('description', ''),
+                    "vat_rate": int(detail.get('vat_rate', 20)),
+                    "base_amount": float(detail.get('base_amount', 0) or 0),
+                    "vat_amount": float(detail.get('vat_amount', 0) or 0)
+                })
+        
+        income_vat_items = [i for i in vat_items if i['category'] == 'income']
+        expense_vat_items = [i for i in vat_items if i['category'] == 'expense']
+        
+        # KDV Sheet Title
+        if session:
+            kdv_title = f"{taxpayer_name} - {month_name} {year} KDV Raporu"
+            ws_kdv[f'A{kdv_row}'] = kdv_title
+            ws_kdv[f'A{kdv_row}'].font = Font(bold=True, size=16, color="004D40")
+            ws_kdv.merge_cells(start_row=kdv_row, start_column=1, end_row=kdv_row, end_column=9)
+            kdv_row += 2
+        
+        # KDV Gelir Table
+        if income_vat_items:
+            ws_kdv[f'A{kdv_row}'] = 'KDV DETAY - GELİR'
+            ws_kdv[f'A{kdv_row}'].font = Font(bold=True, size=14, color="004D40")
+            kdv_row += 1
+            
+            kdv_income_headers = ["Fatura No", "Tarih", "Müşteri", "M. VKN", "M. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
+            for col, header in enumerate(kdv_income_headers, 1):
+                cell = ws_kdv.cell(row=kdv_row, column=col, value=header)
+                cell.fill = header_fill
+                cell.font = header_font
+            kdv_row += 1
+            
+            income_total_base = 0
+            income_total_vat = 0
+            for item in income_vat_items:
+                row_data = [
+                    item['invoice_number'], item['date'], item['customer_name'] or '-',
+                    item['customer_tax_id'] or '-', item['customer_tax_office'] or '-',
+                    item['description'], f"%{item['vat_rate']}", item['base_amount'], item['vat_amount']
+                ]
+                for col, value in enumerate(row_data, 1):
+                    cell = ws_kdv.cell(row=kdv_row, column=col, value=value)
+                    if col in [8, 9]:
+                        cell.number_format = number_format
+                income_total_base += item['base_amount']
+                income_total_vat += item['vat_amount']
+                kdv_row += 1
+            
+            # Totals
+            ws_kdv.cell(row=kdv_row, column=7, value="TOPLAM:").font = Font(bold=True)
+            ws_kdv.cell(row=kdv_row, column=8, value=income_total_base).number_format = number_format
+            ws_kdv.cell(row=kdv_row, column=8).font = Font(bold=True)
+            ws_kdv.cell(row=kdv_row, column=9, value=income_total_vat).number_format = number_format
+            ws_kdv.cell(row=kdv_row, column=9).font = Font(bold=True)
+            kdv_row += 2
+        
+        # KDV Gider Table
+        if expense_vat_items:
+            ws_kdv[f'A{kdv_row}'] = 'KDV DETAY - GİDER'
+            ws_kdv[f'A{kdv_row}'].font = Font(bold=True, size=14, color="004D40")
+            kdv_row += 1
+            
+            kdv_expense_headers = ["Fatura No", "Tarih", "Düzenleyen", "D. VKN", "D. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
+            for col, header in enumerate(kdv_expense_headers, 1):
+                cell = ws_kdv.cell(row=kdv_row, column=col, value=header)
+                cell.fill = header_fill
+                cell.font = header_font
+            kdv_row += 1
+            
+            expense_total_base = 0
+            expense_total_vat = 0
+            for item in expense_vat_items:
+                row_data = [
+                    item['invoice_number'], item['date'], item['issuer_name'] or '-',
+                    item['issuer_tax_id'] or '-', item['issuer_tax_office'] or '-',
+                    item['description'], f"%{item['vat_rate']}", item['base_amount'], item['vat_amount']
+                ]
+                for col, value in enumerate(row_data, 1):
+                    cell = ws_kdv.cell(row=kdv_row, column=col, value=value)
+                    if col in [8, 9]:
+                        cell.number_format = number_format
+                expense_total_base += item['base_amount']
+                expense_total_vat += item['vat_amount']
+                kdv_row += 1
+            
+            # Totals
+            ws_kdv.cell(row=kdv_row, column=7, value="TOPLAM:").font = Font(bold=True)
+            ws_kdv.cell(row=kdv_row, column=8, value=expense_total_base).number_format = number_format
+            ws_kdv.cell(row=kdv_row, column=8).font = Font(bold=True)
+            ws_kdv.cell(row=kdv_row, column=9, value=expense_total_vat).number_format = number_format
+            ws_kdv.cell(row=kdv_row, column=9).font = Font(bold=True)
+            kdv_row += 2
+        
+        # KDV Summary Table
+        ws_kdv[f'A{kdv_row}'] = 'KDV ÖZET RAPORU'
+        ws_kdv[f'A{kdv_row}'].font = Font(bold=True, size=14, color="004D40")
+        kdv_row += 1
+        
+        summary_headers = ["KDV Oranı", "Gelir Matrah", "Gelir KDV", "Gider Matrah", "Gider KDV", "Net KDV"]
+        for col, header in enumerate(summary_headers, 1):
+            cell = ws_kdv.cell(row=kdv_row, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+        kdv_row += 1
+        
+        grand_income_vat = 0
+        grand_expense_vat = 0
+        for rate in [1, 10, 20]:
+            i_base = sum(i['base_amount'] for i in income_vat_items if i['vat_rate'] == rate)
+            i_vat = sum(i['vat_amount'] for i in income_vat_items if i['vat_rate'] == rate)
+            e_base = sum(i['base_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
+            e_vat = sum(i['vat_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
+            net = i_vat - e_vat
+            grand_income_vat += i_vat
+            grand_expense_vat += e_vat
+            
+            row_data = [f"%{rate}", i_base, i_vat, e_base, e_vat, net]
+            for col, value in enumerate(row_data, 1):
+                cell = ws_kdv.cell(row=kdv_row, column=col, value=value)
+                if col > 1:
+                    cell.number_format = number_format
+            kdv_row += 1
+        
+        # Grand totals
+        total_i_base = sum(i['base_amount'] for i in income_vat_items)
+        total_e_base = sum(i['base_amount'] for i in expense_vat_items)
+        net_total = grand_income_vat - grand_expense_vat
+        
+        ws_kdv.cell(row=kdv_row, column=1, value="TOPLAM").font = Font(bold=True)
+        ws_kdv.cell(row=kdv_row, column=2, value=total_i_base).number_format = number_format
+        ws_kdv.cell(row=kdv_row, column=2).font = Font(bold=True)
+        ws_kdv.cell(row=kdv_row, column=3, value=grand_income_vat).number_format = number_format
+        ws_kdv.cell(row=kdv_row, column=3).font = Font(bold=True)
+        ws_kdv.cell(row=kdv_row, column=4, value=total_e_base).number_format = number_format
+        ws_kdv.cell(row=kdv_row, column=4).font = Font(bold=True)
+        ws_kdv.cell(row=kdv_row, column=5, value=grand_expense_vat).number_format = number_format
+        ws_kdv.cell(row=kdv_row, column=5).font = Font(bold=True)
+        ws_kdv.cell(row=kdv_row, column=6, value=net_total).number_format = number_format
+        ws_kdv.cell(row=kdv_row, column=6).font = Font(bold=True)
+        
+        # Adjust column widths for KDV sheet
+        for col in range(1, 10):
+            ws_kdv.column_dimensions[chr(64 + col)].width = 15
     
     # Save to BytesIO
     output = io.BytesIO()
