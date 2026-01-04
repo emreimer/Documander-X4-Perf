@@ -1753,31 +1753,23 @@ async def export_vat_report_to_excel(
         
         auto_adjust_columns(ws)
         cat_suffix = f"_{category}" if category else ""
-        
-        # Headers
-        if is_income:
-            headers = ["Fatura No", "Tarih", "Müşteri", "M. VKN", "M. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
-        else:
-            headers = ["Fatura No", "Tarih", "Düzenleyen", "D. VKN", "D. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
-        
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=current_row, column=col, value=header)
-            cell.fill = header_fill
-            cell.font = header_font
-        current_row += 1
-        
-        # Data rows
-        total_base = 0
-        total_vat = 0
-        for item in items:
-            if is_income:
-                name = item['customer_name'] or '-'
-                tax_id = item['customer_tax_id'] or '-'
-                tax_office = item['customer_tax_office'] or '-'
-            else:
-                name = item['issuer_name'] or '-'
-                tax_id = item['issuer_tax_id'] or '-'
-                tax_office = item['issuer_tax_office'] or '-'
+    
+    # Save to bytes
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Generate filename
+    safe_name = taxpayer_name.replace(' ', '_')
+    filename = f"{safe_name}_{month_name}_{year}_KDV{cat_suffix}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
+        }
+    )
             
             row_data = [
                 item['invoice_number'],
