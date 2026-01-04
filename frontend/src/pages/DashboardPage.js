@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { Upload, Download, Pencil, Trash2, RotateCcw, Calendar, Building2, FileText, CreditCard, Zap, X, Check } from 'lucide-react';
+import { Upload, Download, Pencil, Trash2, RotateCcw, Calendar, Building2, FileText, CreditCard, Zap, X, Check, Receipt, ArrowLeft } from 'lucide-react';
 import UploadModal from '../components/UploadModal.js';
 import EditModal from '../components/EditModal.js';
 
@@ -22,6 +22,11 @@ const DashboardPage = () => {
   const [uploadCategory, setUploadCategory] = useState('income');
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [user, setUser] = useState(null);
+  
+  // View state: 'invoices' or 'vat-report'
+  const [currentView, setCurrentView] = useState('invoices');
+  const [vatReport, setVatReport] = useState(null);
+  const [vatReportLoading, setVatReportLoading] = useState(false);
   
   // Session state
   const [session, setSession] = useState(null);
