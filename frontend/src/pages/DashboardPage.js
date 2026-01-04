@@ -519,8 +519,8 @@ const DashboardPage = () => {
       </div>
     );
 
-    // KDV Summary Table with Income/Expense breakdown
-    const VatSummaryTable = () => {
+    // KDV Summary Tables - 3 separate tables
+    const VatSummaryTables = () => {
       const incomeTotal = { base: 0, vat: 0 };
       const expenseTotal = { base: 0, vat: 0 };
       
@@ -531,78 +531,158 @@ const DashboardPage = () => {
         expenseTotal.vat += expenseSummary[rate].vat;
       });
 
+      const netVat = incomeTotal.vat - expenseTotal.vat;
+
+      // Get period info from session
+      const periodText = session ? `${MONTH_NAMES[session.month]} ${session.year}` : '';
+
       return (
-        <div>
-          <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4">KDV Özet Raporu</h2>
-          
-          <div className="bg-card border border-border overflow-x-auto">
-            <table className="w-full" data-testid="vat-summary-table">
-              <thead className="bg-muted/50 border-b border-border">
-                <tr>
-                  <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
-                  <th className="text-right p-3 text-xs uppercase tracking-wider text-green-700 font-medium">Gelir Matrah</th>
-                  <th className="text-right p-3 text-xs uppercase tracking-wider text-green-700 font-medium">Gelir KDV</th>
-                  <th className="text-right p-3 text-xs uppercase tracking-wider text-red-700 font-medium">Gider Matrah</th>
-                  <th className="text-right p-3 text-xs uppercase tracking-wider text-red-700 font-medium">Gider KDV</th>
-                  <th className="text-right p-3 text-xs uppercase tracking-wider text-primary font-medium">Net KDV</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[1, 10, 20].map((rate) => {
-                  const netVat = incomeSummary[rate].vat - expenseSummary[rate].vat;
-                  return (
+        <div className="space-y-8">
+          {/* 1. KDV Özet Raporu - Gelir */}
+          <div>
+            <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
+              <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+              KDV Özet Raporu - Gelir
+            </h2>
+            
+            <div className="bg-card border border-border overflow-x-auto">
+              <table className="w-full" data-testid="vat-summary-income-table">
+                <thead className="bg-green-500/10 border-b border-border">
+                  <tr>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-green-700 font-medium">KDV Tutarı</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 10, 20].map((rate) => (
                     <tr key={rate} className="border-b border-border/50">
                       <td className="p-3">
                         <span className="text-lg font-semibold text-primary">%{rate}</span>
                       </td>
-                      <td className="p-3 text-right font-mono text-sm text-green-700">{formatCurrency(incomeSummary[rate].base)} ₺</td>
+                      <td className="p-3 text-right font-mono text-sm">{formatCurrency(incomeSummary[rate].base)} ₺</td>
                       <td className="p-3 text-right font-mono text-sm font-semibold text-green-700">{formatCurrency(incomeSummary[rate].vat)} ₺</td>
-                      <td className="p-3 text-right font-mono text-sm text-red-700">{formatCurrency(expenseSummary[rate].base)} ₺</td>
-                      <td className="p-3 text-right font-mono text-sm font-semibold text-red-700">{formatCurrency(expenseSummary[rate].vat)} ₺</td>
-                      <td className={`p-3 text-right font-mono text-sm font-bold ${netVat >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                        {netVat >= 0 ? '' : '-'}{formatCurrency(Math.abs(netVat))} ₺
-                      </td>
                     </tr>
-                  );
-                })}
-                {/* Grand Total Row */}
-                <tr className="bg-primary/5 border-t-2 border-primary">
-                  <td className="p-3">
-                    <span className="text-lg font-bold">TOPLAM</span>
-                  </td>
-                  <td className="p-3 text-right font-mono text-sm font-bold text-green-700">{formatCurrency(incomeTotal.base)} ₺</td>
-                  <td className="p-3 text-right font-mono text-sm font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</td>
-                  <td className="p-3 text-right font-mono text-sm font-bold text-red-700">{formatCurrency(expenseTotal.base)} ₺</td>
-                  <td className="p-3 text-right font-mono text-sm font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</td>
-                  <td className={`p-3 text-right font-mono text-lg font-bold ${(incomeTotal.vat - expenseTotal.vat) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                    {(incomeTotal.vat - expenseTotal.vat) >= 0 ? '' : '-'}{formatCurrency(Math.abs(incomeTotal.vat - expenseTotal.vat))} ₺
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  ))}
+                  <tr className="bg-green-500/5 border-t-2 border-green-500/30">
+                    <td className="p-3">
+                      <span className="text-lg font-bold">TOPLAM</span>
+                    </td>
+                    <td className="p-3 text-right font-mono text-sm font-bold">{formatCurrency(incomeTotal.base)} ₺</td>
+                    <td className="p-3 text-right font-mono text-lg font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          
-          {/* Net KDV Summary Box */}
-          <div className="mt-4 p-4 bg-card border border-border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+
+          {/* 2. KDV Özet Raporu - Gider */}
+          <div>
+            <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+              KDV Özet Raporu - Gider
+            </h2>
+            
+            <div className="bg-card border border-border overflow-x-auto">
+              <table className="w-full" data-testid="vat-summary-expense-table">
+                <thead className="bg-red-500/10 border-b border-border">
+                  <tr>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-red-700 font-medium">KDV Tutarı</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 10, 20].map((rate) => (
+                    <tr key={rate} className="border-b border-border/50">
+                      <td className="p-3">
+                        <span className="text-lg font-semibold text-primary">%{rate}</span>
+                      </td>
+                      <td className="p-3 text-right font-mono text-sm">{formatCurrency(expenseSummary[rate].base)} ₺</td>
+                      <td className="p-3 text-right font-mono text-sm font-semibold text-red-700">{formatCurrency(expenseSummary[rate].vat)} ₺</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-red-500/5 border-t-2 border-red-500/30">
+                    <td className="p-3">
+                      <span className="text-lg font-bold">TOPLAM</span>
+                    </td>
+                    <td className="p-3 text-right font-mono text-sm font-bold">{formatCurrency(expenseTotal.base)} ₺</td>
+                    <td className="p-3 text-right font-mono text-lg font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 3. KDV Özet Raporu - Net (Dönem) */}
+          <div>
+            <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
+              <span className="w-3 h-3 bg-primary rounded-full"></span>
+              KDV Özet Raporu - {periodText} Dönemi Net
+            </h2>
+            
+            <div className="bg-card border border-border overflow-x-auto">
+              <table className="w-full" data-testid="vat-summary-net-table">
+                <thead className="bg-primary/10 border-b border-border">
+                  <tr>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-green-700 font-medium">Hesaplanan KDV (Gelir)</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-red-700 font-medium">İndirilecek KDV (Gider)</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-primary font-medium">Net KDV</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[1, 10, 20].map((rate) => {
+                    const rateNetVat = incomeSummary[rate].vat - expenseSummary[rate].vat;
+                    return (
+                      <tr key={rate} className="border-b border-border/50">
+                        <td className="p-3">
+                          <span className="text-lg font-semibold text-primary">%{rate}</span>
+                        </td>
+                        <td className="p-3 text-right font-mono text-sm text-green-700">{formatCurrency(incomeSummary[rate].vat)} ₺</td>
+                        <td className="p-3 text-right font-mono text-sm text-red-700">{formatCurrency(expenseSummary[rate].vat)} ₺</td>
+                        <td className={`p-3 text-right font-mono text-sm font-bold ${rateNetVat >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                          {rateNetVat >= 0 ? '' : '-'}{formatCurrency(Math.abs(rateNetVat))} ₺
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-primary/5 border-t-2 border-primary">
+                    <td className="p-3">
+                      <span className="text-lg font-bold">TOPLAM</span>
+                    </td>
+                    <td className="p-3 text-right font-mono text-sm font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</td>
+                    <td className="p-3 text-right font-mono text-sm font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</td>
+                    <td className={`p-3 text-right font-mono text-lg font-bold ${netVat >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {netVat >= 0 ? '' : '-'}{formatCurrency(Math.abs(netVat))} ₺
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Net KDV Summary Box */}
+            <div className="mt-4 p-6 bg-card border-2 border-primary/30">
+              <div className="text-center mb-4">
+                <p className="text-sm text-muted-foreground uppercase tracking-wider">{periodText} Dönemi Sonucu</p>
+              </div>
+              <div className="flex items-center justify-center gap-6">
                 <div className="text-center">
-                  <p className="text-xs text-muted-foreground uppercase">Hesaplanan KDV (Gelir)</p>
-                  <p className="text-xl font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</p>
+                  <p className="text-xs text-muted-foreground uppercase">Hesaplanan KDV</p>
+                  <p className="text-2xl font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</p>
                 </div>
-                <span className="text-2xl text-muted-foreground">-</span>
+                <span className="text-3xl text-muted-foreground font-light">−</span>
                 <div className="text-center">
-                  <p className="text-xs text-muted-foreground uppercase">İndirilecek KDV (Gider)</p>
-                  <p className="text-xl font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</p>
+                  <p className="text-xs text-muted-foreground uppercase">İndirilecek KDV</p>
+                  <p className="text-2xl font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</p>
                 </div>
-                <span className="text-2xl text-muted-foreground">=</span>
-                <div className="text-center">
-                  <p className="text-xs text-muted-foreground uppercase">Ödenecek/Devreden KDV</p>
-                  <p className={`text-2xl font-bold ${(incomeTotal.vat - expenseTotal.vat) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                    {(incomeTotal.vat - expenseTotal.vat) >= 0 ? '' : '-'}{formatCurrency(Math.abs(incomeTotal.vat - expenseTotal.vat))} ₺
+                <span className="text-3xl text-muted-foreground font-light">=</span>
+                <div className="text-center px-6 py-2 bg-primary/5 border border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase">
+                    {netVat >= 0 ? 'Ödenecek KDV' : 'Sonraki Aya Devreden KDV'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {(incomeTotal.vat - expenseTotal.vat) >= 0 ? '(Ödenecek KDV)' : '(Sonraki Aya Devreden)'}
+                  <p className={`text-3xl font-bold ${netVat >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {netVat >= 0 ? '' : '-'}{formatCurrency(Math.abs(netVat))} ₺
                   </p>
                 </div>
               </div>
@@ -616,7 +696,7 @@ const DashboardPage = () => {
       <div className="space-y-8">
         <IncomeVatTable />
         <ExpenseVatTable />
-        <VatSummaryTable />
+        <VatSummaryTables />
       </div>
     );
   };
