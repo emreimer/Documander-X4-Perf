@@ -1220,7 +1220,7 @@ const DashboardPage = () => {
       
       {/* Header */}
       <header className="border-b border-border bg-card shadow-sm">
-        <div className="px-8 py-4 flex items-center justify-between">
+        <div className="px-8 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <img src="/logo.png" alt="Documander" className="h-10" />
             <div className="border-l border-border pl-4">
@@ -1237,14 +1237,14 @@ const DashboardPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Quota Badge */}
             <QuotaBadge />
             
             <Button
               onClick={changeSession}
               variant="outline"
-              className="rounded-none gap-2 uppercase tracking-wide"
+              className="rounded-none gap-2 uppercase tracking-wide text-sm"
               data-testid="change-session-button"
             >
               <Calendar className="w-4 h-4" />
@@ -1254,29 +1254,29 @@ const DashboardPage = () => {
               onClick={() => handleExport()}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0 || !session}
               variant="outline"
-              className="rounded-none gap-2 uppercase tracking-wide"
+              className="rounded-none gap-2 uppercase tracking-wide text-sm"
               data-testid="export-excel-button"
             >
               <Download className="w-4 h-4" />
-              Tümünü Excel İndir
+              Excel İndir
             </Button>
             <Button
               onClick={handleResetAll}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0}
               variant="outline"
-              className="rounded-none gap-2 uppercase tracking-wide text-destructive border-destructive hover:bg-destructive hover:text-white"
+              className="rounded-none gap-2 uppercase tracking-wide text-sm text-destructive border-destructive hover:bg-destructive hover:text-white"
               data-testid="reset-all-button"
             >
               <RotateCcw className="w-4 h-4" />
-              Tabloları Sıfırla
+              Sıfırla
             </Button>
             
-            {/* View Switch Button */}
+            {/* View Switch Button - Primary Action */}
             {currentView === 'invoices' ? (
               <Button
                 onClick={showVatReport}
                 disabled={!session}
-                className="rounded-none gap-2 uppercase tracking-wide bg-primary"
+                className="rounded-none gap-2 uppercase tracking-wide text-sm bg-primary"
                 data-testid="vat-report-button"
               >
                 <Receipt className="w-4 h-4" />
@@ -1285,11 +1285,11 @@ const DashboardPage = () => {
             ) : (
               <Button
                 onClick={showInvoices}
-                className="rounded-none gap-2 uppercase tracking-wide"
+                className="rounded-none gap-2 uppercase tracking-wide text-sm"
                 data-testid="invoices-button"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Gelir-Gider Tablosu
+                Gelir-Gider
               </Button>
             )}
           </div>
