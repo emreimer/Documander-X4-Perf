@@ -207,6 +207,7 @@ async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
             "monthly_uploads": 0,
             "trial_used": False,
             "expires_at": trial_expires,
+            "packages": [],  # New: list of packages
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
@@ -214,6 +215,152 @@ async def get_or_create_subscription(user_id: str, wix_member_id: str = None):
     
     # No monthly reset for any plan - quotas are total for the subscription period
     return sub
+
+async def get_user_packages(wix_member_id: str):
+    """Get all packages for a user"""
+    sub = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    if not sub:
+        return []
+    return sub.get("packages", [])
+
+async def add_package_to_user(wix_member_id: str, plan: str, wix_order_id: str = None):
+    """Add a new package to user's subscription"""
+    plan_info = SUBSCRIPTION_PLANS.get(plan)
+    if not plan_info:
+        return None
+    
+    now = datetime.now(timezone.utc)
+    
+    # Determine duration based on plan type
+    if plan == "trial":
+        end_date = now + timedelta(days=7)
+    else:
+        end_date = now + timedelta(days=365)  # 12 months
+    
+    new_package = {
+        "id": str(uuid.uuid4()),
+        "plan": plan,
+        "plan_name": plan_info["name"],
+        "total_quota": plan_info["monthly_limit"],
+        "used_quota": 0,
+        "start_date": now.isoformat(),
+        "end_date": end_date.isoformat(),
+        "is_active": True,
+        "wix_order_id": wix_order_id,
+        "created_at": now.isoformat()
+    }
+    
+    # Add package to user's packages array
+    result = await db.subscriptions.update_one(
+        {"wix_member_id": wix_member_id},
+        {
+            "$push": {"packages": new_package},
+            "$set": {
+                "updated_at": now.isoformat(),
+                "had_paid_plan": True if plan != "trial" else False
+            }
+        }
+    )
+    
+    return new_package if result.modified_count > 0 else None
+
+async def get_active_packages(wix_member_id: str):
+    """Get all active (not expired, has quota) packages for a user, sorted by end_date (oldest first)"""
+    sub = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    if not sub:
+        return []
+    
+    packages = sub.get("packages", [])
+    now = datetime.now(timezone.utc)
+    
+    active_packages = []
+    for pkg in packages:
+        if not pkg.get("is_active", True):
+            continue
+        
+        # Check expiry
+        end_date_str = pkg.get("end_date")
+        if end_date_str:
+            try:
+                end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+                if now > end_date:
+                    continue  # Expired
+            except:
+                pass
+        
+        # Check quota (skip unlimited plans for quota check)
+        total = pkg.get("total_quota", 0)
+        used = pkg.get("used_quota", 0)
+        if total != -1 and used >= total:
+            continue  # Quota exhausted
+        
+        active_packages.append(pkg)
+    
+    # Sort by end_date (oldest first) to use older packages first
+    active_packages.sort(key=lambda x: x.get("end_date", ""))
+    
+    return active_packages
+
+async def calculate_total_remaining_quota(wix_member_id: str):
+    """Calculate total remaining quota across all active packages"""
+    active_packages = await get_active_packages(wix_member_id)
+    
+    total_remaining = 0
+    has_unlimited = False
+    
+    for pkg in active_packages:
+        total = pkg.get("total_quota", 0)
+        used = pkg.get("used_quota", 0)
+        
+        if total == -1:
+            has_unlimited = True
+        else:
+            total_remaining += (total - used)
+    
+    return -1 if has_unlimited else total_remaining
+
+async def use_quota_from_packages(wix_member_id: str, count: int = 1):
+    """Use quota from user's packages (oldest active package first)"""
+    active_packages = await get_active_packages(wix_member_id)
+    
+    if not active_packages:
+        return False, "Aktif paketiniz bulunmuyor."
+    
+    remaining_to_use = count
+    updates = []
+    
+    for pkg in active_packages:
+        if remaining_to_use <= 0:
+            break
+        
+        total = pkg.get("total_quota", 0)
+        used = pkg.get("used_quota", 0)
+        
+        # Unlimited package
+        if total == -1:
+            return True, None
+        
+        available = total - used
+        use_from_this = min(available, remaining_to_use)
+        
+        if use_from_this > 0:
+            updates.append({
+                "package_id": pkg["id"],
+                "new_used": used + use_from_this
+            })
+            remaining_to_use -= use_from_this
+    
+    if remaining_to_use > 0:
+        return False, f"Yetersiz kota. Gerekli: {count}, Mevcut: {count - remaining_to_use}"
+    
+    # Apply updates to packages
+    for update in updates:
+        await db.subscriptions.update_one(
+            {"wix_member_id": wix_member_id, "packages.id": update["package_id"]},
+            {"$set": {"packages.$.used_quota": update["new_used"]}}
+        )
+    
+    return True, None
 
 async def check_upload_limit(user_id: str, file_count: int = 1):
     """Check if user can upload more files. Returns (can_upload, message, remaining)"""
