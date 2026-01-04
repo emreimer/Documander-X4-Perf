@@ -1270,10 +1270,8 @@ const DashboardPage = () => {
               <RotateCcw className="w-4 h-4" />
               Tabloları Sıfırla
             </Button>
-          </div>
-          
-          {/* View Switch Buttons */}
-          <div className="flex items-center gap-2">
+            
+            {/* View Switch Button */}
             {currentView === 'invoices' ? (
               <Button
                 onClick={showVatReport}
