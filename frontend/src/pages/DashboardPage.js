@@ -506,6 +506,17 @@ const DashboardPage = () => {
       const totalRem = total_remaining || remaining;
       const isLow = totalRem <= 10 && totalRem > 0;
       
+      // Format short date for packages
+      const formatShortDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+          const date = new Date(dateStr);
+          return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch {
+          return '';
+        }
+      };
+      
       return (
         <div 
           className={`flex items-center gap-3 px-4 py-2 border cursor-pointer transition-colors ${
@@ -517,23 +528,30 @@ const DashboardPage = () => {
           title="Paket detayları için tıklayın"
         >
           <CreditCard className={`w-5 h-5 ${is_quota_exhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-primary'}`} />
-          <div className="flex flex-col text-xs">
-            {/* Packages summary */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {activePackages.slice(0, 2).map((pkg, idx) => (
-                <span key={idx} className="bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-medium">
-                  {pkg.plan_name}: {pkg.remaining_quota}
+          <div className="flex flex-col text-xs gap-1">
+            {/* Packages with dates */}
+            {activePackages.slice(0, 3).map((pkg, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-medium">
+                  {pkg.plan_name}
                 </span>
-              ))}
-              {activePackages.length > 2 && (
-                <span className="text-muted-foreground text-[10px]">+{activePackages.length - 2} paket</span>
-              )}
-            </div>
+                <span className="text-muted-foreground">
+                  {pkg.remaining_quota} kalan
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">
+                  {formatShortDate(pkg.end_date)}'e kadar
+                </span>
+              </div>
+            ))}
+            {activePackages.length > 3 && (
+              <span className="text-muted-foreground text-[10px]">+{activePackages.length - 3} paket daha</span>
+            )}
             
             {/* Total remaining */}
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-muted-foreground">Toplam Kalan:</span>
-              <span className={`font-semibold ${is_quota_exhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : ''}`}>
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-border/50">
+              <span className="text-muted-foreground font-medium">Toplam:</span>
+              <span className={`font-bold ${is_quota_exhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-primary'}`}>
                 {totalRem} fatura
               </span>
               {is_quota_exhausted && (
