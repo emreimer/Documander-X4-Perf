@@ -2038,69 +2038,153 @@ async def export_to_excel(
     else:
         ws_kdv_expense.cell(row=row, column=1, value="Bu dönemde gider KDV kaydı bulunmuyor.")
     
-    for col in range(1, 10):
-        ws_kdv_expense.column_dimensions[chr(64 + col)].width = 15
+    # Calculate totals for summary sheets
+    grand_income_base = 0
+    grand_income_vat = 0
+    grand_expense_base = 0
+    grand_expense_vat = 0
+    
+    for rate in [1, 10, 20]:
+        grand_income_base += sum(i['base_amount'] for i in income_vat_items if i['vat_rate'] == rate)
+        grand_income_vat += sum(i['vat_amount'] for i in income_vat_items if i['vat_rate'] == rate)
+        grand_expense_base += sum(i['base_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
+        grand_expense_vat += sum(i['vat_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
     
     # ============================================
-    # SHEET 5: KDV Özet
+    # SHEET 5: KDV Özet - Gelir
     # ============================================
-    ws_kdv_summary = wb.create_sheet(title="KDV Özet")
+    ws_kdv_sum_income = wb.create_sheet(title="KDV Özet - Gelir")
     
     row = 1
     if session:
-        ws_kdv_summary[f'A{row}'] = f"{taxpayer_name} - {month_name} {year} - KDV Özet Raporu"
-        ws_kdv_summary[f'A{row}'].font = Font(bold=True, size=16, color="004D40")
-        ws_kdv_summary.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
+        ws_kdv_sum_income[f'A{row}'] = f"{taxpayer_name} - {month_name} {year} - KDV Özet (Gelir)"
+        ws_kdv_sum_income[f'A{row}'].font = Font(bold=True, size=16, color="004D40")
+        ws_kdv_sum_income.merge_cells(start_row=row, start_column=1, end_row=row, end_column=3)
         row += 2
     
-    # Summary headers
-    headers = ["KDV Oranı", "Gelir Matrah", "Gelir KDV", "Gider Matrah", "Gider KDV", "Net KDV"]
+    headers = ["KDV Oranı", "Matrah", "KDV Tutarı"]
     for col, header in enumerate(headers, 1):
-        cell = ws_kdv_summary.cell(row=row, column=col, value=header)
+        cell = ws_kdv_sum_income.cell(row=row, column=col, value=header)
         cell.fill = header_fill
         cell.font = header_font
     row += 1
     
-    grand_income_vat = 0
-    grand_expense_vat = 0
-    grand_income_base = 0
-    grand_expense_base = 0
-    
     for rate in [1, 10, 20]:
         i_base = sum(i['base_amount'] for i in income_vat_items if i['vat_rate'] == rate)
         i_vat = sum(i['vat_amount'] for i in income_vat_items if i['vat_rate'] == rate)
-        e_base = sum(i['base_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
-        e_vat = sum(i['vat_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
-        net = i_vat - e_vat
-        
-        grand_income_base += i_base
-        grand_income_vat += i_vat
-        grand_expense_base += e_base
-        grand_expense_vat += e_vat
-        
-        row_data = [f"%{rate}", i_base, i_vat, e_base, e_vat, net]
-        for col, value in enumerate(row_data, 1):
-            cell = ws_kdv_summary.cell(row=row, column=col, value=value)
-            if col > 1:
-                cell.number_format = number_format
+        ws_kdv_sum_income.cell(row=row, column=1, value=f"%{rate}")
+        ws_kdv_sum_income.cell(row=row, column=2, value=i_base).number_format = number_format
+        ws_kdv_sum_income.cell(row=row, column=3, value=i_vat).number_format = number_format
         row += 1
     
-    # Grand total row
-    net_total = grand_income_vat - grand_expense_vat
-    ws_kdv_summary.cell(row=row, column=1, value="TOPLAM").font = Font(bold=True)
-    ws_kdv_summary.cell(row=row, column=2, value=grand_income_base).number_format = number_format
-    ws_kdv_summary.cell(row=row, column=2).font = Font(bold=True)
-    ws_kdv_summary.cell(row=row, column=3, value=grand_income_vat).number_format = number_format
-    ws_kdv_summary.cell(row=row, column=3).font = Font(bold=True)
-    ws_kdv_summary.cell(row=row, column=4, value=grand_expense_base).number_format = number_format
-    ws_kdv_summary.cell(row=row, column=4).font = Font(bold=True)
-    ws_kdv_summary.cell(row=row, column=5, value=grand_expense_vat).number_format = number_format
-    ws_kdv_summary.cell(row=row, column=5).font = Font(bold=True)
-    ws_kdv_summary.cell(row=row, column=6, value=net_total).number_format = number_format
-    ws_kdv_summary.cell(row=row, column=6).font = Font(bold=True)
+    ws_kdv_sum_income.cell(row=row, column=1, value="TOPLAM").font = Font(bold=True)
+    ws_kdv_sum_income.cell(row=row, column=2, value=grand_income_base).number_format = number_format
+    ws_kdv_sum_income.cell(row=row, column=2).font = Font(bold=True)
+    ws_kdv_sum_income.cell(row=row, column=3, value=grand_income_vat).number_format = number_format
+    ws_kdv_sum_income.cell(row=row, column=3).font = Font(bold=True)
     
-    for col in range(1, 7):
-        ws_kdv_summary.column_dimensions[chr(64 + col)].width = 18
+    # ============================================
+    # SHEET 6: KDV Özet - Gider
+    # ============================================
+    ws_kdv_sum_expense = wb.create_sheet(title="KDV Özet - Gider")
+    
+    row = 1
+    if session:
+        ws_kdv_sum_expense[f'A{row}'] = f"{taxpayer_name} - {month_name} {year} - KDV Özet (Gider)"
+        ws_kdv_sum_expense[f'A{row}'].font = Font(bold=True, size=16, color="004D40")
+        ws_kdv_sum_expense.merge_cells(start_row=row, start_column=1, end_row=row, end_column=3)
+        row += 2
+    
+    headers = ["KDV Oranı", "Matrah", "KDV Tutarı"]
+    for col, header in enumerate(headers, 1):
+        cell = ws_kdv_sum_expense.cell(row=row, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+    row += 1
+    
+    for rate in [1, 10, 20]:
+        e_base = sum(i['base_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
+        e_vat = sum(i['vat_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
+        ws_kdv_sum_expense.cell(row=row, column=1, value=f"%{rate}")
+        ws_kdv_sum_expense.cell(row=row, column=2, value=e_base).number_format = number_format
+        ws_kdv_sum_expense.cell(row=row, column=3, value=e_vat).number_format = number_format
+        row += 1
+    
+    ws_kdv_sum_expense.cell(row=row, column=1, value="TOPLAM").font = Font(bold=True)
+    ws_kdv_sum_expense.cell(row=row, column=2, value=grand_expense_base).number_format = number_format
+    ws_kdv_sum_expense.cell(row=row, column=2).font = Font(bold=True)
+    ws_kdv_sum_expense.cell(row=row, column=3, value=grand_expense_vat).number_format = number_format
+    ws_kdv_sum_expense.cell(row=row, column=3).font = Font(bold=True)
+    
+    # ============================================
+    # SHEET 7: KDV Özet - Net
+    # ============================================
+    ws_kdv_sum_net = wb.create_sheet(title="KDV Özet - Net")
+    
+    row = 1
+    if session:
+        ws_kdv_sum_net[f'A{row}'] = f"{taxpayer_name} - {month_name} {year} Dönemi - Net KDV"
+        ws_kdv_sum_net[f'A{row}'].font = Font(bold=True, size=16, color="004D40")
+        ws_kdv_sum_net.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        row += 2
+    
+    headers = ["KDV Oranı", "Hesaplanan KDV (Gelir)", "İndirilecek KDV (Gider)", "Net KDV"]
+    for col, header in enumerate(headers, 1):
+        cell = ws_kdv_sum_net.cell(row=row, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+    row += 1
+    
+    for rate in [1, 10, 20]:
+        i_vat = sum(i['vat_amount'] for i in income_vat_items if i['vat_rate'] == rate)
+        e_vat = sum(i['vat_amount'] for i in expense_vat_items if i['vat_rate'] == rate)
+        net = i_vat - e_vat
+        ws_kdv_sum_net.cell(row=row, column=1, value=f"%{rate}")
+        ws_kdv_sum_net.cell(row=row, column=2, value=i_vat).number_format = number_format
+        ws_kdv_sum_net.cell(row=row, column=3, value=e_vat).number_format = number_format
+        ws_kdv_sum_net.cell(row=row, column=4, value=net).number_format = number_format
+        row += 1
+    
+    net_total = grand_income_vat - grand_expense_vat
+    ws_kdv_sum_net.cell(row=row, column=1, value="TOPLAM").font = Font(bold=True)
+    ws_kdv_sum_net.cell(row=row, column=2, value=grand_income_vat).number_format = number_format
+    ws_kdv_sum_net.cell(row=row, column=2).font = Font(bold=True)
+    ws_kdv_sum_net.cell(row=row, column=3, value=grand_expense_vat).number_format = number_format
+    ws_kdv_sum_net.cell(row=row, column=3).font = Font(bold=True)
+    ws_kdv_sum_net.cell(row=row, column=4, value=net_total).number_format = number_format
+    ws_kdv_sum_net.cell(row=row, column=4).font = Font(bold=True)
+    
+    row += 2
+    # Add result text
+    result_text = "ÖDENECEK KDV" if net_total >= 0 else "SONRAKI AYA DEVREDEN KDV"
+    ws_kdv_sum_net.cell(row=row, column=1, value=result_text).font = Font(bold=True, size=14)
+    ws_kdv_sum_net.cell(row=row, column=2, value=abs(net_total)).number_format = number_format
+    ws_kdv_sum_net.cell(row=row, column=2).font = Font(bold=True, size=14)
+    
+    # ============================================
+    # Auto-adjust column widths for all sheets
+    # ============================================
+    def auto_adjust_columns(worksheet):
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = None
+            for cell in column_cells:
+                try:
+                    if hasattr(cell, 'column_letter'):
+                        column_letter = cell.column_letter
+                    if cell.value:
+                        cell_length = len(str(cell.value))
+                        if cell_length > max_length:
+                            max_length = cell_length
+                except:
+                    pass
+            if column_letter and max_length > 0:
+                adjusted_width = min(max_length + 3, 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    # Apply auto-adjust to all sheets
+    for sheet in wb.worksheets:
+        auto_adjust_columns(sheet)
     
     # Save to BytesIO
     output = io.BytesIO()
