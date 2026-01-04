@@ -42,6 +42,9 @@ db = client[db_name]
 JWT_SECRET = os.environ.get('JWT_SECRET', 'fatura-yonetim-secret-key-2024')
 JWT_ALGORITHM = 'HS256'
 
+# Admin Config
+ADMIN_SECRET_KEY = os.environ.get('ADMIN_SECRET_KEY', 'imeridis-2025')
+
 # Emergent LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 
