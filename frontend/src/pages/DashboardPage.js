@@ -1297,30 +1297,33 @@ const DashboardPage = () => {
             <Button
               onClick={changeSession}
               variant="outline"
-              className="rounded-none gap-2 uppercase tracking-wide text-sm"
+              size="sm"
+              className="rounded-none gap-1 uppercase tracking-wide text-xs"
               data-testid="change-session-button"
             >
-              <Calendar className="w-4 h-4" />
-              Dönem Değiştir
+              <Calendar className="w-3 h-3" />
+              Dönem
             </Button>
             <Button
               onClick={() => handleExport()}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0 || !session}
               variant="outline"
-              className="rounded-none gap-2 uppercase tracking-wide text-sm"
+              size="sm"
+              className="rounded-none gap-1 uppercase tracking-wide text-xs"
               data-testid="export-excel-button"
             >
-              <Download className="w-4 h-4" />
-              Tümünü Excel İndir
+              <Download className="w-3 h-3" />
+              Tümünü İndir
             </Button>
             <Button
               onClick={handleResetAll}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0}
               variant="outline"
-              className="rounded-none gap-2 uppercase tracking-wide text-sm text-destructive border-destructive hover:bg-destructive hover:text-white"
+              size="sm"
+              className="rounded-none gap-1 uppercase tracking-wide text-xs text-destructive border-destructive hover:bg-destructive hover:text-white"
               data-testid="reset-all-button"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3 h-3" />
               Sıfırla
             </Button>
             
@@ -1329,20 +1332,22 @@ const DashboardPage = () => {
               <Button
                 onClick={showVatReport}
                 disabled={!session}
-                className="rounded-none gap-2 uppercase tracking-wide text-sm bg-primary"
+                size="sm"
+                className="rounded-none gap-1 uppercase tracking-wide text-xs bg-primary"
                 data-testid="vat-report-button"
               >
-                <Receipt className="w-4 h-4" />
+                <Receipt className="w-3 h-3" />
                 KDV Raporu
               </Button>
             ) : (
               <Button
                 onClick={showInvoices}
-                className="rounded-none gap-2 uppercase tracking-wide text-sm"
+                size="sm"
+                className="rounded-none gap-1 uppercase tracking-wide text-xs"
                 data-testid="invoices-button"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Gelir-Gider
+                <ArrowLeft className="w-3 h-3" />
+                Faturalar
               </Button>
             )}
           </div>
