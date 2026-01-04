@@ -1773,7 +1773,9 @@ async def wix_new_order_webhook(
     wix_member_id: str = Form(...),
     plan: str = Form(...),
     wix_order_id: Optional[str] = Form(None),
-    secret_key: str = Form(...)
+    secret_key: str = Form(...),
+    email: Optional[str] = Form(None),
+    full_name: Optional[str] = Form(None)
 ):
     """
     Webhook endpoint called by Wix when a new subscription is purchased.
@@ -1795,6 +1797,8 @@ async def wix_new_order_webhook(
             "id": str(uuid.uuid4()),
             "user_id": user_id,
             "wix_member_id": wix_member_id,
+            "email": email,
+            "full_name": full_name,
             "plan": plan,
             "monthly_uploads": 0,
             "packages": [],
@@ -1803,6 +1807,18 @@ async def wix_new_order_webhook(
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         await db.subscriptions.insert_one(new_sub)
+    else:
+        # Update user info if provided
+        update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+        if email:
+            update_fields["email"] = email
+        if full_name:
+            update_fields["full_name"] = full_name
+        
+        await db.subscriptions.update_one(
+            {"wix_member_id": wix_member_id},
+            {"$set": update_fields}
+        )
     
     # Add new package
     new_package = await add_package_to_user(wix_member_id, plan, wix_order_id)
