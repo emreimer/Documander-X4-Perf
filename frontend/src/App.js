@@ -31,13 +31,6 @@ function App() {
     const isAdmin = window.location.pathname === '/admin';
     setIsAdminPage(isAdmin);
     
-    // TEMPORARILY DISABLED: Domain check for preview testing
-    // To re-enable production domain restriction, uncomment the block below
-    // and remove the setIsAllowed(true) line
-    setIsAllowed(true);
-    return;
-    
-    /* PRODUCTION DOMAIN CHECK - DISABLED FOR PREVIEW
     // Admin page has its own key-based auth, allow access
     if (isAdmin) {
       setIsAllowed(true);
@@ -82,7 +75,6 @@ function App() {
     };
 
     checkAccess();
-    */
   }, []);
 
   // Loading state
