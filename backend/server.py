@@ -1696,6 +1696,8 @@ async def admin_get_users(
         user_data = {
             "wix_member_id": wix_member_id,
             "user_id": sub.get("user_id", ""),
+            "email": sub.get("email", ""),
+            "full_name": sub.get("full_name", ""),
             "packages": packages_info,
             "total_remaining": -1 if has_unlimited else total_remaining,
             "is_active": any_active,
