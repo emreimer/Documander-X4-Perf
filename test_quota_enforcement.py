@@ -4,7 +4,7 @@ from datetime import datetime
 
 def test_quota_enforcement_api_level():
     """Test quota enforcement at API level - upload more files than limit allows"""
-    base_url = "https://invoice-extract-10.preview.emergentagent.com"
+    base_url = "https://kdvreport.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Create unique visitor ID
@@ -69,7 +69,7 @@ def test_quota_enforcement_api_level():
 
 def test_quota_with_valid_files():
     """Test quota with files that should process successfully"""
-    base_url = "https://invoice-extract-10.preview.emergentagent.com"
+    base_url = "https://kdvreport.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Create unique visitor ID

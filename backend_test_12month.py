@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone, timedelta
 
 class TwelveMonthSubscriptionTester:
-    def __init__(self, base_url="https://invoice-extract-10.preview.emergentagent.com"):
+    def __init__(self, base_url="https://kdvreport.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.visitor_id = f"test_12month_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -31,8 +31,8 @@ class TwelveMonthSubscriptionTester:
         """Get headers for API requests"""
         headers = {
             'X-Visitor-ID': self.visitor_id,
-            'Referer': 'https://invoice-extract-10.preview.emergentagent.com/',
-            'Origin': 'https://invoice-extract-10.preview.emergentagent.com'
+            'Referer': 'https://kdvreport.preview.emergentagent.com/',
+            'Origin': 'https://kdvreport.preview.emergentagent.com'
         }
         if wix_member_id:
             headers['X-Wix-Member-ID'] = wix_member_id
@@ -237,8 +237,8 @@ class TwelveMonthSubscriptionTester:
         trial_visitor_id = f"test_quota_block_{datetime.now().strftime('%H%M%S')}"
         headers = {
             'X-Visitor-ID': trial_visitor_id,
-            'Referer': 'https://invoice-extract-10.preview.emergentagent.com/',
-            'Origin': 'https://invoice-extract-10.preview.emergentagent.com'
+            'Referer': 'https://kdvreport.preview.emergentagent.com/',
+            'Origin': 'https://kdvreport.preview.emergentagent.com'
         }
         
         # First create a session (required for upload)

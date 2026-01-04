@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 def test_quota_debug():
-    base_url = "https://invoice-extract-10.preview.emergentagent.com"
+    base_url = "https://kdvreport.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Create unique visitor ID
