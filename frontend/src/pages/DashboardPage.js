@@ -895,6 +895,30 @@ const DashboardPage = () => {
               Tabloları Sıfırla
             </Button>
           </div>
+          
+          {/* View Switch Buttons */}
+          <div className="flex items-center gap-2">
+            {currentView === 'invoices' ? (
+              <Button
+                onClick={showVatReport}
+                disabled={!session || (incomeInvoices.length === 0 && expenseInvoices.length === 0)}
+                className="rounded-none gap-2 uppercase tracking-wide bg-primary"
+                data-testid="vat-report-button"
+              >
+                <Receipt className="w-4 h-4" />
+                KDV Raporu
+              </Button>
+            ) : (
+              <Button
+                onClick={showInvoices}
+                className="rounded-none gap-2 uppercase tracking-wide"
+                data-testid="invoices-button"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Gelir-Gider Tablosu
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -904,11 +928,13 @@ const DashboardPage = () => {
           <div className="flex items-center justify-center py-12">
             <div className="text-lg font-mono text-muted-foreground">Yükleniyor...</div>
           </div>
-        ) : (
+        ) : currentView === 'invoices' ? (
           <>
             <InvoiceTable invoices={incomeInvoices} type="income" />
             <InvoiceTable invoices={expenseInvoices} type="expense" />
           </>
+        ) : (
+          <VatReportView />
         )}
       </main>
 
