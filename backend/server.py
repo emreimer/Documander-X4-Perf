@@ -1770,31 +1770,6 @@ async def export_vat_report_to_excel(
             "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
         }
     )
-        ws.cell(row=current_row, column=5).font = Font(bold=True)
-        ws.cell(row=current_row, column=6, value=net_total).number_format = number_format
-        ws.cell(row=current_row, column=6).font = Font(bold=True)
-    
-    # Adjust column widths
-    for col in range(1, 10):
-        ws.column_dimensions[chr(64 + col)].width = 15
-    
-    # Save to bytes
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    
-    # Generate filename
-    cat_suffix = f"_{category}" if category else ""
-    safe_name = taxpayer_name.replace(' ', '_')
-    filename = f"{safe_name}_{month_name}_{year}_KDV{cat_suffix}.xlsx"
-    
-    return StreamingResponse(
-        output,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
-        }
-    )
 
 @api_router.put("/invoices/{invoice_id}")
 async def update_invoice(
