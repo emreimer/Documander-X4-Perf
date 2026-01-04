@@ -479,7 +479,7 @@ const DashboardPage = () => {
   const QuotaBadge = () => {
     if (!subscription) return null;
     
-    const { plan_name, remaining, total_limit, monthly_limit, is_unlimited, is_trial, is_annual_plan, expires_at, is_expired, is_quota_exhausted, days_remaining } = subscription;
+    const { plan_name, remaining, total_limit, monthly_limit, is_unlimited, is_trial, expires_at, is_expired, is_quota_exhausted, days_remaining, has_multi_packages, packages, total_remaining } = subscription;
     
     // Use total_limit if available, fallback to monthly_limit for backward compatibility
     const limit = total_limit || monthly_limit;
@@ -500,6 +500,52 @@ const DashboardPage = () => {
       );
     }
     
+    // Multi-package display
+    if (has_multi_packages && packages && packages.length > 0) {
+      const activePackages = packages.filter(p => p.is_active);
+      const totalRem = total_remaining || remaining;
+      const isLow = totalRem <= 10 && totalRem > 0;
+      
+      return (
+        <div 
+          className={`flex items-center gap-3 px-4 py-2 border cursor-pointer transition-colors ${
+            is_quota_exhausted ? 'bg-destructive/10 border-destructive/30' : 
+            isLow ? 'bg-yellow-500/10 border-yellow-500/30' : 
+            'bg-muted/30 border-border hover:bg-muted/50'
+          }`}
+          onClick={() => setShowPlansModal(true)}
+          title="Paket detayları için tıklayın"
+        >
+          <CreditCard className={`w-5 h-5 ${is_quota_exhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : 'text-primary'}`} />
+          <div className="flex flex-col text-xs">
+            {/* Packages summary */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {activePackages.slice(0, 2).map((pkg, idx) => (
+                <span key={idx} className="bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-medium">
+                  {pkg.plan_name}: {pkg.remaining_quota}
+                </span>
+              ))}
+              {activePackages.length > 2 && (
+                <span className="text-muted-foreground text-[10px]">+{activePackages.length - 2} paket</span>
+              )}
+            </div>
+            
+            {/* Total remaining */}
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-muted-foreground">Toplam Kalan:</span>
+              <span className={`font-semibold ${is_quota_exhausted ? 'text-destructive' : isLow ? 'text-yellow-600' : ''}`}>
+                {totalRem} fatura
+              </span>
+              {is_quota_exhausted && (
+                <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 font-medium">KOTA DOLDU</span>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Single package (legacy) display
     const isLow = remaining <= 5 && remaining > 0;
     const expiryWarning = days_remaining !== null && days_remaining <= 30 && !is_trial;
     const trialExpiryWarning = days_remaining !== null && days_remaining <= 3 && is_trial;
