@@ -1040,7 +1040,7 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
             mime_type=mime_type
         )
         
-        # Extract data - support multiple receipts in one image
+        # Extract data - support multiple receipts in one image with VAT breakdown
         prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
 
 Her fiş/fatura için şu bilgileri çıkar:
@@ -1056,13 +1056,28 @@ Her fiş/fatura için şu bilgileri çıkar:
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
 - total: Toplam tutar (sadece sayı)
+- vat_details: KDV DETAYLARI - Türkiye KDV oranlarına göre (%1, %10, %20) ayrıştır. Her KDV oranı için:
+  - vat_rate: KDV oranı (1, 10 veya 20)
+  - base_amount: O orana ait matrah (KDV hariç tutar)
+  - vat_amount: O orana ait KDV tutarı
+  - withholding: Tevkifat var mı (true/false)
+  - withholding_rate: Tevkifat oranı varsa (örn: "5/10", "9/10", null yoksa)
+
+ÖNEMLİ KDV KURALLARI:
+- Faturada farklı KDV oranları varsa her birini ayrı ayrı listele
+- KDV oranı belirtilmemişse, tutardan hesapla (örn: KDV/Matrah oranına bak)
+- Tevkifatlı faturalarda tevkifat oranını belirt
+- Eğer KDV detayı bulunamıyorsa, toplam KDV'yi tek satır olarak göster
 
 SADECE JSON formatında yanıt ver. 
 - Tek fiş varsa: {"invoices": [{ ... fiş bilgileri ... }]}
 - Birden fazla fiş varsa: {"invoices": [{ fiş1 }, { fiş2 }, ...]}
 
 Örnek:
-{"invoices": [{"invoice_number": "FIS-001", "date": "15/01/2024", "issuer_name": "ABC Market", "issuer_tax_id": "1234567890", "issuer_tax_office": "KADIKÖY", "customer_name": "", "customer_tax_id": "", "customer_tax_office": "", "description": "Market alışverişi", "amount": 100.0, "vat": 18.0, "total": 118.0}]}"""
+{"invoices": [{"invoice_number": "FIS-001", "date": "15/01/2024", "issuer_name": "ABC Market", "issuer_tax_id": "1234567890", "issuer_tax_office": "KADIKÖY", "customer_name": "", "customer_tax_id": "", "customer_tax_office": "", "description": "Market alışverişi", "amount": 100.0, "vat": 20.0, "total": 120.0, "vat_details": [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0, "withholding": false, "withholding_rate": null}]}]}
+
+Birden fazla KDV oranı örneği:
+{"invoices": [{"invoice_number": "FTR-002", "date": "20/01/2024", "issuer_name": "XYZ Ltd", "issuer_tax_id": "9876543210", "issuer_tax_office": "BEYOĞLU", "customer_name": "Müşteri A.Ş.", "customer_tax_id": "1111111111", "customer_tax_office": "ŞİŞLİ", "description": "Muhtelif ürünler", "amount": 250.0, "vat": 35.0, "total": 285.0, "vat_details": [{"vat_rate": 10, "base_amount": 150.0, "vat_amount": 15.0, "withholding": false, "withholding_rate": null}, {"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0, "withholding": false, "withholding_rate": null}]}]}"""
         
         message = UserMessage(
             text=prompt,
