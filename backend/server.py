@@ -1452,6 +1452,238 @@ async def get_vat_report(user_id: str = Depends(get_current_user)):
         }
     }
 
+@api_router.get("/invoices/vat-report/excel")
+async def export_vat_report_to_excel(
+    category: Optional[str] = None,
+    user_id: str = Depends(get_current_user)
+):
+    """Export VAT report to Excel"""
+    # Get current session
+    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Aktif oturum bulunamadı")
+    
+    # Build query
+    query = {
+        "user_id": user_id,
+        "session_id": session['id']
+    }
+    if category and category in ['income', 'expense']:
+        query["category"] = category
+    
+    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
+    
+    if not invoices:
+        raise HTTPException(status_code=404, detail="KDV verisi bulunamadı")
+    
+    # Collect VAT items
+    vat_items = []
+    for invoice in invoices:
+        vat_details = invoice.get('vat_details', [])
+        if not vat_details:
+            # Create single entry from total VAT
+            vat_amount = float(invoice.get('vat', 0) or 0)
+            net_amount = float(invoice.get('amount', 0) or 0)
+            if vat_amount > 0 and net_amount > 0:
+                vat_rate = round((vat_amount / net_amount) * 100)
+                if vat_rate not in [1, 10, 20]:
+                    vat_rate = 20
+                vat_details = [{"vat_rate": vat_rate, "base_amount": net_amount, "vat_amount": vat_amount}]
+        
+        for detail in vat_details:
+            vat_items.append({
+                "invoice_number": invoice.get('invoice_number', 'N/A'),
+                "date": invoice.get('date', ''),
+                "category": invoice.get('category', 'income'),
+                "issuer_name": invoice.get('issuer_name', ''),
+                "issuer_tax_id": invoice.get('issuer_tax_id', ''),
+                "issuer_tax_office": invoice.get('issuer_tax_office', ''),
+                "customer_name": invoice.get('customer_name', ''),
+                "customer_tax_id": invoice.get('customer_tax_id', ''),
+                "customer_tax_office": invoice.get('customer_tax_office', ''),
+                "description": invoice.get('description', ''),
+                "vat_rate": int(detail.get('vat_rate', 20)),
+                "base_amount": float(detail.get('base_amount', 0) or 0),
+                "vat_amount": float(detail.get('vat_amount', 0) or 0)
+            })
+    
+    # Turkish month names
+    month_names = {
+        1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+        7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+    }
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "KDV Raporu"
+    
+    header_fill = PatternFill(start_color="004D40", end_color="004D40", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    income_fill = PatternFill(start_color="E8F5E9", end_color="E8F5E9", fill_type="solid")
+    expense_fill = PatternFill(start_color="FFEBEE", end_color="FFEBEE", fill_type="solid")
+    number_format = '#,##0.00'
+    
+    current_row = 1
+    taxpayer_name = session.get('taxpayer_name', '')
+    year = session.get('year', '')
+    month = session.get('month', '')
+    month_name = month_names.get(month, '')
+    
+    # Title
+    title = f"{taxpayer_name} - {month_name} {year} KDV Raporu"
+    if category == 'income':
+        title += " (Gelir)"
+    elif category == 'expense':
+        title += " (Gider)"
+    ws[f'A{current_row}'] = title
+    ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
+    ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
+    current_row += 2
+    
+    # Separate by category
+    income_items = [i for i in vat_items if i['category'] == 'income']
+    expense_items = [i for i in vat_items if i['category'] == 'expense']
+    
+    def add_vat_table(items, table_title, is_income=True):
+        nonlocal current_row
+        
+        if not items:
+            return
+        
+        # Section title
+        ws[f'A{current_row}'] = table_title
+        ws[f'A{current_row}'].font = Font(bold=True, size=14, color="004D40")
+        current_row += 1
+        
+        # Headers
+        if is_income:
+            headers = ["Fatura No", "Tarih", "Müşteri", "M. VKN", "M. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
+        else:
+            headers = ["Fatura No", "Tarih", "Düzenleyen", "D. VKN", "D. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=current_row, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+        current_row += 1
+        
+        # Data rows
+        total_base = 0
+        total_vat = 0
+        for item in items:
+            if is_income:
+                name = item['customer_name'] or '-'
+                tax_id = item['customer_tax_id'] or '-'
+                tax_office = item['customer_tax_office'] or '-'
+            else:
+                name = item['issuer_name'] or '-'
+                tax_id = item['issuer_tax_id'] or '-'
+                tax_office = item['issuer_tax_office'] or '-'
+            
+            row_data = [
+                item['invoice_number'],
+                item['date'],
+                name,
+                tax_id,
+                tax_office,
+                item['description'],
+                f"%{item['vat_rate']}",
+                item['base_amount'],
+                item['vat_amount']
+            ]
+            for col, value in enumerate(row_data, 1):
+                cell = ws.cell(row=current_row, column=col, value=value)
+                if col in [8, 9]:  # Numeric columns
+                    cell.number_format = number_format
+            total_base += item['base_amount']
+            total_vat += item['vat_amount']
+            current_row += 1
+        
+        # Total row
+        ws.cell(row=current_row, column=7, value="TOPLAM:").font = Font(bold=True)
+        ws.cell(row=current_row, column=8, value=total_base).number_format = number_format
+        ws.cell(row=current_row, column=8).font = Font(bold=True)
+        ws.cell(row=current_row, column=9, value=total_vat).number_format = number_format
+        ws.cell(row=current_row, column=9).font = Font(bold=True)
+        current_row += 2
+    
+    # Add tables based on category filter
+    if not category or category == 'income':
+        add_vat_table(income_items, "KDV DETAY - GELİR", is_income=True)
+    if not category or category == 'expense':
+        add_vat_table(expense_items, "KDV DETAY - GİDER", is_income=False)
+    
+    # KDV Summary section
+    if not category:
+        ws[f'A{current_row}'] = "KDV ÖZET RAPORU"
+        ws[f'A{current_row}'].font = Font(bold=True, size=14, color="004D40")
+        current_row += 1
+        
+        # Summary headers
+        summary_headers = ["KDV Oranı", "Gelir Matrah", "Gelir KDV", "Gider Matrah", "Gider KDV", "Net KDV"]
+        for col, header in enumerate(summary_headers, 1):
+            cell = ws.cell(row=current_row, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+        current_row += 1
+        
+        # Calculate summaries
+        for rate in [1, 10, 20]:
+            income_base = sum(i['base_amount'] for i in income_items if i['vat_rate'] == rate)
+            income_vat = sum(i['vat_amount'] for i in income_items if i['vat_rate'] == rate)
+            expense_base = sum(i['base_amount'] for i in expense_items if i['vat_rate'] == rate)
+            expense_vat = sum(i['vat_amount'] for i in expense_items if i['vat_rate'] == rate)
+            net_vat = income_vat - expense_vat
+            
+            row_data = [f"%{rate}", income_base, income_vat, expense_base, expense_vat, net_vat]
+            for col, value in enumerate(row_data, 1):
+                cell = ws.cell(row=current_row, column=col, value=value)
+                if col > 1:
+                    cell.number_format = number_format
+            current_row += 1
+        
+        # Total row
+        total_income_base = sum(i['base_amount'] for i in income_items)
+        total_income_vat = sum(i['vat_amount'] for i in income_items)
+        total_expense_base = sum(i['base_amount'] for i in expense_items)
+        total_expense_vat = sum(i['vat_amount'] for i in expense_items)
+        net_total = total_income_vat - total_expense_vat
+        
+        ws.cell(row=current_row, column=1, value="TOPLAM").font = Font(bold=True)
+        ws.cell(row=current_row, column=2, value=total_income_base).number_format = number_format
+        ws.cell(row=current_row, column=2).font = Font(bold=True)
+        ws.cell(row=current_row, column=3, value=total_income_vat).number_format = number_format
+        ws.cell(row=current_row, column=3).font = Font(bold=True)
+        ws.cell(row=current_row, column=4, value=total_expense_base).number_format = number_format
+        ws.cell(row=current_row, column=4).font = Font(bold=True)
+        ws.cell(row=current_row, column=5, value=total_expense_vat).number_format = number_format
+        ws.cell(row=current_row, column=5).font = Font(bold=True)
+        ws.cell(row=current_row, column=6, value=net_total).number_format = number_format
+        ws.cell(row=current_row, column=6).font = Font(bold=True)
+    
+    # Adjust column widths
+    for col in range(1, 10):
+        ws.column_dimensions[chr(64 + col)].width = 15
+    
+    # Save to bytes
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Generate filename
+    cat_suffix = f"_{category}" if category else ""
+    safe_name = taxpayer_name.replace(' ', '_')
+    filename = f"{safe_name}_{month_name}_{year}_KDV{cat_suffix}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{filename}"
+        }
+    )
+
 @api_router.put("/invoices/{invoice_id}")
 async def update_invoice(
     invoice_id: str,
