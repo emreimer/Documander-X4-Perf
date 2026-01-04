@@ -1027,12 +1027,12 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
         with open(temp_file_path, "wb") as f:
             f.write(file_content)
         
-        # Initialize LLM Chat with Gemini (supports file attachments)
+        # Initialize LLM Chat with OpenAI GPT-4o Vision
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"invoice-extraction-{uuid.uuid4()}",
-            system_message="You are an invoice data extraction assistant. Extract invoice information accurately."
-        ).with_model("gemini", "gemini-2.5-flash")
+            system_message="You are an invoice data extraction assistant. Extract invoice information accurately from Turkish invoices and receipts."
+        ).with_model("openai", "gpt-4o")
         
         # Create file content object
         file_obj = FileContentWithMimeType(
