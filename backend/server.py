@@ -1721,6 +1721,32 @@ async def admin_get_users(
         "users": users_data
     }
 
+@api_router.delete("/admin/user/{wix_member_id}")
+async def admin_delete_user(wix_member_id: str, key: str):
+    """Admin endpoint to delete a specific user"""
+    if key != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    result = await db.subscriptions.delete_one({"wix_member_id": wix_member_id})
+    
+    if result.deleted_count > 0:
+        return {"success": True, "message": "Kullanıcı silindi"}
+    else:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+
+@api_router.delete("/admin/users/all")
+async def admin_delete_all_users(key: str):
+    """Admin endpoint to delete ALL users - use with caution!"""
+    if key != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    result = await db.subscriptions.delete_many({})
+    
+    return {
+        "success": True, 
+        "message": f"{result.deleted_count} kullanıcı silindi"
+    }
+
 @api_router.post("/admin/add-package")
 async def admin_add_package(
     key: str = Form(...),
