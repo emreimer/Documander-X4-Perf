@@ -1653,6 +1653,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         if request.url.path in ["/health", "/api/health", "/api/health/db", "/"]:
             return await call_next(request)
         
+        # Allow admin endpoints (they have their own key-based authentication)
+        if request.url.path.startswith("/api/admin") or request.url.path.startswith("/api/webhook"):
+            response = await call_next(request)
+            return response
+        
         # Check referer/origin for API calls
         if request.url.path.startswith("/api"):
             referer = request.headers.get("referer", "")
