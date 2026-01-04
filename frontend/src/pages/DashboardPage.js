@@ -1360,7 +1360,7 @@ const DashboardPage = () => {
             
             {currentView === 'invoices' ? (
               <Button onClick={showVatReport} disabled={!session} size="sm" className="rounded-none gap-1 text-xs bg-primary" data-testid="vat-report-button">
-                <Receipt className="w-3 h-3" />
+                <FileText className="w-3 h-3" />
                 KDV Raporu
               </Button>
             ) : (
