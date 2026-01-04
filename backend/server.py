@@ -365,6 +365,32 @@ async def use_quota_from_packages(wix_member_id: str, count: int = 1):
 async def check_upload_limit(user_id: str, file_count: int = 1):
     """Check if user can upload more files. Returns (can_upload, message, remaining)"""
     sub = await get_or_create_subscription(user_id)
+    wix_member_id = sub.get("wix_member_id")
+    
+    # Check for multi-package system first (if user has packages)
+    packages = sub.get("packages", [])
+    if packages and wix_member_id:
+        active_packages = await get_active_packages(wix_member_id)
+        
+        if not active_packages:
+            # No active packages - check legacy single plan
+            pass
+        else:
+            # Use multi-package system
+            total_remaining = await calculate_total_remaining_quota(wix_member_id)
+            
+            if total_remaining == -1:  # Unlimited
+                return True, None, -1
+            
+            if total_remaining <= 0:
+                return False, "Fatura kotanız doldu. Devam etmek için yeni bir plan satın alın.", 0
+            
+            if file_count > total_remaining:
+                return False, f"Kota yetersiz. Kalan: {total_remaining}, İstenen: {file_count}", total_remaining
+            
+            return True, None, total_remaining - file_count
+    
+    # Legacy single plan system
     plan = sub.get("plan", "trial")
     plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
     limit = plan_info["monthly_limit"]  # Now represents total limit for 12 months
@@ -405,8 +431,19 @@ async def check_upload_limit(user_id: str, file_count: int = 1):
     return True, None, remaining - file_count
 
 async def increment_upload_count(user_id: str, count: int = 1):
-    """Increment the upload counter"""
+    """Increment the upload counter - supports both legacy and multi-package systems"""
     sub = await get_or_create_subscription(user_id)
+    wix_member_id = sub.get("wix_member_id")
+    packages = sub.get("packages", [])
+    
+    # Use multi-package system if available
+    if packages and wix_member_id:
+        active_packages = await get_active_packages(wix_member_id)
+        if active_packages:
+            success, msg = await use_quota_from_packages(wix_member_id, count)
+            return success
+    
+    # Legacy single plan system
     new_count = sub.get("monthly_uploads", 0) + count
     
     update_data = {
@@ -419,7 +456,6 @@ async def increment_upload_count(user_id: str, count: int = 1):
         update_data["trial_used"] = True
     
     # Update by wix_member_id if exists, otherwise by user_id
-    wix_member_id = sub.get("wix_member_id")
     if wix_member_id:
         await db.subscriptions.update_one(
             {"wix_member_id": wix_member_id},
@@ -430,6 +466,8 @@ async def increment_upload_count(user_id: str, count: int = 1):
             {"user_id": user_id},
             {"$set": update_data}
         )
+    
+    return True
 
 async def get_current_user(
     x_visitor_id: Optional[str] = Header(None),
