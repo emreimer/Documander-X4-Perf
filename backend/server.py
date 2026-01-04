@@ -1201,6 +1201,30 @@ async def upload_invoice(
                     file_date_mismatches.append(f"{receipt_label}: {error_msg}")
                     continue
                 
+                # Process VAT details - ensure proper structure
+                vat_details = extracted_data.get('vat_details', [])
+                if not vat_details:
+                    # If no vat_details from AI, create default from total VAT
+                    total_vat = safe_float(extracted_data.get('vat'))
+                    total_amount = safe_float(extracted_data.get('amount'))
+                    if total_vat > 0 and total_amount > 0:
+                        # Try to determine VAT rate
+                        vat_rate_calc = round((total_vat / total_amount) * 100)
+                        # Round to nearest standard rate (1, 10, 20)
+                        if vat_rate_calc <= 5:
+                            vat_rate = 1
+                        elif vat_rate_calc <= 15:
+                            vat_rate = 10
+                        else:
+                            vat_rate = 20
+                        vat_details = [{
+                            "vat_rate": vat_rate,
+                            "base_amount": total_amount,
+                            "vat_amount": total_vat,
+                            "withholding": False,
+                            "withholding_rate": None
+                        }]
+                
                 # Create invoice
                 invoice = Invoice(
                     user_id=user_id,
@@ -1219,7 +1243,8 @@ async def upload_invoice(
                     vat=safe_float(extracted_data.get('vat')),
                     total=safe_float(extracted_data.get('total')),
                     file_name=file.filename,
-                    file_type=file.content_type
+                    file_type=file.content_type,
+                    vat_details=vat_details
                 )
                 
                 invoice_dict = invoice.model_dump()
