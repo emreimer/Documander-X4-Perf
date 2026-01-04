@@ -593,10 +593,22 @@ const DashboardPage = () => {
         <div className="space-y-8">
           {/* 1. KDV Özet Raporu - Gelir */}
           <div>
-            <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
-              <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-              KDV Özet Raporu - Gelir
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-heading font-semibold tracking-tight flex items-center gap-2">
+                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                KDV Özet Raporu - Gelir
+              </h2>
+              <Button
+                onClick={() => handleVatExport('summary-income')}
+                variant="outline"
+                size="sm"
+                className="rounded-none gap-1 text-xs"
+                data-testid="vat-summary-income-excel"
+              >
+                <Download className="w-3 h-3" />
+                Excel İndir
+              </Button>
+            </div>
             
             <div className="bg-card border border-border overflow-x-auto">
               <table className="w-full" data-testid="vat-summary-income-table">
@@ -631,10 +643,22 @@ const DashboardPage = () => {
 
           {/* 2. KDV Özet Raporu - Gider */}
           <div>
-            <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
-              <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-              KDV Özet Raporu - Gider
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-heading font-semibold tracking-tight flex items-center gap-2">
+                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                KDV Özet Raporu - Gider
+              </h2>
+              <Button
+                onClick={() => handleVatExport('summary-expense')}
+                variant="outline"
+                size="sm"
+                className="rounded-none gap-1 text-xs"
+                data-testid="vat-summary-expense-excel"
+              >
+                <Download className="w-3 h-3" />
+                Excel İndir
+              </Button>
+            </div>
             
             <div className="bg-card border border-border overflow-x-auto">
               <table className="w-full" data-testid="vat-summary-expense-table">
@@ -669,10 +693,22 @@ const DashboardPage = () => {
 
           {/* 3. KDV Özet Raporu - Net (Dönem) */}
           <div>
-            <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
-              <span className="w-3 h-3 bg-primary rounded-full"></span>
-              KDV Özet Raporu - {periodText} Dönemi Net
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-heading font-semibold tracking-tight flex items-center gap-2">
+                <span className="w-3 h-3 bg-primary rounded-full"></span>
+                KDV Özet Raporu - {periodText} Dönemi Net
+              </h2>
+              <Button
+                onClick={() => handleVatExport('summary-net')}
+                variant="outline"
+                size="sm"
+                className="rounded-none gap-1 text-xs"
+                data-testid="vat-summary-net-excel"
+              >
+                <Download className="w-3 h-3" />
+                Excel İndir
+              </Button>
+            </div>
             
             <div className="bg-card border border-border overflow-x-auto">
               <table className="w-full" data-testid="vat-summary-net-table">
