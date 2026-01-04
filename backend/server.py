@@ -93,6 +93,21 @@ SUBSCRIPTION_PLANS = {
     "unlimited": {"name": "Sınırsız", "monthly_limit": -1, "price": -1},  # -1 = unlimited/contact
 }
 
+# Package model for multiple subscriptions per user
+class UserPackage(BaseModel):
+    """Represents a single package/subscription for a user"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    plan: str  # starter, professional, business, enterprise, unlimited
+    plan_name: str  # Display name
+    total_quota: int  # Total quota for this package
+    used_quota: int = 0  # Used quota for this package
+    start_date: str  # ISO format
+    end_date: str  # ISO format
+    is_active: bool = True
+    wix_order_id: Optional[str] = None  # Wix order reference
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
 class UserSubscription(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
