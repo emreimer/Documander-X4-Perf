@@ -1077,13 +1077,10 @@ Birden fazla KDV oranı örneği:
         
         message = UserMessage(
             text=prompt,
-            file_contents=[file_obj]
+            file_contents=[image_obj]
         )
         
         response = await chat.send_message(message)
-        
-        # Clean up temp file
-        temp_file_path.unlink(missing_ok=True)
         
         # Parse response
         response_text = response.strip()
