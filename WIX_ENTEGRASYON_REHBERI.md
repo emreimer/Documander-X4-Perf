@@ -14,143 +14,196 @@
 Sayfanın kod bölümüne (Page Code) şu kodu ekleyin:
 
 ```javascript
-import wixUsers from 'wix-users';
-import wixLocation from 'wix-location';
+import wixUsers from 'wix-users-frontend';
+import wixPaidPlans from 'wix-pricing-plans-frontend';
 
-$w.onReady(function () {
-    const baseUrl = "https://invoice-extract-10.preview.emergentagent.com";
+$w.onReady(async function () {
+    const baseUrl = "https://YOUR-PRODUCTION-URL.emergentagent.com";
     
-    // Kullanıcı giriş yapmış mı kontrol et
-    if (wixUsers.currentUser.loggedIn) {
-        // Member ID'yi al
-        wixUsers.currentUser.getEmail()
-            .then((email) => {
-                const memberId = wixUsers.currentUser.id;
-                
-                // iframe URL'sine member ID ekle
-                const iframeUrl = `${baseUrl}?wixMemberId=${memberId}`;
-                
-                // iframe'i güncelle
-                $w("#documanderFrame").src = iframeUrl;
-            });
-    } else {
-        // Giriş yapmamış kullanıcı - normal URL
+    // Kullanıcı giriş yapmamışsa
+    if (!wixUsers.currentUser.loggedIn) {
         $w("#documanderFrame").src = baseUrl;
+        return;
+    }
+    
+    const memberId = wixUsers.currentUser.id;
+    
+    try {
+        // Kullanıcının aktif planlarını al
+        const orders = await wixPaidPlans.getCurrentMemberOrders();
+        
+        let plan = "trial";
+        let expires = "";
+        
+        // Aktif plan bul
+        const activeOrder = orders.find(order => order.status === "ACTIVE");
+        
+        if (activeOrder) {
+            const planName = activeOrder.planName.toLowerCase();
+            
+            if (planName.includes("başlangıç") || planName.includes("starter")) {
+                plan = "starter";
+            } else if (planName.includes("profesyonel") || planName.includes("professional")) {
+                plan = "professional";
+            } else if (planName.includes("işletme") || planName.includes("business")) {
+                plan = "business";
+            } else if (planName.includes("kurumsal") || planName.includes("enterprise")) {
+                plan = "enterprise";
+            } else if (planName.includes("sınırsız") || planName.includes("unlimited")) {
+                plan = "unlimited";
+            } else if (planName.includes("deneme") || planName.includes("trial")) {
+                plan = "trial";
+            }
+            
+            if (activeOrder.endDate) {
+                expires = activeOrder.endDate.toISOString();
+            }
+        }
+        
+        let iframeUrl = `${baseUrl}?wixMemberId=${memberId}&plan=${plan}`;
+        if (expires) {
+            iframeUrl += `&expires=${encodeURIComponent(expires)}`;
+        }
+        
+        $w("#documanderFrame").src = iframeUrl;
+        
+    } catch (error) {
+        console.error("Plan bilgisi alınamadı:", error);
+        $w("#documanderFrame").src = `${baseUrl}?wixMemberId=${memberId}&plan=trial`;
     }
 });
 ```
 
-### Adım 4: HTML Embed Kullanıyorsanız
-Alternatif olarak HTML Embed kullanabilirsiniz:
-
-```html
-<div id="documander-container" style="width:100%; height:800px;">
-    <iframe 
-        id="documanderFrame"
-        src="https://invoice-extract-10.preview.emergentagent.com"
-        style="width:100%; height:100%; border:none;"
-        allow="clipboard-write"
-    ></iframe>
-</div>
-
-<script>
-// Wix'ten member ID alınacak - Velo ile entegre edilecek
-</script>
-```
-
 ---
 
-## 2. Abonelik Aktivasyonu (Ödeme Sonrası)
+## 2. YENİ: Çoklu Paket Sistemi için Webhook Entegrasyonu
 
-Wix'te ödeme tamamlandığında, aboneliği aktive etmek için:
-
-### Manuel Aktivasyon (Şimdilik)
-Wix'ten ödeme bildirimi geldiğinde, bu API'yi çağırın:
-
-```bash
-curl -X POST "https://invoice-extract-10.preview.emergentagent.com/api/admin/activate-subscription" \
-  -d "wix_member_id=KULLANICI_WIX_ID" \
-  -d "plan=starter" \
-  -d "admin_key=documander-admin-key-2025"
-```
-
-### Plan Kodları:
-- `starter` → Başlangıç (₺699, 1000 fatura)
-- `professional` → Profesyonel (₺1399, 2500 fatura)
-- `business` → İşletme (₺2399, 5000 fatura)
-- `enterprise` → Kurumsal (₺3999, 10000 fatura)
-- `unlimited` → Sınırsız
-
-### Abonelik İptali
-```bash
-curl -X POST "https://invoice-extract-10.preview.emergentagent.com/api/admin/deactivate-subscription" \
-  -d "wix_member_id=KULLANICI_WIX_ID" \
-  -d "admin_key=documander-admin-key-2025"
-```
-
-### Tüm Abonelikleri Listele
-```bash
-curl "https://invoice-extract-10.preview.emergentagent.com/api/admin/subscriptions?admin_key=documander-admin-key-2025"
-```
-
----
-
-## 3. Wix Webhook Entegrasyonu (İleri Seviye)
-
-Wix'te ödeme tamamlandığında otomatik aktivasyon için:
+Wix'te yeni abonelik satın alındığında, Documander'a otomatik bildirim göndermek için:
 
 ### Wix Velo Backend Kodu (backend/http-functions.js):
 
 ```javascript
-import { ok, serverError } from 'wix-http-functions';
-import wixPaidPlans from 'wix-paid-plans-backend';
+import { fetch } from 'wix-fetch';
 
-// Wix plan ID'leri ile Documander planlarını eşleştir
+// Plan eşleştirme
 const PLAN_MAPPING = {
-    "wix-plan-id-starter": "starter",
-    "wix-plan-id-professional": "professional",
-    "wix-plan-id-business": "business",
-    "wix-plan-id-enterprise": "enterprise"
+    "başlangıç": "starter",
+    "starter": "starter",
+    "profesyonel": "professional", 
+    "professional": "professional",
+    "işletme": "business",
+    "business": "business",
+    "kurumsal": "enterprise",
+    "enterprise": "enterprise",
+    "sınırsız": "unlimited",
+    "unlimited": "unlimited"
 };
 
-export async function onPlanPurchased(event) {
-    const { memberId, planId } = event;
-    const documanderPlan = PLAN_MAPPING[planId];
+// Wix Plan Purchase Event Handler
+export async function wixPaidPlans_onPlanPurchased(event) {
+    const { order } = event;
+    const memberId = order.buyer.memberId;
+    const planName = order.planName.toLowerCase();
+    const orderId = order._id;
     
-    if (!documanderPlan) return;
+    // Plan ismini Documander formatına çevir
+    let documanderPlan = "trial";
+    for (const [key, value] of Object.entries(PLAN_MAPPING)) {
+        if (planName.includes(key)) {
+            documanderPlan = value;
+            break;
+        }
+    }
     
-    // Documander API'sine bildir
+    // Documander Webhook'una bildir
     try {
         const response = await fetch(
-            "https://invoice-extract-10.preview.emergentagent.com/api/admin/activate-subscription",
+            "https://YOUR-PRODUCTION-URL.emergentagent.com/api/webhook/wix/new-order",
             {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `wix_member_id=${memberId}&plan=${documanderPlan}&admin_key=documander-admin-key-2025`
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `wix_member_id=${memberId}&plan=${documanderPlan}&wix_order_id=${orderId}&secret_key=imeridis-2025`
             }
         );
-        console.log("Subscription activated:", await response.json());
+        
+        const result = await response.json();
+        console.log("Documander webhook response:", result);
+        
     } catch (error) {
-        console.error("Activation failed:", error);
+        console.error("Documander webhook failed:", error);
     }
 }
 ```
 
+### Webhook Nasıl Çalışır:
+1. Kullanıcı Wix'te yeni paket satın alır
+2. Wix otomatik olarak `wixPaidPlans_onPlanPurchased` fonksiyonunu çağırır
+3. Bu fonksiyon Documander'a POST isteği gönderir
+4. Documander yeni paketi kullanıcının mevcut paketlerine EKLER (üzerine yazmaz)
+5. Kullanıcı artık hem eski hem yeni paketin kotasını kullanabilir
+
 ---
 
-## 4. Test Etme
+## 3. Admin Panel Erişimi
 
-1. Wix sitenizde giriş yapın
-2. Documander iframe'ini açın
-3. Header'da plan ve kota bilgisini kontrol edin
-4. Wix Member ID'niz ile abonelik aktive edilmişse, doğru plan görünmeli
+Admin paneline erişim için:
+
+**URL:** `https://YOUR-PRODUCTION-URL.emergentagent.com/admin`
+**Anahtar:** `imeridis-2025`
+
+### Admin Panel Özellikleri:
+- Tüm kullanıcıları listeleme
+- Kullanıcı filtreleme (Aktif, Süresi Dolmuş, Kotası Dolmuş)
+- Her kullanıcının paketlerini görme
+- Excel export
+- Manuel paket ekleme
+
+### Manuel Paket Ekleme (API):
+```bash
+curl -X POST "https://YOUR-PRODUCTION-URL.emergentagent.com/api/admin/add-package" \
+  -d "key=imeridis-2025" \
+  -d "wix_member_id=KULLANICI_WIX_ID" \
+  -d "plan=professional"
+```
+
+---
+
+## 4. Çoklu Paket Mantığı
+
+**Senaryo:** Kullanıcı "Başlangıç" paketi kullanırken yeni "Profesyonel" paketi alıyor.
+
+**Sonuç:**
+- Başlangıç paketi: 600 kalan kota, 15 Haziran 2026'da bitiyor
+- Profesyonel paketi: 2500 kalan kota, 23 Aralık 2026'da bitiyor
+- **Toplam Kalan Kota:** 3100 fatura
+
+**Kota Kullanım Sırası:**
+1. Önce ESKİ paketin (Başlangıç) kotası kullanılır
+2. Eski paket bitince/süresi dolunca YENİ pakete (Profesyonel) geçilir
+
+---
+
+## 5. Plan Kodları
+
+| Wix Plan Adı | Documander Kodu | Kota | Süre |
+|--------------|-----------------|------|------|
+| Deneme | trial | 20 | 7 gün |
+| Başlangıç | starter | 1.000 | 12 ay |
+| Profesyonel | professional | 2.500 | 12 ay |
+| İşletme | business | 5.000 | 12 ay |
+| Kurumsal | enterprise | 10.000 | 12 ay |
+| Sınırsız | unlimited | ∞ | 12 ay |
 
 ---
 
 ## Önemli Notlar
 
-- **Admin Key**: `documander-admin-key-2025` (değiştirmeniz önerilir)
-- **iframe URL**: `https://invoice-extract-10.preview.emergentagent.com`
-- **Wix Member ID**: Wix'te her kullanıcının benzersiz ID'si
+- **Admin Anahtarı:** `imeridis-2025` (değiştirmeniz önerilir)
+- **Webhook Anahtarı:** Admin anahtarı ile aynı
+- Kullanıcı aynı anda birden fazla pakete sahip olabilir
+- Paketler birbirinin yerine geçmez, eklenir
+- Kotalar otomatik olarak eski paketten yeniye geçer
 
 Sorularınız için: info@documander.com
