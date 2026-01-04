@@ -1522,8 +1522,6 @@ async def export_vat_report_to_excel(
     
     header_fill = PatternFill(start_color="004D40", end_color="004D40", fill_type="solid")
     header_font = Font(bold=True, color="FFFFFF")
-    income_fill = PatternFill(start_color="E8F5E9", end_color="E8F5E9", fill_type="solid")
-    expense_fill = PatternFill(start_color="FFEBEE", end_color="FFEBEE", fill_type="solid")
     number_format = '#,##0.00'
     
     current_row = 1
@@ -1532,31 +1530,229 @@ async def export_vat_report_to_excel(
     month = session.get('month', '')
     month_name = month_names.get(month, '')
     
-    # Title
-    title = f"{taxpayer_name} - {month_name} {year} KDV Raporu"
-    if category == 'income':
-        title += " (Gelir)"
-    elif category == 'expense':
-        title += " (Gider)"
-    ws[f'A{current_row}'] = title
-    ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
-    ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
-    current_row += 2
-    
     # Separate by category
     income_items = [i for i in vat_items if i['category'] == 'income']
     expense_items = [i for i in vat_items if i['category'] == 'expense']
     
-    def add_vat_table(items, table_title, is_income=True):
-        nonlocal current_row
+    # Calculate totals for summary
+    def calc_summary(items):
+        summary = {1: {'base': 0, 'vat': 0}, 10: {'base': 0, 'vat': 0}, 20: {'base': 0, 'vat': 0}}
+        for item in items:
+            rate = item['vat_rate']
+            if rate in summary:
+                summary[rate]['base'] += item['base_amount']
+                summary[rate]['vat'] += item['vat_amount']
+        return summary
+    
+    income_summary = calc_summary(income_items)
+    expense_summary = calc_summary(expense_items)
+    
+    # Auto-adjust column function
+    def auto_adjust_columns(worksheet):
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = None
+            for cell in column_cells:
+                try:
+                    if hasattr(cell, 'column_letter'):
+                        column_letter = cell.column_letter
+                    if cell.value:
+                        cell_length = len(str(cell.value))
+                        if cell_length > max_length:
+                            max_length = cell_length
+                except:
+                    pass
+            if column_letter and max_length > 0:
+                adjusted_width = min(max_length + 3, 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    # Handle summary exports
+    if category == 'summary-income':
+        # KDV Özet - Gelir only
+        ws.title = "KDV Özet - Gelir"
+        ws[f'A{current_row}'] = f"{taxpayer_name} - {month_name} {year} - KDV Özet (Gelir)"
+        ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=3)
+        current_row += 2
         
-        if not items:
-            return
-        
-        # Section title
-        ws[f'A{current_row}'] = table_title
-        ws[f'A{current_row}'].font = Font(bold=True, size=14, color="004D40")
+        headers = ["KDV Oranı", "Matrah", "KDV Tutarı"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=current_row, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
         current_row += 1
+        
+        total_base = 0
+        total_vat = 0
+        for rate in [1, 10, 20]:
+            ws.cell(row=current_row, column=1, value=f"%{rate}")
+            ws.cell(row=current_row, column=2, value=income_summary[rate]['base']).number_format = number_format
+            ws.cell(row=current_row, column=3, value=income_summary[rate]['vat']).number_format = number_format
+            total_base += income_summary[rate]['base']
+            total_vat += income_summary[rate]['vat']
+            current_row += 1
+        
+        ws.cell(row=current_row, column=1, value="TOPLAM").font = Font(bold=True)
+        ws.cell(row=current_row, column=2, value=total_base).number_format = number_format
+        ws.cell(row=current_row, column=2).font = Font(bold=True)
+        ws.cell(row=current_row, column=3, value=total_vat).number_format = number_format
+        ws.cell(row=current_row, column=3).font = Font(bold=True)
+        
+        auto_adjust_columns(ws)
+        cat_suffix = "_ozet_gelir"
+        
+    elif category == 'summary-expense':
+        # KDV Özet - Gider only
+        ws.title = "KDV Özet - Gider"
+        ws[f'A{current_row}'] = f"{taxpayer_name} - {month_name} {year} - KDV Özet (Gider)"
+        ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=3)
+        current_row += 2
+        
+        headers = ["KDV Oranı", "Matrah", "KDV Tutarı"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=current_row, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+        current_row += 1
+        
+        total_base = 0
+        total_vat = 0
+        for rate in [1, 10, 20]:
+            ws.cell(row=current_row, column=1, value=f"%{rate}")
+            ws.cell(row=current_row, column=2, value=expense_summary[rate]['base']).number_format = number_format
+            ws.cell(row=current_row, column=3, value=expense_summary[rate]['vat']).number_format = number_format
+            total_base += expense_summary[rate]['base']
+            total_vat += expense_summary[rate]['vat']
+            current_row += 1
+        
+        ws.cell(row=current_row, column=1, value="TOPLAM").font = Font(bold=True)
+        ws.cell(row=current_row, column=2, value=total_base).number_format = number_format
+        ws.cell(row=current_row, column=2).font = Font(bold=True)
+        ws.cell(row=current_row, column=3, value=total_vat).number_format = number_format
+        ws.cell(row=current_row, column=3).font = Font(bold=True)
+        
+        auto_adjust_columns(ws)
+        cat_suffix = "_ozet_gider"
+        
+    elif category == 'summary-net':
+        # KDV Özet - Net only
+        ws.title = "KDV Özet - Net"
+        ws[f'A{current_row}'] = f"{taxpayer_name} - {month_name} {year} Dönemi - Net KDV"
+        ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=4)
+        current_row += 2
+        
+        headers = ["KDV Oranı", "Hesaplanan KDV (Gelir)", "İndirilecek KDV (Gider)", "Net KDV"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=current_row, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+        current_row += 1
+        
+        total_income_vat = 0
+        total_expense_vat = 0
+        for rate in [1, 10, 20]:
+            i_vat = income_summary[rate]['vat']
+            e_vat = expense_summary[rate]['vat']
+            net = i_vat - e_vat
+            ws.cell(row=current_row, column=1, value=f"%{rate}")
+            ws.cell(row=current_row, column=2, value=i_vat).number_format = number_format
+            ws.cell(row=current_row, column=3, value=e_vat).number_format = number_format
+            ws.cell(row=current_row, column=4, value=net).number_format = number_format
+            total_income_vat += i_vat
+            total_expense_vat += e_vat
+            current_row += 1
+        
+        net_total = total_income_vat - total_expense_vat
+        ws.cell(row=current_row, column=1, value="TOPLAM").font = Font(bold=True)
+        ws.cell(row=current_row, column=2, value=total_income_vat).number_format = number_format
+        ws.cell(row=current_row, column=2).font = Font(bold=True)
+        ws.cell(row=current_row, column=3, value=total_expense_vat).number_format = number_format
+        ws.cell(row=current_row, column=3).font = Font(bold=True)
+        ws.cell(row=current_row, column=4, value=net_total).number_format = number_format
+        ws.cell(row=current_row, column=4).font = Font(bold=True)
+        
+        current_row += 2
+        result_text = "ÖDENECEK KDV" if net_total >= 0 else "SONRAKI AYA DEVREDEN KDV"
+        ws.cell(row=current_row, column=1, value=result_text).font = Font(bold=True, size=14)
+        ws.cell(row=current_row, column=2, value=abs(net_total)).number_format = number_format
+        ws.cell(row=current_row, column=2).font = Font(bold=True, size=14)
+        
+        auto_adjust_columns(ws)
+        cat_suffix = "_ozet_net"
+        
+    else:
+        # Detail exports (income, expense, or all)
+        title = f"{taxpayer_name} - {month_name} {year} KDV Raporu"
+        if category == 'income':
+            title += " (Gelir)"
+        elif category == 'expense':
+            title += " (Gider)"
+        ws[f'A{current_row}'] = title
+        ws[f'A{current_row}'].font = Font(bold=True, size=16, color="004D40")
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
+        current_row += 2
+        
+        def add_vat_table(items, table_title, is_income=True):
+            nonlocal current_row
+            
+            if not items:
+                return
+            
+            ws[f'A{current_row}'] = table_title
+            ws[f'A{current_row}'].font = Font(bold=True, size=14, color="004D40")
+            current_row += 1
+            
+            if is_income:
+                headers = ["Fatura No", "Tarih", "Müşteri", "M. VKN", "M. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
+            else:
+                headers = ["Fatura No", "Tarih", "Düzenleyen", "D. VKN", "D. V.Dairesi", "Açıklama", "KDV %", "Matrah", "KDV Tutarı"]
+            
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col, value=header)
+                cell.fill = header_fill
+                cell.font = header_font
+            current_row += 1
+            
+            total_base = 0
+            total_vat = 0
+            for item in items:
+                if is_income:
+                    name = item['customer_name'] or '-'
+                    tax_id = item['customer_tax_id'] or '-'
+                    tax_office = item['customer_tax_office'] or '-'
+                else:
+                    name = item['issuer_name'] or '-'
+                    tax_id = item['issuer_tax_id'] or '-'
+                    tax_office = item['issuer_tax_office'] or '-'
+                
+                row_data = [
+                    item['invoice_number'], item['date'], name, tax_id, tax_office,
+                    item['description'], f"%{item['vat_rate']}", item['base_amount'], item['vat_amount']
+                ]
+                for col, value in enumerate(row_data, 1):
+                    cell = ws.cell(row=current_row, column=col, value=value)
+                    if col in [8, 9]:
+                        cell.number_format = number_format
+                total_base += item['base_amount']
+                total_vat += item['vat_amount']
+                current_row += 1
+            
+            ws.cell(row=current_row, column=7, value="TOPLAM:").font = Font(bold=True)
+            ws.cell(row=current_row, column=8, value=total_base).number_format = number_format
+            ws.cell(row=current_row, column=8).font = Font(bold=True)
+            ws.cell(row=current_row, column=9, value=total_vat).number_format = number_format
+            ws.cell(row=current_row, column=9).font = Font(bold=True)
+            current_row += 2
+        
+        if not category or category == 'income':
+            add_vat_table(income_items, "KDV DETAY - GELİR", is_income=True)
+        if not category or category == 'expense':
+            add_vat_table(expense_items, "KDV DETAY - GİDER", is_income=False)
+        
+        auto_adjust_columns(ws)
+        cat_suffix = f"_{category}" if category else ""
         
         # Headers
         if is_income:
