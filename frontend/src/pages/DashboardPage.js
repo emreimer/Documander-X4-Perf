@@ -212,6 +212,32 @@ const DashboardPage = () => {
     }
   };
 
+  // Fetch VAT Report
+  const fetchVatReport = async () => {
+    setVatReportLoading(true);
+    try {
+      const response = await axios.get(`${API}/invoices/vat-report`, {
+        headers: getAuthHeader()
+      });
+      setVatReport(response.data);
+    } catch (error) {
+      toast.error('KDV raporu yüklenemedi');
+    } finally {
+      setVatReportLoading(false);
+    }
+  };
+
+  // Switch to VAT Report view
+  const showVatReport = () => {
+    setCurrentView('vat-report');
+    fetchVatReport();
+  };
+
+  // Switch back to Invoices view
+  const showInvoices = () => {
+    setCurrentView('invoices');
+  };
+
   const handleDelete = async (invoiceId) => {
     if (!window.confirm('Bu faturayı silmek istediğinizden emin misiniz?')) {
       return;
