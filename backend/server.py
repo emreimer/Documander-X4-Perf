@@ -2623,21 +2623,23 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         
-        # Domain check temporarily disabled for preview testing
-        # To re-enable, uncomment the block below:
-        # if request.url.path.startswith("/api"):
-        #     referer = request.headers.get("referer", "")
-        #     origin = request.headers.get("origin", "")
-        #     is_allowed = False
-        #     for domain in ALLOWED_DOMAINS:
-        #         if domain in referer or domain in origin:
-        #             is_allowed = True
-        #             break
-        #     if not is_allowed:
-        #         return JSONResponse(
-        #             status_code=403,
-        #             content={"detail": "Bu uygulamaya sadece documander.com üzerinden erişilebilir."}
-        #         )
+        # Check referer/origin for API calls
+        if request.url.path.startswith("/api"):
+            referer = request.headers.get("referer", "")
+            origin = request.headers.get("origin", "")
+            
+            # Allow if referer or origin is from allowed domains
+            is_allowed = False
+            for domain in ALLOWED_DOMAINS:
+                if domain in referer or domain in origin:
+                    is_allowed = True
+                    break
+            
+            if not is_allowed:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Bu uygulamaya sadece documander.com üzerinden erişilebilir."}
+                )
         
         response = await call_next(request)
         # Only allow iframe from documander.com
