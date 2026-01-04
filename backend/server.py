@@ -681,6 +681,74 @@ async def get_subscription_plans():
 async def get_subscription_status(user_id: str = Depends(get_current_user)):
     """Get current user's subscription status and remaining quota"""
     sub = await get_or_create_subscription(user_id)
+    wix_member_id = sub.get("wix_member_id")
+    packages = sub.get("packages", [])
+    
+    # Check for multi-package system
+    if packages and wix_member_id:
+        active_packages = await get_active_packages(wix_member_id)
+        
+        if active_packages:
+            # Multi-package system
+            total_remaining = await calculate_total_remaining_quota(wix_member_id)
+            
+            # Format packages for frontend
+            packages_info = []
+            now = datetime.now(timezone.utc)
+            
+            for pkg in packages:
+                pkg_total = pkg.get("total_quota", 0)
+                pkg_used = pkg.get("used_quota", 0)
+                pkg_remaining = -1 if pkg_total == -1 else max(0, pkg_total - pkg_used)
+                
+                # Check if expired
+                end_date_str = pkg.get("end_date")
+                pkg_expired = False
+                pkg_days_remaining = None
+                if end_date_str:
+                    try:
+                        end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+                        pkg_expired = now > end_date
+                        if not pkg_expired:
+                            pkg_days_remaining = (end_date - now).days
+                    except:
+                        pass
+                
+                packages_info.append({
+                    "id": pkg.get("id"),
+                    "plan": pkg.get("plan"),
+                    "plan_name": pkg.get("plan_name"),
+                    "total_quota": pkg_total,
+                    "used_quota": pkg_used,
+                    "remaining_quota": pkg_remaining,
+                    "start_date": pkg.get("start_date"),
+                    "end_date": pkg.get("end_date"),
+                    "is_expired": pkg_expired,
+                    "is_exhausted": pkg_remaining == 0 and pkg_total != -1,
+                    "days_remaining": pkg_days_remaining,
+                    "is_active": not pkg_expired and (pkg_remaining > 0 or pkg_total == -1)
+                })
+            
+            # Get the primary active package (first non-expired with quota)
+            primary_pkg = active_packages[0] if active_packages else packages[0]
+            
+            return {
+                "has_multi_packages": True,
+                "packages": packages_info,
+                "total_remaining": total_remaining,
+                "is_unlimited": total_remaining == -1,
+                "is_quota_exhausted": total_remaining == 0,
+                # Primary package info for header display
+                "plan": primary_pkg.get("plan", "trial"),
+                "plan_name": primary_pkg.get("plan_name", "Deneme"),
+                "wix_member_id": wix_member_id,
+                # Legacy compatibility
+                "remaining": total_remaining,
+                "is_trial": primary_pkg.get("plan") == "trial",
+                "is_expired": len(active_packages) == 0
+            }
+    
+    # Legacy single plan system
     plan = sub.get("plan", "trial")
     plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
     
@@ -713,6 +781,8 @@ async def get_subscription_status(user_id: str = Depends(get_current_user)):
     is_quota_exhausted = remaining == 0 and limit != -1
     
     return {
+        "has_multi_packages": False,
+        "packages": [],
         "plan": plan,
         "plan_name": plan_info["name"],
         "total_limit": limit,  # Renamed from monthly_limit
