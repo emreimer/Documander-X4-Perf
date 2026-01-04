@@ -1721,3 +1721,223 @@ async def startup_event():
 async def shutdown_db_client():
     logger.info("Documander API shutting down...")
     client.close()
+
+# ============================================
+# ADMIN API ENDPOINTS
+# ============================================
+
+@api_router.get("/admin/users")
+async def admin_get_users(
+    key: str,
+    filter: Optional[str] = None  # all, active, expired, quota_exhausted
+):
+    """Admin endpoint to list all users with their subscription details"""
+    if key != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    # Get all subscriptions
+    subscriptions = await db.subscriptions.find({}, {"_id": 0}).to_list(1000)
+    
+    users_data = []
+    now = datetime.now(timezone.utc)
+    
+    for sub in subscriptions:
+        wix_member_id = sub.get("wix_member_id", "")
+        packages = sub.get("packages", [])
+        
+        # Process packages
+        packages_info = []
+        total_remaining = 0
+        has_unlimited = False
+        any_active = False
+        
+        for pkg in packages:
+            pkg_total = pkg.get("total_quota", 0)
+            pkg_used = pkg.get("used_quota", 0)
+            pkg_remaining = -1 if pkg_total == -1 else max(0, pkg_total - pkg_used)
+            
+            if pkg_total == -1:
+                has_unlimited = True
+            else:
+                total_remaining += pkg_remaining
+            
+            # Check expiry
+            end_date_str = pkg.get("end_date", "")
+            pkg_expired = False
+            if end_date_str:
+                try:
+                    end_date = datetime.fromisoformat(end_date_str.replace('Z', '+00:00'))
+                    pkg_expired = now > end_date
+                except:
+                    pass
+            
+            is_active = not pkg_expired and (pkg_remaining > 0 or pkg_total == -1)
+            if is_active:
+                any_active = True
+            
+            packages_info.append({
+                "plan_name": pkg.get("plan_name", ""),
+                "total_quota": pkg_total,
+                "used_quota": pkg_used,
+                "remaining_quota": pkg_remaining,
+                "end_date": pkg.get("end_date", ""),
+                "is_expired": pkg_expired,
+                "is_exhausted": pkg_remaining == 0 and pkg_total != -1,
+                "is_active": is_active
+            })
+        
+        # Legacy single plan info
+        if not packages:
+            plan = sub.get("plan", "trial")
+            plan_info = SUBSCRIPTION_PLANS.get(plan, SUBSCRIPTION_PLANS["trial"])
+            limit = plan_info["monthly_limit"]
+            used = sub.get("monthly_uploads", 0)
+            remaining = -1 if limit == -1 else max(0, limit - used)
+            
+            expires_at = sub.get("expires_at", "")
+            is_expired = False
+            if expires_at:
+                try:
+                    exp_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                    is_expired = now > exp_date
+                except:
+                    pass
+            
+            any_active = not is_expired and (remaining > 0 or limit == -1)
+            total_remaining = remaining
+            has_unlimited = limit == -1
+            
+            packages_info.append({
+                "plan_name": plan_info["name"],
+                "total_quota": limit,
+                "used_quota": used,
+                "remaining_quota": remaining,
+                "end_date": expires_at,
+                "is_expired": is_expired,
+                "is_exhausted": remaining == 0 and limit != -1,
+                "is_active": any_active
+            })
+        
+        user_data = {
+            "wix_member_id": wix_member_id,
+            "user_id": sub.get("user_id", ""),
+            "packages": packages_info,
+            "total_remaining": -1 if has_unlimited else total_remaining,
+            "is_active": any_active,
+            "is_quota_exhausted": total_remaining == 0 and not has_unlimited,
+            "created_at": sub.get("created_at", ""),
+            "updated_at": sub.get("updated_at", "")
+        }
+        
+        # Apply filter
+        if filter == "active" and not any_active:
+            continue
+        elif filter == "expired" and any_active:
+            continue
+        elif filter == "quota_exhausted" and (total_remaining > 0 or has_unlimited):
+            continue
+        
+        users_data.append(user_data)
+    
+    return {
+        "total_users": len(users_data),
+        "users": users_data
+    }
+
+@api_router.post("/admin/add-package")
+async def admin_add_package(
+    key: str = Form(...),
+    wix_member_id: str = Form(...),
+    plan: str = Form(...),
+    wix_order_id: Optional[str] = Form(None)
+):
+    """Admin endpoint to manually add a package to a user"""
+    if key != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    if plan not in SUBSCRIPTION_PLANS:
+        raise HTTPException(status_code=400, detail="Geçersiz plan")
+    
+    # Check if user exists
+    sub = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    if not sub:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    # Add package
+    new_package = await add_package_to_user(wix_member_id, plan, wix_order_id)
+    
+    if new_package:
+        return {"success": True, "package": new_package}
+    else:
+        raise HTTPException(status_code=500, detail="Paket eklenemedi")
+
+@api_router.get("/admin/user/{wix_member_id}")
+async def admin_get_user_detail(wix_member_id: str, key: str):
+    """Admin endpoint to get detailed info about a specific user"""
+    if key != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz admin anahtarı")
+    
+    sub = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    if not sub:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    # Get invoice count
+    invoice_count = await db.invoices.count_documents({"user_id": sub.get("user_id", "")})
+    
+    return {
+        "subscription": sub,
+        "invoice_count": invoice_count
+    }
+
+# ============================================
+# WIX WEBHOOK ENDPOINT
+# ============================================
+
+@api_router.post("/webhook/wix/new-order")
+async def wix_new_order_webhook(
+    wix_member_id: str = Form(...),
+    plan: str = Form(...),
+    wix_order_id: Optional[str] = Form(None),
+    secret_key: str = Form(...)
+):
+    """
+    Webhook endpoint called by Wix when a new subscription is purchased.
+    This adds a NEW package to the user (doesn't replace existing ones).
+    """
+    if secret_key != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Geçersiz anahtar")
+    
+    if plan not in SUBSCRIPTION_PLANS:
+        raise HTTPException(status_code=400, detail="Geçersiz plan")
+    
+    # Check if user exists, if not create
+    sub = await db.subscriptions.find_one({"wix_member_id": wix_member_id}, {"_id": 0})
+    
+    if not sub:
+        # Create new user with this package
+        user_id = f"wix_{wix_member_id}"
+        new_sub = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "wix_member_id": wix_member_id,
+            "plan": plan,
+            "monthly_uploads": 0,
+            "packages": [],
+            "had_paid_plan": plan != "trial",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.subscriptions.insert_one(new_sub)
+    
+    # Add new package
+    new_package = await add_package_to_user(wix_member_id, plan, wix_order_id)
+    
+    if new_package:
+        logger.info(f"New package added for {wix_member_id}: {plan}")
+        return {
+            "success": True,
+            "message": f"Paket başarıyla eklendi: {SUBSCRIPTION_PLANS[plan]['name']}",
+            "package": new_package
+        }
+    else:
+        raise HTTPException(status_code=500, detail="Paket eklenemedi")
