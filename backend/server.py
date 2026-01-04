@@ -1408,7 +1408,14 @@ async def get_vat_report(user_id: str = Depends(get_current_user)):
                 "invoice_number": invoice.get('invoice_number', 'N/A'),
                 "date": invoice.get('date', ''),
                 "category": invoice.get('category', 'income'),
+                # Issuer info (for expense invoices)
                 "issuer_name": invoice.get('issuer_name', 'N/A'),
+                "issuer_tax_id": invoice.get('issuer_tax_id', 'N/A'),
+                "issuer_tax_office": invoice.get('issuer_tax_office', 'N/A'),
+                # Customer info (for income invoices)
+                "customer_name": invoice.get('customer_name', 'N/A'),
+                "customer_tax_id": invoice.get('customer_tax_id', 'N/A'),
+                "customer_tax_office": invoice.get('customer_tax_office', 'N/A'),
                 "description": invoice.get('description', 'N/A'),
                 "vat_rate": vat_rate,
                 "base_amount": base_amount,
