@@ -133,6 +133,26 @@ const AdminPage = () => {
     link.click();
   };
 
+  const deleteUser = async (wixMemberId) => {
+    try {
+      await axios.delete(`${API}/admin/user/${wixMemberId}?key=${adminKey}`);
+      setDeleteConfirm(null);
+      fetchUsers(filter);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Kullanıcı silinemedi');
+    }
+  };
+
+  const deleteAllUsers = async () => {
+    try {
+      await axios.delete(`${API}/admin/users/all?key=${adminKey}`);
+      setDeleteConfirm(null);
+      fetchUsers(filter);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Kullanıcılar silinemedi');
+    }
+  };
+
   // Login Screen
   if (!isAuthenticated) {
     return (
