@@ -1018,15 +1018,8 @@ async def admin_deactivate_subscription(
 
 # Invoice AI Processing
 async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime_type: str) -> dict:
+    import base64
     try:
-        # Save temporary file
-        temp_dir = Path("/tmp/invoices")
-        temp_dir.mkdir(exist_ok=True)
-        temp_file_path = temp_dir / file_name
-        
-        with open(temp_file_path, "wb") as f:
-            f.write(file_content)
-        
         # Initialize LLM Chat with OpenAI GPT-4o Vision
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
@@ -1034,11 +1027,14 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
             system_message="You are an invoice data extraction assistant. Extract invoice information accurately from Turkish invoices and receipts."
         ).with_model("openai", "gpt-4o")
         
-        # Create file content object
-        file_obj = FileContentWithMimeType(
-            file_path=str(temp_file_path),
-            mime_type=mime_type
-        )
+        # Convert file to base64 for OpenAI
+        from emergentintegrations.llm.chat import ImageContent
+        
+        # Encode image as base64
+        image_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Create image content for GPT-4o Vision
+        image_obj = ImageContent(image_base64=image_base64)
         
         # Extract data - support multiple receipts in one image with VAT breakdown
         prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
