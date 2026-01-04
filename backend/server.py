@@ -1468,12 +1468,14 @@ async def export_vat_report_to_excel(
         "user_id": user_id,
         "session_id": session['id']
     }
+    # Filter by category for detail exports, but get all for summary exports
     if category and category in ['income', 'expense']:
         query["category"] = category
     
     invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
     
-    if not invoices:
+    # For summary exports, we need data even if no detail invoices
+    if not invoices and category not in ['summary-income', 'summary-expense', 'summary-net']:
         raise HTTPException(status_code=404, detail="KDV verisi bulunamadı")
     
     # Collect VAT items
