@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
-from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
