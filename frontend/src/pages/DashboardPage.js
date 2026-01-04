@@ -345,6 +345,26 @@ const DashboardPage = () => {
 
     const { items, summary, grand_total } = vatReport;
 
+    // Separate items by category
+    const incomeItems = items.filter(item => item.category === 'income');
+    const expenseItems = items.filter(item => item.category === 'expense');
+
+    // Calculate separate summaries for income and expense
+    const calculateCategorySummary = (categoryItems) => {
+      const summaryData = { 1: { base: 0, vat: 0 }, 10: { base: 0, vat: 0 }, 20: { base: 0, vat: 0 } };
+      categoryItems.forEach(item => {
+        const rate = item.vat_rate;
+        if (summaryData[rate]) {
+          summaryData[rate].base += item.base_amount || 0;
+          summaryData[rate].vat += item.vat_amount || 0;
+        }
+      });
+      return summaryData;
+    };
+
+    const incomeSummary = calculateCategorySummary(incomeItems);
+    const expenseSummary = calculateCategorySummary(expenseItems);
+
     // Format currency
     const formatCurrency = (amount) => {
       return new Intl.NumberFormat('tr-TR', {
@@ -353,101 +373,250 @@ const DashboardPage = () => {
       }).format(amount || 0);
     };
 
-    return (
-      <div className="space-y-8">
-        {/* KDV Detail Table */}
-        <div>
-          <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4">KDV Detay Tablosu</h2>
-          
-          {items.length === 0 ? (
-            <div className="bg-card border border-border p-8 text-center">
-              <p className="text-muted-foreground">Bu dönemde KDV kaydı bulunmuyor.</p>
-            </div>
-          ) : (
-            <div className="bg-card border border-border overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tarih</th>
-                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Fatura No</th>
-                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tür</th>
-                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Firma</th>
-                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Açıklama</th>
-                    <th className="text-center p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV %</th>
-                    <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
-                    <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Tutarı</th>
-                    <th className="text-center p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tevkifat</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, idx) => (
-                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/20">
-                      <td className="p-3 text-sm">{item.date}</td>
-                      <td className="p-3 text-sm font-mono">{item.invoice_number}</td>
-                      <td className="p-3">
-                        <span className={`text-xs px-2 py-0.5 ${item.category === 'income' ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'}`}>
-                          {item.category === 'income' ? 'Gelir' : 'Gider'}
+    // Income VAT Detail Table Component
+    const IncomeVatTable = () => (
+      <div className="mb-8">
+        <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
+          <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+          KDV Detay Tablosu - Gelir
+        </h2>
+        
+        {incomeItems.length === 0 ? (
+          <div className="bg-card border border-border p-8 text-center">
+            <p className="text-muted-foreground">Bu dönemde gelir KDV kaydı bulunmuyor.</p>
+          </div>
+        ) : (
+          <div className="bg-card border border-border overflow-x-auto">
+            <table className="w-full" data-testid="vat-income-table">
+              <thead className="bg-green-500/10 border-b border-border">
+                <tr>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Fatura No</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tarih</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Müşteri</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">M. VKN</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">M. V.Dairesi</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Açıklama</th>
+                  <th className="text-center p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV %</th>
+                  <th className="text-right p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
+                  <th className="text-right p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Tutarı</th>
+                  <th className="text-center p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tevkifat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {incomeItems.map((item, idx) => (
+                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/20">
+                    <td className="p-2 text-xs font-mono">{item.invoice_number}</td>
+                    <td className="p-2 text-xs font-mono">{item.date}</td>
+                    <td className="p-2 text-xs">{item.customer_name || '-'}</td>
+                    <td className="p-2 text-xs font-mono">{item.customer_tax_id || '-'}</td>
+                    <td className="p-2 text-xs">{item.customer_tax_office || '-'}</td>
+                    <td className="p-2 text-xs text-muted-foreground max-w-xs truncate" title={item.description}>{item.description}</td>
+                    <td className="p-2 text-center">
+                      <span className="font-semibold text-primary">%{item.vat_rate}</span>
+                    </td>
+                    <td className="p-2 text-right font-mono text-xs">{formatCurrency(item.base_amount)} ₺</td>
+                    <td className="p-2 text-right font-mono text-xs font-semibold">{formatCurrency(item.vat_amount)} ₺</td>
+                    <td className="p-2 text-center">
+                      {item.withholding ? (
+                        <span className="text-xs bg-yellow-500/10 text-yellow-700 px-1.5 py-0.5">
+                          {item.withholding_rate || 'Var'}
                         </span>
-                      </td>
-                      <td className="p-3 text-sm">{item.issuer_name}</td>
-                      <td className="p-3 text-sm text-muted-foreground">{item.description}</td>
-                      <td className="p-3 text-center">
-                        <span className="font-semibold text-primary">%{item.vat_rate}</span>
-                      </td>
-                      <td className="p-3 text-right font-mono">{formatCurrency(item.base_amount)} ₺</td>
-                      <td className="p-3 text-right font-mono font-semibold">{formatCurrency(item.vat_amount)} ₺</td>
-                      <td className="p-3 text-center">
-                        {item.withholding ? (
-                          <span className="text-xs bg-yellow-500/10 text-yellow-700 px-2 py-0.5">
-                            {item.withholding_rate || 'Var'}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-green-500/5 border-t-2 border-green-500/30">
+                <tr>
+                  <td colSpan={7} className="p-2 text-right font-semibold text-sm uppercase tracking-wider">Gelir Toplamı:</td>
+                  <td className="p-2 text-right font-mono text-xs font-bold">
+                    {formatCurrency(incomeItems.reduce((sum, item) => sum + (item.base_amount || 0), 0))} ₺
+                  </td>
+                  <td className="p-2 text-right font-mono text-xs font-bold text-green-700">
+                    {formatCurrency(incomeItems.reduce((sum, item) => sum + (item.vat_amount || 0), 0))} ₺
+                  </td>
+                  <td className="p-2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </div>
+    );
 
-        {/* KDV Summary Table */}
+    // Expense VAT Detail Table Component
+    const ExpenseVatTable = () => (
+      <div className="mb-8">
+        <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4 flex items-center gap-2">
+          <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+          KDV Detay Tablosu - Gider
+        </h2>
+        
+        {expenseItems.length === 0 ? (
+          <div className="bg-card border border-border p-8 text-center">
+            <p className="text-muted-foreground">Bu dönemde gider KDV kaydı bulunmuyor.</p>
+          </div>
+        ) : (
+          <div className="bg-card border border-border overflow-x-auto">
+            <table className="w-full" data-testid="vat-expense-table">
+              <thead className="bg-red-500/10 border-b border-border">
+                <tr>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Fatura No</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tarih</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Düzenleyen</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">D. VKN</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">D. V.Dairesi</th>
+                  <th className="text-left p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Açıklama</th>
+                  <th className="text-center p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV %</th>
+                  <th className="text-right p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
+                  <th className="text-right p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Tutarı</th>
+                  <th className="text-center p-2 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tevkifat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenseItems.map((item, idx) => (
+                  <tr key={idx} className="border-b border-border/50 hover:bg-muted/20">
+                    <td className="p-2 text-xs font-mono">{item.invoice_number}</td>
+                    <td className="p-2 text-xs font-mono">{item.date}</td>
+                    <td className="p-2 text-xs">{item.issuer_name || '-'}</td>
+                    <td className="p-2 text-xs font-mono">{item.issuer_tax_id || '-'}</td>
+                    <td className="p-2 text-xs">{item.issuer_tax_office || '-'}</td>
+                    <td className="p-2 text-xs text-muted-foreground max-w-xs truncate" title={item.description}>{item.description}</td>
+                    <td className="p-2 text-center">
+                      <span className="font-semibold text-primary">%{item.vat_rate}</span>
+                    </td>
+                    <td className="p-2 text-right font-mono text-xs">{formatCurrency(item.base_amount)} ₺</td>
+                    <td className="p-2 text-right font-mono text-xs font-semibold">{formatCurrency(item.vat_amount)} ₺</td>
+                    <td className="p-2 text-center">
+                      {item.withholding ? (
+                        <span className="text-xs bg-yellow-500/10 text-yellow-700 px-1.5 py-0.5">
+                          {item.withholding_rate || 'Var'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-red-500/5 border-t-2 border-red-500/30">
+                <tr>
+                  <td colSpan={7} className="p-2 text-right font-semibold text-sm uppercase tracking-wider">Gider Toplamı:</td>
+                  <td className="p-2 text-right font-mono text-xs font-bold">
+                    {formatCurrency(expenseItems.reduce((sum, item) => sum + (item.base_amount || 0), 0))} ₺
+                  </td>
+                  <td className="p-2 text-right font-mono text-xs font-bold text-red-700">
+                    {formatCurrency(expenseItems.reduce((sum, item) => sum + (item.vat_amount || 0), 0))} ₺
+                  </td>
+                  <td className="p-2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+
+    // KDV Summary Table with Income/Expense breakdown
+    const VatSummaryTable = () => {
+      const incomeTotal = { base: 0, vat: 0 };
+      const expenseTotal = { base: 0, vat: 0 };
+      
+      [1, 10, 20].forEach(rate => {
+        incomeTotal.base += incomeSummary[rate].base;
+        incomeTotal.vat += incomeSummary[rate].vat;
+        expenseTotal.base += expenseSummary[rate].base;
+        expenseTotal.vat += expenseSummary[rate].vat;
+      });
+
+      return (
         <div>
           <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4">KDV Özet Raporu</h2>
           
           <div className="bg-card border border-border overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full" data-testid="vat-summary-table">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="text-left p-4 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
-                  <th className="text-right p-4 text-xs uppercase tracking-wider text-muted-foreground font-medium">Toplam Matrah</th>
-                  <th className="text-right p-4 text-xs uppercase tracking-wider text-muted-foreground font-medium">Toplam KDV</th>
+                  <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
+                  <th className="text-right p-3 text-xs uppercase tracking-wider text-green-700 font-medium">Gelir Matrah</th>
+                  <th className="text-right p-3 text-xs uppercase tracking-wider text-green-700 font-medium">Gelir KDV</th>
+                  <th className="text-right p-3 text-xs uppercase tracking-wider text-red-700 font-medium">Gider Matrah</th>
+                  <th className="text-right p-3 text-xs uppercase tracking-wider text-red-700 font-medium">Gider KDV</th>
+                  <th className="text-right p-3 text-xs uppercase tracking-wider text-primary font-medium">Net KDV</th>
                 </tr>
               </thead>
               <tbody>
-                {summary.map((row, idx) => (
-                  <tr key={idx} className="border-b border-border/50">
-                    <td className="p-4">
-                      <span className="text-lg font-semibold text-primary">%{row.vat_rate}</span>
-                    </td>
-                    <td className="p-4 text-right font-mono text-lg">{formatCurrency(row.base_total)} ₺</td>
-                    <td className="p-4 text-right font-mono text-lg font-semibold">{formatCurrency(row.vat_total)} ₺</td>
-                  </tr>
-                ))}
+                {[1, 10, 20].map((rate) => {
+                  const netVat = incomeSummary[rate].vat - expenseSummary[rate].vat;
+                  return (
+                    <tr key={rate} className="border-b border-border/50">
+                      <td className="p-3">
+                        <span className="text-lg font-semibold text-primary">%{rate}</span>
+                      </td>
+                      <td className="p-3 text-right font-mono text-sm text-green-700">{formatCurrency(incomeSummary[rate].base)} ₺</td>
+                      <td className="p-3 text-right font-mono text-sm font-semibold text-green-700">{formatCurrency(incomeSummary[rate].vat)} ₺</td>
+                      <td className="p-3 text-right font-mono text-sm text-red-700">{formatCurrency(expenseSummary[rate].base)} ₺</td>
+                      <td className="p-3 text-right font-mono text-sm font-semibold text-red-700">{formatCurrency(expenseSummary[rate].vat)} ₺</td>
+                      <td className={`p-3 text-right font-mono text-sm font-bold ${netVat >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        {netVat >= 0 ? '' : '-'}{formatCurrency(Math.abs(netVat))} ₺
+                      </td>
+                    </tr>
+                  );
+                })}
                 {/* Grand Total Row */}
                 <tr className="bg-primary/5 border-t-2 border-primary">
-                  <td className="p-4">
+                  <td className="p-3">
                     <span className="text-lg font-bold">TOPLAM</span>
                   </td>
-                  <td className="p-4 text-right font-mono text-lg font-bold">{formatCurrency(grand_total.base)} ₺</td>
-                  <td className="p-4 text-right font-mono text-xl font-bold text-primary">{formatCurrency(grand_total.vat)} ₺</td>
+                  <td className="p-3 text-right font-mono text-sm font-bold text-green-700">{formatCurrency(incomeTotal.base)} ₺</td>
+                  <td className="p-3 text-right font-mono text-sm font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</td>
+                  <td className="p-3 text-right font-mono text-sm font-bold text-red-700">{formatCurrency(expenseTotal.base)} ₺</td>
+                  <td className="p-3 text-right font-mono text-sm font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</td>
+                  <td className={`p-3 text-right font-mono text-lg font-bold ${(incomeTotal.vat - expenseTotal.vat) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {(incomeTotal.vat - expenseTotal.vat) >= 0 ? '' : '-'}{formatCurrency(Math.abs(incomeTotal.vat - expenseTotal.vat))} ₺
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
+          
+          {/* Net KDV Summary Box */}
+          <div className="mt-4 p-4 bg-card border border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground uppercase">Hesaplanan KDV (Gelir)</p>
+                  <p className="text-xl font-bold text-green-700">{formatCurrency(incomeTotal.vat)} ₺</p>
+                </div>
+                <span className="text-2xl text-muted-foreground">-</span>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground uppercase">İndirilecek KDV (Gider)</p>
+                  <p className="text-xl font-bold text-red-700">{formatCurrency(expenseTotal.vat)} ₺</p>
+                </div>
+                <span className="text-2xl text-muted-foreground">=</span>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground uppercase">Ödenecek/Devreden KDV</p>
+                  <p className={`text-2xl font-bold ${(incomeTotal.vat - expenseTotal.vat) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                    {(incomeTotal.vat - expenseTotal.vat) >= 0 ? '' : '-'}{formatCurrency(Math.abs(incomeTotal.vat - expenseTotal.vat))} ₺
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {(incomeTotal.vat - expenseTotal.vat) >= 0 ? '(Ödenecek KDV)' : '(Sonraki Aya Devreden)'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      );
+    };
+
+    return (
+      <div className="space-y-8">
+        <IncomeVatTable />
+        <ExpenseVatTable />
+        <VatSummaryTable />
       </div>
     );
   };
