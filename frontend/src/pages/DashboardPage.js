@@ -1273,14 +1273,14 @@ const DashboardPage = () => {
       
       {/* Header */}
       <header className="border-b border-border bg-card shadow-sm">
-        <div className="px-8 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <img src="/logo.png" alt="Documander" className="h-10" />
-            <div className="border-l border-border pl-4">
-              <h1 className="text-xl font-heading font-bold tracking-tight">
+        <div className="px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Documander" className="h-8" />
+            <div className="border-l border-border pl-3">
+              <h1 className="text-lg font-heading font-bold tracking-tight">
                 {session ? `${session.taxpayer_name}` : 'Fatura Yönetim'}
               </h1>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                 {session && (
                   <>
                     <Calendar className="w-3 h-3" />
@@ -1290,62 +1290,45 @@ const DashboardPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Quota Badge */}
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
             <QuotaBadge />
             
-            <Button
-              onClick={changeSession}
-              variant="outline"
-              size="sm"
-              className="rounded-none gap-1 uppercase tracking-wide text-xs"
-              data-testid="change-session-button"
-            >
+            <Button onClick={changeSession} variant="outline" size="sm" className="rounded-none gap-1 text-xs" data-testid="change-session-button">
               <Calendar className="w-3 h-3" />
               Dönem
             </Button>
+            
             <Button
               onClick={() => handleExport()}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0 || !session}
-              variant="outline"
-              size="sm"
-              className="rounded-none gap-1 uppercase tracking-wide text-xs"
+              variant="outline" size="sm"
+              className="rounded-none gap-1 text-xs"
               data-testid="export-excel-button"
             >
               <Download className="w-3 h-3" />
               Tümünü İndir
             </Button>
+            
             <Button
               onClick={handleResetAll}
               disabled={incomeInvoices.length === 0 && expenseInvoices.length === 0}
-              variant="outline"
-              size="sm"
-              className="rounded-none gap-1 uppercase tracking-wide text-xs text-destructive border-destructive hover:bg-destructive hover:text-white"
+              variant="outline" size="sm"
+              className="rounded-none gap-1 text-xs text-destructive border-destructive hover:bg-destructive hover:text-white"
               data-testid="reset-all-button"
             >
               <RotateCcw className="w-3 h-3" />
               Sıfırla
             </Button>
             
-            {/* View Switch Button - Primary Action */}
             {currentView === 'invoices' ? (
-              <Button
-                onClick={showVatReport}
-                disabled={!session}
-                size="sm"
-                className="rounded-none gap-1 uppercase tracking-wide text-xs bg-primary"
-                data-testid="vat-report-button"
-              >
+              <Button onClick={showVatReport} disabled={!session} size="sm" className="rounded-none gap-1 text-xs bg-primary" data-testid="vat-report-button">
                 <Receipt className="w-3 h-3" />
                 KDV Raporu
               </Button>
             ) : (
-              <Button
-                onClick={showInvoices}
-                size="sm"
-                className="rounded-none gap-1 uppercase tracking-wide text-xs"
-                data-testid="invoices-button"
-              >
+              <Button onClick={showInvoices} size="sm" className="rounded-none gap-1 text-xs" data-testid="invoices-button">
                 <ArrowLeft className="w-3 h-3" />
                 Faturalar
               </Button>
