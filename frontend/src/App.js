@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
+import AdminPage from './pages/AdminPage';
 import { Toaster } from './components/ui/sonner';
 import './App.css';
 
@@ -23,8 +24,19 @@ const AccessDenied = () => (
 
 function App() {
   const [isAllowed, setIsAllowed] = useState(null);
+  const [isAdminPage, setIsAdminPage] = useState(false);
 
   useEffect(() => {
+    // Check if this is admin page
+    const isAdmin = window.location.pathname === '/admin';
+    setIsAdminPage(isAdmin);
+    
+    // Admin page has its own key-based auth, allow access
+    if (isAdmin) {
+      setIsAllowed(true);
+      return;
+    }
+    
     // Check if running inside iframe from allowed domain
     const checkAccess = () => {
       // Development mode bypass - check for localhost
@@ -70,8 +82,8 @@ function App() {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Yükleniyor...</div>;
   }
 
-  // Access denied
-  if (!isAllowed) {
+  // Access denied (not for admin page)
+  if (!isAllowed && !isAdminPage) {
     return <AccessDenied />;
   }
 
@@ -81,6 +93,7 @@ function App() {
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
