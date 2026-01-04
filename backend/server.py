@@ -1782,7 +1782,7 @@ async def export_to_excel(
     # Create Excel workbook
     wb = Workbook()
     ws = wb.active
-    ws.title = "Faturalar"
+    ws.title = "Gelir-Gider"  # First sheet name
     
     current_row = 1
     
