@@ -304,6 +304,51 @@ const DashboardPage = () => {
     }
   };
 
+  // VAT Report Excel export
+  const handleVatExport = async (category = null) => {
+    try {
+      let url = `${API}/invoices/vat-report/excel`;
+      if (category) {
+        url += `?category=${category}`;
+      }
+      
+      const headers = getAuthHeader();
+      const response = await axios.get(url, {
+        headers: headers,
+        responseType: 'blob'
+      });
+      
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'kdv_raporu.xlsx';
+      if (contentDisposition) {
+        const rfc5987Match = contentDisposition.match(/filename\*=UTF-8''(.+)/);
+        if (rfc5987Match) {
+          filename = decodeURIComponent(rfc5987Match[1]);
+        } else {
+          const simpleMatch = contentDisposition.match(/filename=(.+)/);
+          if (simpleMatch) filename = simpleMatch[1];
+        }
+      }
+      
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('KDV Raporu Excel dosyası indirildi');
+    } catch (error) {
+      if (error.response?.status === 404) {
+        toast.error('KDV verisi bulunamadı');
+      } else {
+        const errorMsg = error.response?.data?.detail || error.message || 'Bilinmeyen hata';
+        toast.error(`KDV Excel dışa aktarma başarısız: ${errorMsg}`);
+      }
+    }
+  };
+
   const handleResetAll = async () => {
     if (!window.confirm('Tüm faturaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
       return;
