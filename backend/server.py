@@ -120,6 +120,15 @@ class UserSubscription(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# KDV Detail model for VAT breakdown
+class VatDetail(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    vat_rate: float  # 1, 10, 20
+    base_amount: float  # Matrah
+    vat_amount: float  # KDV tutarı
+    withholding: bool = False  # Tevkifat var mı
+    withholding_rate: Optional[float] = None  # Tevkifat oranı (örn: 5/10, 9/10)
+
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -140,6 +149,8 @@ class Invoice(BaseModel):
     total: float
     file_name: str
     file_type: str
+    # KDV detayları
+    vat_details: Optional[List[dict]] = []  # List of VatDetail dicts
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvoiceCreate(BaseModel):
