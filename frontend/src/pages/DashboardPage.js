@@ -325,6 +325,133 @@ const DashboardPage = () => {
     setShowUploadModal(true);
   };
 
+  // VAT Report View Component
+  const VatReportView = () => {
+    if (vatReportLoading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-lg font-mono text-muted-foreground">KDV Raporu yükleniyor...</div>
+        </div>
+      );
+    }
+
+    if (!vatReport) {
+      return (
+        <div className="bg-card border border-border p-8 text-center">
+          <p className="text-muted-foreground">KDV raporu yüklenemedi.</p>
+        </div>
+      );
+    }
+
+    const { items, summary, grand_total } = vatReport;
+
+    // Format currency
+    const formatCurrency = (amount) => {
+      return new Intl.NumberFormat('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amount || 0);
+    };
+
+    return (
+      <div className="space-y-8">
+        {/* KDV Detail Table */}
+        <div>
+          <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4">KDV Detay Tablosu</h2>
+          
+          {items.length === 0 ? (
+            <div className="bg-card border border-border p-8 text-center">
+              <p className="text-muted-foreground">Bu dönemde KDV kaydı bulunmuyor.</p>
+            </div>
+          ) : (
+            <div className="bg-card border border-border overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tarih</th>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Fatura No</th>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tür</th>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Firma</th>
+                    <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Açıklama</th>
+                    <th className="text-center p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV %</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Matrah</th>
+                    <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Tutarı</th>
+                    <th className="text-center p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tevkifat</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, idx) => (
+                    <tr key={idx} className="border-b border-border/50 hover:bg-muted/20">
+                      <td className="p-3 text-sm">{item.date}</td>
+                      <td className="p-3 text-sm font-mono">{item.invoice_number}</td>
+                      <td className="p-3">
+                        <span className={`text-xs px-2 py-0.5 ${item.category === 'income' ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'}`}>
+                          {item.category === 'income' ? 'Gelir' : 'Gider'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-sm">{item.issuer_name}</td>
+                      <td className="p-3 text-sm text-muted-foreground">{item.description}</td>
+                      <td className="p-3 text-center">
+                        <span className="font-semibold text-primary">%{item.vat_rate}</span>
+                      </td>
+                      <td className="p-3 text-right font-mono">{formatCurrency(item.base_amount)} ₺</td>
+                      <td className="p-3 text-right font-mono font-semibold">{formatCurrency(item.vat_amount)} ₺</td>
+                      <td className="p-3 text-center">
+                        {item.withholding ? (
+                          <span className="text-xs bg-yellow-500/10 text-yellow-700 px-2 py-0.5">
+                            {item.withholding_rate || 'Var'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* KDV Summary Table */}
+        <div>
+          <h2 className="text-2xl font-heading font-semibold tracking-tight mb-4">KDV Özet Raporu</h2>
+          
+          <div className="bg-card border border-border overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="text-left p-4 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Oranı</th>
+                  <th className="text-right p-4 text-xs uppercase tracking-wider text-muted-foreground font-medium">Toplam Matrah</th>
+                  <th className="text-right p-4 text-xs uppercase tracking-wider text-muted-foreground font-medium">Toplam KDV</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.map((row, idx) => (
+                  <tr key={idx} className="border-b border-border/50">
+                    <td className="p-4">
+                      <span className="text-lg font-semibold text-primary">%{row.vat_rate}</span>
+                    </td>
+                    <td className="p-4 text-right font-mono text-lg">{formatCurrency(row.base_total)} ₺</td>
+                    <td className="p-4 text-right font-mono text-lg font-semibold">{formatCurrency(row.vat_total)} ₺</td>
+                  </tr>
+                ))}
+                {/* Grand Total Row */}
+                <tr className="bg-primary/5 border-t-2 border-primary">
+                  <td className="p-4">
+                    <span className="text-lg font-bold">TOPLAM</span>
+                  </td>
+                  <td className="p-4 text-right font-mono text-lg font-bold">{formatCurrency(grand_total.base)} ₺</td>
+                  <td className="p-4 text-right font-mono text-xl font-bold text-primary">{formatCurrency(grand_total.vat)} ₺</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const InvoiceTable = ({ invoices, type }) => {
     const title = type === 'income' ? 'Gelir Faturaları' : 'Gider Faturaları';
     const emptyMessage = type === 'income' ? 'gelir faturası' : 'gider faturası';
