@@ -1197,7 +1197,7 @@ const DashboardPage = () => {
             {currentView === 'invoices' ? (
               <Button
                 onClick={showVatReport}
-                disabled={!session || (incomeInvoices.length === 0 && expenseInvoices.length === 0)}
+                disabled={!session}
                 className="rounded-none gap-2 uppercase tracking-wide bg-primary"
                 data-testid="vat-report-button"
               >
