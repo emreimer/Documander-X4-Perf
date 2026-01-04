@@ -1328,6 +1328,8 @@ async def get_invoices(
             invoice['customer_tax_office'] = invoice.get('tax_office', 'N/A')
         if 'description' not in invoice:
             invoice['description'] = 'N/A'
+        if 'vat_details' not in invoice:
+            invoice['vat_details'] = []
     
     # Sort by date (newest first)
     def parse_date(date_str):
@@ -1342,6 +1344,113 @@ async def get_invoices(
     invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)  # Oldest first
     
     return invoices
+
+@api_router.get("/invoices/vat-report")
+async def get_vat_report(user_id: str = Depends(get_current_user)):
+    """Get VAT report with breakdown by rates for current session"""
+    session = await db.sessions.find_one(
+        {"user_id": user_id, "is_active": True},
+        {"_id": 0}
+    )
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="Aktif oturum bulunamadı")
+    
+    # Get all invoices for this session
+    invoices = await db.invoices.find(
+        {"user_id": user_id, "session_id": session['id']},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Process VAT details for each invoice
+    vat_report_items = []
+    vat_summary = {
+        1: {"base_total": 0, "vat_total": 0},
+        10: {"base_total": 0, "vat_total": 0},
+        20: {"base_total": 0, "vat_total": 0}
+    }
+    
+    for invoice in invoices:
+        vat_details = invoice.get('vat_details', [])
+        
+        # If no vat_details, create from total
+        if not vat_details:
+            vat = float(invoice.get('vat', 0) or 0)
+            amount = float(invoice.get('amount', 0) or 0)
+            if vat > 0:
+                # Estimate VAT rate
+                if amount > 0:
+                    rate_calc = round((vat / amount) * 100)
+                    if rate_calc <= 5:
+                        vat_rate = 1
+                    elif rate_calc <= 15:
+                        vat_rate = 10
+                    else:
+                        vat_rate = 20
+                else:
+                    vat_rate = 20  # Default
+                vat_details = [{
+                    "vat_rate": vat_rate,
+                    "base_amount": amount,
+                    "vat_amount": vat,
+                    "withholding": False,
+                    "withholding_rate": None
+                }]
+        
+        # Add each VAT detail as a separate report item
+        for detail in vat_details:
+            vat_rate = int(detail.get('vat_rate', 20))
+            base_amount = float(detail.get('base_amount', 0) or 0)
+            vat_amount = float(detail.get('vat_amount', 0) or 0)
+            
+            report_item = {
+                "invoice_id": invoice.get('id'),
+                "invoice_number": invoice.get('invoice_number', 'N/A'),
+                "date": invoice.get('date', ''),
+                "category": invoice.get('category', 'income'),
+                "issuer_name": invoice.get('issuer_name', 'N/A'),
+                "description": invoice.get('description', 'N/A'),
+                "vat_rate": vat_rate,
+                "base_amount": base_amount,
+                "vat_amount": vat_amount,
+                "withholding": detail.get('withholding', False),
+                "withholding_rate": detail.get('withholding_rate')
+            }
+            vat_report_items.append(report_item)
+            
+            # Add to summary
+            if vat_rate in vat_summary:
+                vat_summary[vat_rate]["base_total"] += base_amount
+                vat_summary[vat_rate]["vat_total"] += vat_amount
+    
+    # Sort by date
+    def parse_date(date_str):
+        try:
+            parts = date_str.split('/')
+            if len(parts) == 3:
+                return datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+        except:
+            pass
+        return datetime.min
+    
+    vat_report_items.sort(key=lambda x: parse_date(x.get('date', '')))
+    
+    # Calculate grand total
+    grand_total_base = sum(s["base_total"] for s in vat_summary.values())
+    grand_total_vat = sum(s["vat_total"] for s in vat_summary.values())
+    
+    return {
+        "items": vat_report_items,
+        "summary": [
+            {"vat_rate": 1, "base_total": vat_summary[1]["base_total"], "vat_total": vat_summary[1]["vat_total"]},
+            {"vat_rate": 10, "base_total": vat_summary[10]["base_total"], "vat_total": vat_summary[10]["vat_total"]},
+            {"vat_rate": 20, "base_total": vat_summary[20]["base_total"], "vat_total": vat_summary[20]["vat_total"]}
+        ],
+        "grand_total": {
+            "base": grand_total_base,
+            "vat": grand_total_vat
+        }
+    }
 
 @api_router.put("/invoices/{invoice_id}")
 async def update_invoice(
