@@ -10,7 +10,14 @@ import {
   RefreshCw,
   Download,
   Filter,
-  Eye
+  Eye,
+  Mail,
+  User,
+  Calendar,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  Search
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -24,6 +31,8 @@ const AdminPage = () => {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [expandedUsers, setExpandedUsers] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ total: 0, active: 0, expired: 0, exhausted: 0 });
 
   const fetchUsers = async (filterType = 'all') => {
@@ -83,10 +92,29 @@ const AdminPage = () => {
     }
   };
 
+  const toggleUserExpand = (userId) => {
+    setExpandedUsers(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
+  const filteredUsers = users.filter(user => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      (user.full_name && user.full_name.toLowerCase().includes(search)) ||
+      (user.email && user.email.toLowerCase().includes(search)) ||
+      (user.wix_member_id && user.wix_member_id.toLowerCase().includes(search))
+    );
+  });
+
   const exportToExcel = () => {
-    // Simple CSV export
-    const headers = ['Wix Member ID', 'Paketler', 'Toplam Kalan', 'Durum', 'Kayıt Tarihi'];
-    const rows = users.map(user => [
+    // CSV export with user info
+    const headers = ['Ad Soyad', 'Email', 'Wix Member ID', 'Paketler', 'Toplam Kalan', 'Durum', 'Kayıt Tarihi'];
+    const rows = filteredUsers.map(user => [
+      user.full_name || '-',
+      user.email || '-',
       user.wix_member_id,
       user.packages.map(p => `${p.plan_name} (${p.remaining_quota}/${p.total_quota})`).join('; '),
       user.total_remaining === -1 ? 'Sınırsız' : user.total_remaining,
@@ -94,7 +122,7 @@ const AdminPage = () => {
       formatDate(user.created_at)
     ]);
     
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -205,6 +233,18 @@ const AdminPage = () => {
 
         {/* Actions Bar */}
         <div className="bg-card border border-border p-4 mb-6 flex flex-wrap items-center gap-4">
+          {/* Search */}
+          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Ad, email veya ID ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="p-2 border border-border bg-background text-foreground flex-1"
+            />
+          </div>
+          
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
             <select 
@@ -246,156 +286,145 @@ const AdminPage = () => {
           </div>
         )}
 
-        {/* Users Table */}
-        <div className="bg-card border border-border overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/30 border-b border-border">
-              <tr>
-                <th className="text-left p-4 font-medium">Wix Member ID</th>
-                <th className="text-left p-4 font-medium">Paketler</th>
-                <th className="text-left p-4 font-medium">Kalan Kota</th>
-                <th className="text-left p-4 font-medium">Durum</th>
-                <th className="text-left p-4 font-medium">Kayıt</th>
-                <th className="text-left p-4 font-medium">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 && !loading && (
-                <tr>
-                  <td colSpan="6" className="p-8 text-center text-muted-foreground">
-                    Kullanıcı bulunamadı
-                  </td>
-                </tr>
-              )}
-              
-              {users.map((user, idx) => (
-                <tr key={idx} className="border-b border-border hover:bg-muted/10">
-                  <td className="p-4">
-                    <code className="text-xs bg-muted px-2 py-1">
-                      {user.wix_member_id || user.user_id}
-                    </code>
-                  </td>
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      {user.packages.map((pkg, pidx) => (
-                        <div key={pidx} className={`text-xs p-2 border ${
-                          pkg.is_active 
-                            ? 'bg-green-500/10 border-green-500/30' 
-                            : pkg.is_exhausted 
-                              ? 'bg-yellow-500/10 border-yellow-500/30'
-                              : 'bg-destructive/10 border-destructive/30'
-                        }`}>
-                          <div className="font-medium">{pkg.plan_name}</div>
-                          <div className="text-muted-foreground">
-                            {pkg.total_quota === -1 
-                              ? 'Sınırsız' 
-                              : `${pkg.used_quota}/${pkg.total_quota} kullanıldı`}
-                          </div>
-                          <div className="text-muted-foreground">
-                            Bitiş: {formatDate(pkg.end_date)}
-                          </div>
-                        </div>
-                      ))}
+        {/* Users List - Card Style */}
+        <div className="space-y-4">
+          {filteredUsers.length === 0 && !loading && (
+            <div className="bg-card border border-border p-8 text-center text-muted-foreground">
+              Kullanıcı bulunamadı
+            </div>
+          )}
+          
+          {filteredUsers.map((user, idx) => (
+            <div key={idx} className="bg-card border border-border">
+              {/* User Header - Always Visible */}
+              <div 
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/10"
+                onClick={() => toggleUserExpand(user.wix_member_id)}
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  {/* User Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-semibold truncate">
+                        {user.full_name || 'İsimsiz Kullanıcı'}
+                      </span>
+                      {user.is_active ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-green-500/10 text-green-700 px-2 py-0.5">
+                          <CheckCircle2 className="w-3 h-3" /> Aktif
+                        </span>
+                      ) : user.is_quota_exhausted ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 text-yellow-700 px-2 py-0.5">
+                          <AlertTriangle className="w-3 h-3" /> Kota Doldu
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs bg-destructive/10 text-destructive px-2 py-0.5">
+                          <XCircle className="w-3 h-3" /> Süresi Doldu
+                        </span>
+                      )}
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`font-bold ${
-                      user.total_remaining === -1 
-                        ? 'text-primary' 
-                        : user.total_remaining === 0 
-                          ? 'text-destructive' 
-                          : user.total_remaining < 50 
-                            ? 'text-yellow-600' 
-                            : ''
-                    }`}>
-                      {user.total_remaining === -1 ? 'Sınırsız' : user.total_remaining}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {user.is_active ? (
-                      <span className="inline-flex items-center gap-1 text-xs bg-green-500/10 text-green-700 px-2 py-1">
-                        <CheckCircle2 className="w-3 h-3" /> Aktif
+                    
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      {user.email && (
+                        <span className="flex items-center gap-1">
+                          <Mail className="w-3 h-3" />
+                          {user.email}
+                        </span>
+                      )}
+                      <span className="text-xs font-mono bg-muted px-1">
+                        {user.wix_member_id?.substring(0, 12)}...
                       </span>
-                    ) : user.is_quota_exhausted ? (
-                      <span className="inline-flex items-center gap-1 text-xs bg-yellow-500/10 text-yellow-700 px-2 py-1">
-                        <AlertTriangle className="w-3 h-3" /> Kota Doldu
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-xs bg-destructive/10 text-destructive px-2 py-1">
-                        <XCircle className="w-3 h-3" /> Süresi Doldu
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-4 text-sm text-muted-foreground">
-                    {formatDate(user.created_at)}
-                  </td>
-                  <td className="p-4">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="rounded-none"
-                      onClick={() => setSelectedUser(user)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* User Detail Modal */}
-        {selectedUser && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-card border border-border max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="font-heading font-bold">Kullanıcı Detayı</h3>
-                <button onClick={() => setSelectedUser(null)} className="text-muted-foreground hover:text-foreground">
-                  ✕
-                </button>
-              </div>
-              <div className="p-4 space-y-4">
-                <div>
-                  <label className="text-sm text-muted-foreground">Wix Member ID</label>
-                  <p className="font-mono">{selectedUser.wix_member_id || selectedUser.user_id}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm text-muted-foreground">Toplam Kalan Kota</label>
-                  <p className="text-2xl font-bold">
-                    {selectedUser.total_remaining === -1 ? 'Sınırsız' : selectedUser.total_remaining}
-                  </p>
-                </div>
-                
-                <div>
-                  <label className="text-sm text-muted-foreground">Paketler</label>
-                  <div className="space-y-2 mt-2">
-                    {selectedUser.packages.map((pkg, idx) => (
-                      <div key={idx} className={`p-3 border ${
-                        pkg.is_active 
-                          ? 'border-green-500/30 bg-green-500/5' 
-                          : 'border-border'
+                    </div>
+                  </div>
+                  
+                  {/* Quick Stats */}
+                  <div className="flex items-center gap-6 text-sm">
+                    <div className="text-center">
+                      <p className="text-muted-foreground text-xs">Paket Sayısı</p>
+                      <p className="font-bold">{user.packages.length}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-muted-foreground text-xs">Toplam Kota</p>
+                      <p className={`font-bold ${
+                        user.total_remaining === -1 ? 'text-primary' :
+                        user.total_remaining === 0 ? 'text-destructive' :
+                        user.total_remaining < 50 ? 'text-yellow-600' : ''
                       }`}>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{pkg.plan_name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Kullanım: {pkg.used_quota} / {pkg.total_quota === -1 ? '∞' : pkg.total_quota}
-                            </p>
+                        {user.total_remaining === -1 ? '∞' : user.total_remaining}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Expand Icon */}
+                <div className="ml-4">
+                  {expandedUsers[user.wix_member_id] ? (
+                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+              </div>
+              
+              {/* Expanded Content - Packages */}
+              {expandedUsers[user.wix_member_id] && (
+                <div className="border-t border-border p-4 bg-muted/5">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Paketler ({user.packages.length})
+                  </h4>
+                  
+                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    {user.packages.map((pkg, pidx) => (
+                      <div 
+                        key={pidx} 
+                        className={`p-3 border ${
+                          pkg.is_active 
+                            ? 'bg-green-500/5 border-green-500/30' 
+                            : pkg.is_exhausted 
+                              ? 'bg-yellow-500/5 border-yellow-500/30'
+                              : 'bg-destructive/5 border-destructive/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold">{pkg.plan_name}</span>
+                          {pkg.is_active ? (
+                            <span className="text-[10px] bg-green-500/20 text-green-700 px-1.5 py-0.5">AKTİF</span>
+                          ) : pkg.is_exhausted ? (
+                            <span className="text-[10px] bg-yellow-500/20 text-yellow-700 px-1.5 py-0.5">KOTA DOLDU</span>
+                          ) : (
+                            <span className="text-[10px] bg-destructive/20 text-destructive px-1.5 py-0.5">SÜRESİ DOLDU</span>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-1 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Kullanım:</span>
+                            <span>{pkg.used_quota} / {pkg.total_quota === -1 ? '∞' : pkg.total_quota}</span>
                           </div>
-                          <div className="text-right text-sm">
-                            <p>Bitiş: {formatDate(pkg.end_date)}</p>
-                            <p className={pkg.is_active ? 'text-green-600' : 'text-destructive'}>
-                              {pkg.is_active ? 'Aktif' : pkg.is_exhausted ? 'Kota Doldu' : 'Süresi Doldu'}
-                            </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Kalan:</span>
+                            <span className={`font-semibold ${
+                              pkg.remaining_quota === 0 ? 'text-destructive' : 
+                              pkg.remaining_quota < 50 ? 'text-yellow-600' : 'text-green-600'
+                            }`}>
+                              {pkg.remaining_quota === -1 ? '∞' : pkg.remaining_quota}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Bitiş:</span>
+                            <span>{formatDate(pkg.end_date)}</span>
                           </div>
                         </div>
+                        
                         {/* Progress bar */}
                         {pkg.total_quota !== -1 && (
-                          <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                             <div 
-                              className={`h-full ${pkg.is_exhausted ? 'bg-destructive' : 'bg-primary'}`}
+                              className={`h-full ${
+                                pkg.is_exhausted ? 'bg-destructive' : 
+                                (pkg.used_quota / pkg.total_quota) > 0.8 ? 'bg-yellow-500' : 'bg-primary'
+                              }`}
                               style={{ width: `${Math.min(100, (pkg.used_quota / pkg.total_quota) * 100)}%` }}
                             />
                           </div>
@@ -403,22 +432,25 @@ const AdminPage = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <label className="text-muted-foreground">Kayıt Tarihi</label>
-                    <p>{formatDate(selectedUser.created_at)}</p>
+                  
+                  {/* User Meta */}
+                  <div className="mt-4 pt-3 border-t border-border flex items-center gap-6 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Kayıt: {formatDate(user.created_at)}
+                    </span>
+                    <span>
+                      Son Güncelleme: {formatDate(user.updated_at)}
+                    </span>
+                    <span className="font-mono">
+                      ID: {user.wix_member_id}
+                    </span>
                   </div>
-                  <div>
-                    <label className="text-muted-foreground">Son Güncelleme</label>
-                    <p>{formatDate(selectedUser.updated_at)}</p>
-                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );
