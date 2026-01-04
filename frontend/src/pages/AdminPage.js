@@ -299,7 +299,51 @@ const AdminPage = () => {
             <Download className="w-4 h-4 mr-2" />
             Excel İndir
           </Button>
+          
+          {stats.total > 0 && (
+            <Button 
+              variant="outline" 
+              className="rounded-none text-destructive border-destructive/50 hover:bg-destructive/10"
+              onClick={() => setDeleteConfirm('all')}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Tümünü Sil
+            </Button>
+          )}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card border border-border p-6 max-w-md w-full">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                Silme Onayı
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {deleteConfirm === 'all' 
+                  ? `Tüm ${stats.total} kullanıcıyı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`
+                  : `"${users.find(u => u.wix_member_id === deleteConfirm)?.full_name || deleteConfirm}" kullanıcısını silmek istediğinize emin misiniz?`
+                }
+              </p>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 rounded-none"
+                  onClick={() => setDeleteConfirm(null)}
+                >
+                  İptal
+                </Button>
+                <Button 
+                  className="flex-1 rounded-none bg-destructive hover:bg-destructive/90"
+                  onClick={() => deleteConfirm === 'all' ? deleteAllUsers() : deleteUser(deleteConfirm)}
+                >
+                  Sil
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
