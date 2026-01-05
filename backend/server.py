@@ -1019,6 +1019,7 @@ async def admin_deactivate_subscription(
 # Invoice AI Processing
 async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime_type: str) -> dict:
     import base64
+    from io import BytesIO
     try:
         # Initialize LLM Chat with OpenAI GPT-4o Vision
         chat = LlmChat(
@@ -1027,17 +1028,59 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
             system_message="You are an invoice data extraction assistant. Extract invoice information accurately from Turkish invoices and receipts."
         ).with_model("openai", "gpt-4o")
         
-        # Convert file to base64 for OpenAI
         from emergentintegrations.llm.chat import ImageContent
         
-        # Encode image as base64
-        image_base64 = base64.b64encode(file_content).decode('utf-8')
+        # Handle PDF files - convert to images first
+        if mime_type == 'application/pdf' or file_name.lower().endswith('.pdf'):
+            try:
+                from pdf2image import convert_from_bytes
+                from PIL import Image
+                
+                # Convert PDF to images (first 3 pages max)
+                images = convert_from_bytes(file_content, dpi=150, first_page=1, last_page=3)
+                
+                if not images:
+                    return {"error": "PDF dosyası okunamadı"}
+                
+                # Process each page
+                all_invoices = []
+                for page_num, img in enumerate(images):
+                    # Convert PIL image to base64
+                    img_buffer = BytesIO()
+                    img.save(img_buffer, format='PNG')
+                    img_buffer.seek(0)
+                    image_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
+                    
+                    # Create image content
+                    image_obj = ImageContent(image_base64=image_base64)
+                    
+                    # Extract data from this page
+                    page_result = await _extract_from_image(chat, image_obj)
+                    if "invoices" in page_result:
+                        all_invoices.extend(page_result["invoices"])
+                
+                if all_invoices:
+                    return {"invoices": all_invoices}
+                else:
+                    return {"error": "PDF'den fatura verisi çıkarılamadı"}
+                    
+            except Exception as pdf_error:
+                logger.error(f"PDF conversion error: {pdf_error}")
+                return {"error": f"PDF dönüştürme hatası: {str(pdf_error)}"}
         
-        # Create image content for GPT-4o Vision
+        # Handle image files directly
+        image_base64 = base64.b64encode(file_content).decode('utf-8')
         image_obj = ImageContent(image_base64=image_base64)
         
-        # Extract data - support multiple receipts in one image with VAT breakdown
-        prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
+        return await _extract_from_image(chat, image_obj)
+        
+    except Exception as e:
+        logger.error(f"AI extraction error: {e}")
+        return {"error": str(e)}
+
+async def _extract_from_image(chat, image_obj) -> dict:
+    """Helper function to extract invoice data from an image"""
+    prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
 
 Her fiş/fatura için şu bilgileri çıkar:
 - invoice_number: Fatura/fiş numarası
