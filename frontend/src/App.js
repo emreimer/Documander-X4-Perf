@@ -39,18 +39,21 @@ function App() {
     
     // Check if running inside iframe from allowed domain
     const checkAccess = () => {
-      // Development mode bypass - check for localhost
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      if (isLocalhost) {
+      // Development/Preview mode bypass
+      const hostname = window.location.hostname;
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const isPreview = hostname.includes('preview.emergentagent.com') || hostname.includes('preview.emergent');
+      
+      if (isLocalhost || isPreview) {
         setIsAllowed(true);
         return;
       }
       
-      // Check if inside iframe
+      // Production: Check if inside iframe from allowed domain
       const isInIframe = window.self !== window.top;
       
       if (!isInIframe) {
-        // Direct access - not allowed
+        // Direct access - not allowed in production
         setIsAllowed(false);
         return;
       }
@@ -67,7 +70,6 @@ function App() {
         const isAllowedDomain = allowedDomains.some(domain => referrer.includes(domain));
         setIsAllowed(isAllowedDomain);
       } catch (e) {
-        // Cross-origin iframe - check if referrer contains allowed domain
         const referrer = document.referrer.toLowerCase();
         const allowedDomains = ['documander.com', 'wix.com', 'wixsite.com', 'editorx.io'];
         setIsAllowed(allowedDomains.some(domain => referrer.includes(domain)));
