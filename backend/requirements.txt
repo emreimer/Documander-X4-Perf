@@ -127,3 +127,5 @@ yarl==1.22.0
 zipp==3.23.0
 pdf2image
 pillow
+pypdf2
+pdfplumber
