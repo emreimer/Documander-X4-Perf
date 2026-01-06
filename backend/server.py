@@ -1105,6 +1105,57 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
         logger.error(f"AI extraction error: {e}")
         return {"error": str(e)}
 
+async def _extract_from_text(chat, text: str) -> list:
+    """Helper function to extract invoice data from PDF text"""
+    from emergentintegrations.llm.chat import UserMessage
+    
+    prompt = f"""Bu metin bir fatura veya fişten çıkarılmıştır. Fatura bilgilerini çıkar.
+
+FATURA METNİ:
+{text}
+
+Her fatura için şu bilgileri çıkar:
+- invoice_number: Fatura/fiş numarası
+- date: Fatura tarihi (GG/AA/YYYY formatında)
+- issuer_name: Faturayı düzenleyen firma/kişi adı
+- issuer_tax_id: Vergi kimlik numarası (TCKN veya VKN)
+- issuer_tax_office: Vergi dairesi (SADECE isim, BÜYÜK HARFLERLE)
+- customer_name: Müşteri adı (varsa)
+- customer_tax_id: Müşteri vergi numarası (varsa)
+- customer_tax_office: Müşteri vergi dairesi (varsa)
+- description: Fatura içeriğinin KISA özeti (3-5 kelime)
+- amount: Net tutar (sadece sayı)
+- vat: KDV tutarı (sadece sayı)
+- total: Toplam tutar (sadece sayı)
+- vat_details: KDV detayları listesi
+
+SADECE JSON formatında yanıt ver:
+{{"invoices": [{{"invoice_number": "...", "date": "...", ...}}]}}"""
+
+    try:
+        message = UserMessage(text=prompt)
+        response = await chat.send_message(message)
+        
+        response_text = response.strip() if response else ""
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.startswith("```"):
+            response_text = response_text[3:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
+        
+        if not response_text:
+            return {"error": "Empty response from LLM"}
+        
+        data = json.loads(response_text)
+        if "invoices" in data:
+            return data["invoices"]
+        return [data]
+    except Exception as e:
+        logger.error(f"Text extraction error: {e}")
+        return {"error": str(e)}
+
 async def _extract_from_image(chat, image_obj) -> dict:
     """Helper function to extract invoice data from an image"""
     prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
