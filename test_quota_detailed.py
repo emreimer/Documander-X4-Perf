@@ -4,14 +4,14 @@ from datetime import datetime
 
 def test_quota_decrement():
     """Test quota decrement with proper session setup"""
-    base_url = "https://kdvreport.preview.emergentagent.com"
+    base_url = "https://bundan-basla.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     visitor_id = f"test_quota_detailed_{datetime.now().strftime('%H%M%S')}"
     
     headers = {
         'X-Visitor-ID': visitor_id,
-        'Referer': 'https://kdvreport.preview.emergentagent.com/',
-        'Origin': 'https://kdvreport.preview.emergentagent.com'
+        'Referer': 'https://bundan-basla.preview.emergentagent.com/',
+        'Origin': 'https://bundan-basla.preview.emergentagent.com'
     }
     
     print(f"🔍 Testing Quota Decrement with Visitor ID: {visitor_id}")
