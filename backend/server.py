@@ -1122,30 +1122,27 @@ Birden fazla KDV oranı örneği:
         text=prompt,
         file_contents=[image_obj]
     )
-        
-        response = await chat.send_message(message)
-        
-        # Parse response
-        response_text = response.strip()
-        if response_text.startswith("```json"):
-            response_text = response_text[7:]
-        if response_text.startswith("```"):
-            response_text = response_text[3:]
-        if response_text.endswith("```"):
-            response_text = response_text[:-3]
-        response_text = response_text.strip()
-        
-        data = json.loads(response_text)
-        
-        # Normalize response to always return a list of invoices
-        if "invoices" in data:
-            return data["invoices"]
-        else:
-            # Single invoice in old format - wrap in list
-            return [data]
-    except Exception as e:
-        logging.error(f"AI extraction error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Fatura verisi okunamadı. Lütfen tekrar deneyin.")
+    
+    response = await chat.send_message(message)
+    
+    # Parse response
+    response_text = response.strip()
+    if response_text.startswith("```json"):
+        response_text = response_text[7:]
+    if response_text.startswith("```"):
+        response_text = response_text[3:]
+    if response_text.endswith("```"):
+        response_text = response_text[:-3]
+    response_text = response_text.strip()
+    
+    data = json.loads(response_text)
+    
+    # Normalize response to always return a list of invoices
+    if "invoices" in data:
+        return data["invoices"]
+    else:
+        # Single invoice in old format - wrap in list
+        return [data]
 
 # Helper function for safe float conversion
 def safe_float(value, default=0.0):
