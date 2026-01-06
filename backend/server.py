@@ -1036,8 +1036,28 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                 from pdf2image import convert_from_bytes
                 from PIL import Image
                 
-                # Convert PDF to images (first 3 pages max)
-                images = convert_from_bytes(file_content, dpi=150, first_page=1, last_page=3)
+                # First try to extract text directly from PDF using pdfplumber
+                try:
+                    import pdfplumber
+                    pdf_text = ""
+                    with pdfplumber.open(BytesIO(file_content)) as pdf:
+                        for page in pdf.pages[:3]:  # First 3 pages
+                            page_text = page.extract_text()
+                            if page_text:
+                                pdf_text += page_text + "\n"
+                    
+                    # If we got substantial text, use text-based extraction
+                    if pdf_text and len(pdf_text.strip()) > 100:
+                        logger.info(f"PDF text extraction successful, length: {len(pdf_text)}")
+                        result = await _extract_from_text(chat, pdf_text)
+                        if result and not isinstance(result, dict) or "error" not in result:
+                            return {"invoices": result if isinstance(result, list) else [result]}
+                        logger.info("Text extraction failed, falling back to image conversion")
+                except Exception as text_err:
+                    logger.info(f"PDF text extraction failed: {text_err}, using image conversion")
+                
+                # Fall back to image conversion with higher DPI for better quality
+                images = convert_from_bytes(file_content, dpi=200, first_page=1, last_page=3)
                 
                 if not images:
                     return {"error": "PDF dosyası okunamadı"}
@@ -1045,9 +1065,11 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                 # Process each page
                 all_invoices = []
                 for page_num, img in enumerate(images):
-                    # Convert PIL image to base64
+                    # Convert PIL image to base64 with high quality
                     img_buffer = BytesIO()
-                    img.save(img_buffer, format='PNG')
+                    # Use JPEG with high quality for better text recognition
+                    img = img.convert('RGB')
+                    img.save(img_buffer, format='JPEG', quality=95)
                     img_buffer.seek(0)
                     image_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
                     
@@ -1061,6 +1083,8 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                         all_invoices.extend(page_result)
                     elif isinstance(page_result, dict) and "invoices" in page_result:
                         all_invoices.extend(page_result["invoices"])
+                    elif isinstance(page_result, dict) and "error" not in page_result:
+                        all_invoices.append(page_result)
                 
                 if all_invoices:
                     return {"invoices": all_invoices}
