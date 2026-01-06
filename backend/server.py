@@ -1129,7 +1129,13 @@ Birden fazla KDV oranı örneği:
     response = await chat.send_message(message)
     
     # Parse response
-    response_text = response.strip()
+    logger.info(f"Raw LLM response: '{response}'")
+    logger.info(f"Response type: {type(response)}")
+    logger.info(f"Response length: {len(response) if response else 0}")
+    
+    response_text = response.strip() if response else ""
+    logger.info(f"After strip: '{response_text}'")
+    
     if response_text.startswith("```json"):
         response_text = response_text[7:]
     if response_text.startswith("```"):
@@ -1138,7 +1144,18 @@ Birden fazla KDV oranı örneği:
         response_text = response_text[:-3]
     response_text = response_text.strip()
     
-    data = json.loads(response_text)
+    logger.info(f"Final response text for JSON parsing: '{response_text}'")
+    
+    if not response_text:
+        logger.error("Empty response from LLM after processing")
+        return {"error": "LLM returned empty response"}
+    
+    try:
+        data = json.loads(response_text)
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parsing failed: {e}")
+        logger.error(f"Problematic text: '{response_text}'")
+        return {"error": f"JSON parsing failed: {e}"}
     
     # Normalize response to always return a list of invoices
     if "invoices" in data:
