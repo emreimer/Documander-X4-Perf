@@ -1117,11 +1117,11 @@ SADECE JSON formatında yanıt ver.
 
 Birden fazla KDV oranı örneği:
 {"invoices": [{"invoice_number": "FTR-002", "date": "20/01/2024", "issuer_name": "XYZ Ltd", "issuer_tax_id": "9876543210", "issuer_tax_office": "BEYOĞLU", "customer_name": "Müşteri A.Ş.", "customer_tax_id": "1111111111", "customer_tax_office": "ŞİŞLİ", "description": "Muhtelif ürünler", "amount": 250.0, "vat": 35.0, "total": 285.0, "vat_details": [{"vat_rate": 10, "base_amount": 150.0, "vat_amount": 15.0, "withholding": false, "withholding_rate": null}, {"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0, "withholding": false, "withholding_rate": null}]}]}"""
-        
-        message = UserMessage(
-            text=prompt,
-            file_contents=[image_obj]
-        )
+    
+    message = UserMessage(
+        text=prompt,
+        file_contents=[image_obj]
+    )
         
         response = await chat.send_message(message)
         
