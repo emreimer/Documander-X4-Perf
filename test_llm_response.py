@@ -16,7 +16,10 @@ sys.path.append('/app/backend')
 # Set up environment
 os.chdir('/app/backend')
 from dotenv import load_dotenv
-load_dotenv()
+
+# Load environment variables
+ROOT_DIR = Path('/app/backend')
+load_dotenv(ROOT_DIR / '.env')
 
 async def test_llm_response():
     """Test what the LLM is actually returning"""
@@ -27,7 +30,13 @@ async def test_llm_response():
         
         # Get the LLM key
         EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
-        print(f"🔑 LLM Key configured: {bool(EMERGENT_LLM_KEY)}")
+        OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+        print(f"🔑 EMERGENT_LLM_KEY configured: {bool(EMERGENT_LLM_KEY)}")
+        print(f"🔑 OPENAI_API_KEY configured: {bool(OPENAI_API_KEY)}")
+        
+        if not EMERGENT_LLM_KEY:
+            print("❌ No EMERGENT_LLM_KEY found!")
+            return False
         
         # Initialize LLM Chat
         chat = LlmChat(
