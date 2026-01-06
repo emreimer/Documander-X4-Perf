@@ -1056,7 +1056,10 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                     
                     # Extract data from this page
                     page_result = await _extract_from_image(chat, image_obj)
-                    if "invoices" in page_result:
+                    # _extract_from_image returns a list of invoices directly
+                    if isinstance(page_result, list):
+                        all_invoices.extend(page_result)
+                    elif isinstance(page_result, dict) and "invoices" in page_result:
                         all_invoices.extend(page_result["invoices"])
                 
                 if all_invoices:
