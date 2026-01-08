@@ -2976,15 +2976,18 @@ async def export_to_luca_csv(
     
     invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)
     
-    # CSV columns matching Luca template
+    # CSV columns matching EXACT Luca template headers (with special characters)
     columns = [
-        'ISLEM', 'KATEGORI', 'BELGE TURU', 'EVRAK TARIHI', 'KAYIT TARIHI',
-        'SERI NO', 'EVRAK NO', 'TCKN/VKN', 'VERGI DAIRESI', 'SOYADI UNVAN',
-        'ADI DEVAMI', 'ADRES', 'CARI HESAP', 'KDV ISTISNASI', 'KOD',
-        'BELGE TURU(DB)', 'ALIS/SATIS TURU', 'KAYIT ALT TURU', 'MAL VE HIZMET KODU',
-        'ACIKLAMA', 'MIKTAR', 'B.FIYAT', 'TUTAR', 'TEVKIFAT', 'KDV ORANI',
-        'OZEL MATRAH ISLEM BEDELI', 'MATRAHTAN DUSULECEK TUTAR', 
-        'MATRAHA DAHIL OLMAYAN BEDEL', 'KDV TUTARI', 'TOPLAM TUTAR',
+        'ÝÞLEM', 'KATEGORÝ', 'BELGE TURU', 'EVRAK TARÝHÝ', 'KAYIT TARÝHÝ',
+        'SERÝ NO', 'EVRAK NO', 'TCKN/VKN', 'VERGÝ DAÝRESÝ', 'SOYADI ÜNVAN',
+        'ADI DEVAMI', 'ADRES', 'CARÝ HESAP', 'KDV ÝSTÝSNASI', 'KOD',
+        'BELGE TÜRÜ(DB)', 'ALIÞ/SATIÞ TÜRÜ', 'KAYIT ALT TÜRÜ', 'MAL VE HÝZMET KODU',
+        'AÇIKLAMA', 'MÝKTAR', 'B.FÝYAT', 'TUTAR', 'TEVKÝFAT', 'KDV ORANI',
+        'ÖZEL MATRAH ÝÞLEM BEDELÝ', 'MATRAHTAN DÜÞÜLECEK TUTAR', 
+        'MATRAHA DAHÝL OLMAYAN BEDEL', 'KDV TUTARI', 'TOPLAM TUTAR',
+        'KREDÝLÝ TUTAR', 'STOPAJ KODU', 'STOPAJ TUTARI', 'DÖNEMSELLÝK ÝLKESÝ',
+        'FAALÝYET KODU', 'ÖDEME TÜRÜ'
+    ]
         'KREDILI TUTAR', 'STOPAJ KODU', 'STOPAJ TUTARI', 'DONEMSELLIK ILKESI',
         'FAALIYET KODU', 'ODEME TURU'
     ]
