@@ -620,7 +620,7 @@ const DashboardPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {[1, 10, 20].map((rate) => (
+                  {[0, 1, 10, 20].map((rate) => (
                     <tr key={rate} className="border-b border-border/50">
                       <td className="p-3">
                         <span className="text-lg font-semibold text-primary">%{rate}</span>
