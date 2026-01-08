@@ -2988,9 +2988,6 @@ async def export_to_luca_csv(
         'KREDÝLÝ TUTAR', 'STOPAJ KODU', 'STOPAJ TUTARI', 'DÖNEMSELLÝK ÝLKESÝ',
         'FAALÝYET KODU', 'ÖDEME TÜRÜ'
     ]
-        'KREDILI TUTAR', 'STOPAJ KODU', 'STOPAJ TUTARI', 'DONEMSELLIK ILKESI',
-        'FAALIYET KODU', 'ODEME TURU'
-    ]
     
     # Create CSV in memory
     output = io.StringIO()
