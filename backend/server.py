@@ -1265,19 +1265,28 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 - Eğer tarih belirsizse, fişin saat bilgisinden veya bağlamdan çıkar
 - Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
 
-FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ):
+FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
 - E-faturalarda: GIB/EAR/CMA + yıl + sıra (örn: GIB2025000000050)
-- Akaryakıt/benzin istasyonu fişlerinde: Genellikle "FİŞ NO" veya "BELGE NO" etiketinin yanında
-- Market/restoran fişlerinde fiş numarasını şu etiketlerin yanında ara:
+
+AKARYAKIT/BENZİN İSTASYONU FİŞLERİ İÇİN:
+- Fiş numarası genellikle fişin ALT KISMINDA bulunur
+- "FİŞ NO:", "BELGE NO:", "Z NO:" etiketlerinin HEMEN YANINDA veya ALTINDA
+- Pompa numarası veya nozul numarası FİŞ NUMARASI DEĞİLDİR
+- Litre miktarı veya tutar FİŞ NUMARASI DEĞİLDİR
+- Fiş numarası genellikle 6-10 haneli sıralı bir sayıdır
+
+MARKET/RESTORAN FİŞLERİ İÇİN:
+- Şu etiketlerin yanındaki değeri al:
   * "FİŞ NO", "FİŞ NO:", "Fiş No", "FIS NO"
   * "Z NO", "Z RAPOR NO", "Z-NO"
   * "EKÜ NO", "EKÜ", "EKU NO"
   * "BELGE NO", "Belge No"
   * "SIRA NO", "Sıra No"
-- Fiş numarasını fişin ÜST KISMINDA veya ALT KISMINDA ara
-- Numara genellikle 4-10 haneli (örn: "0042", "3201", "00123456")
-- Masa no, sipariş no, ürün adedi DEĞİL - FİŞ/BELGE numarası olmalı
-- Fatura/fiş numarası ASLA BOŞ OLAMAZ - mutlaka bul!
+
+GENEL KURALLAR:
+- Fiş numarası ASLA BOŞ OLAMAZ - mutlaka bul!
+- Masa no, sipariş no, ürün adedi, pompa no FİŞ NUMARASI DEĞİL
+- Eğer birden fazla numara varsa, "FİŞ NO" veya "BELGE NO" etiketinin yanındakini seç
 
 VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
 - Vergi dairesi adını TAM yaz, kısaltma YAPMA
