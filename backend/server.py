@@ -2915,6 +2915,7 @@ def determine_belge_turu(invoice: dict) -> str:
     file_name = invoice.get('file_name', '').lower()
     description = invoice.get('description', '').lower()
     issuer_name = invoice.get('issuer_name', '').lower()
+    invoice_no = invoice.get('invoice_number', '')
     
     # Check file name for document type indicators
     if 'e-arsiv' in file_name or 'e-arşiv' in file_name or 'earsiv' in file_name or 'arsiv' in file_name:
@@ -2923,21 +2924,31 @@ def determine_belge_turu(invoice: dict) -> str:
         return 'e-Fatura'
     if 'e-bilet' in file_name or 'ebilet' in file_name:
         return 'e-Bilet'
+    if 'fis' in file_name or 'fiş' in file_name:
+        return 'Perakende Satis Fisi'
     
     # Check for gas station / fuel receipts
     gas_keywords = ['petrol', 'akaryakıt', 'benzin', 'motorin', 'lpg', 'opet', 'shell', 
                    'bp', 'total', 'po ', 'doco', 'lukoil', 'aytemiz', 'kadoil']
     if any(keyword in issuer_name for keyword in gas_keywords):
         return 'Perakende Satis Fisi'
-    if any(keyword in description for keyword in ['yakıt', 'benzin', 'motorin', 'akaryakıt']):
+    if any(keyword in description for keyword in ['yakıt', 'benzin', 'motorin', 'akaryakıt', 'satış', 'alışveriş']):
         return 'Perakende Satis Fisi'
     
     # Check for taxi/transport
     if 'taksi' in issuer_name or 'taksi' in description:
         return 'Yolcu Tasima Bileti'
     
-    # Default - AI should have determined this
-    return 'Diger'
+    # Short numeric invoice numbers are typically receipts
+    if invoice_no and len(invoice_no) <= 10 and invoice_no.replace('0', '').isdigit():
+        return 'Perakende Satis Fisi'
+    
+    # If no customer info, it's likely a receipt
+    if not invoice.get('customer_name') and not invoice.get('customer_tax_id'):
+        return 'Perakende Satis Fisi'
+    
+    # Default to Fatura if has customer info
+    return 'Fatura'
 
 def determine_kayit_alt_turu(invoice: dict, is_income: bool) -> str:
     """Determine sub-category for Luca"""
