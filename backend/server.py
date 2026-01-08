@@ -1362,13 +1362,20 @@ FORMAT KURALLARI:
   * "Diger" - hiçbirini bulamazsan
   
   DİKKAT: "e-Arşiv Fatura" ve "e-Fatura" FARKLI! Karıştırma!
-- amount: Net tutar (sayı)
-- vat: KDV tutarı (sayı, taksi için 0)
-- total: Toplam (sayı)
-- vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}] (taksi için vat_rate: 0)
+- amount: MATRAH (KDV hariç tutar) - Fişte "TOPLAM" - "TOPKDV" = Matrah. Örnek: TOPLAM 100, TOPKDV 16.67 ise amount = 83.33
+- vat: TOPKDV değeri (fişte "TOPKDV" yazan tutar)
+- total: TOPLAM değeri (fişte "TOPLAM" veya "NAKIT" yazan tutar)
+- vat_details: [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]
+
+TUTAR HESAPLAMA ÖRNEĞİ:
+- Fişte TOPLAM: 100,00 ve TOPKDV: 16,67 ise:
+  - total = 100.00
+  - vat = 16.67
+  - amount = 100.00 - 16.67 = 83.33
+  - vat_rate = 20
 
 JSON FORMAT:
-{"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", "document_type": "Perakende Satis Fisi", ...}]}"""
+{"invoices": [{"invoice_number": "0062", "date": "06/05/2024", "issuer_name": "GÜZEL ENERJİ AKARYAKIT A.Ş.", "issuer_tax_office": "B. MÜKELLEFLER", "description": "Akaryakıt Alımı", "document_type": "Perakende Satis Fisi", "amount": 83.33, "vat": 16.67, "total": 100.00, "vat_details": [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]}]}"""
     
     message = UserMessage(
         text=prompt,
