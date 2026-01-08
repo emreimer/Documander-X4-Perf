@@ -1112,33 +1112,34 @@ async def _extract_from_text(chat, text: str) -> list:
     """Helper function to extract invoice data from PDF text"""
     from emergentintegrations.llm.chat import UserMessage
     
-    prompt = f"""Bu metin bir fatura veya fişten çıkarılmıştır. Fatura bilgilerini çıkar.
+    prompt = f"""Bu metin bir e-fatura PDF'inden çıkarılmıştır. Fatura bilgilerini DİKKATLİCE çıkar.
 
 FATURA METNİ:
 {text}
 
-ÖNEMLİ KURALLAR:
-- Fatura numarası genellikle "GIB" ile başlar ve 16 haneli olur (örn: GIB2025000000050)
-- Fatura numarasında sadece harf ve rakam bulunur, özel karakter OLMAZ
-- Vergi numaraları sadece rakamdan oluşur (TCKN 11 hane, VKN 10 hane)
+FATURA NUMARASI BULMA KURALLARI (ÇOK ÖNEMLİ):
+1. "ETTN" veya "Fatura No" veya "Belge No" etiketinin yanındaki değeri bul
+2. GIB ile başlayan 16 haneli numara fatura numarasıdır (örn: GIB2025000000051)
+3. Eğer birden fazla numara varsa, GIB ile başlayanı tercih et
+4. Metinde tam olarak yazan değeri kullan, tahmin yapma
 
-Her fatura için şu bilgileri çıkar:
-- invoice_number: Fatura/fiş numarası (özel karakter OLMADAN)
+Çıkarılacak bilgiler:
+- invoice_number: ETTN veya Fatura No değeri (GIB ile başlayan 16 haneli numara)
 - date: Fatura tarihi (GG/AA/YYYY formatında)
-- issuer_name: Faturayı düzenleyen firma/kişi adı
-- issuer_tax_id: Vergi kimlik numarası (sadece rakam)
-- issuer_tax_office: Vergi dairesi (SADECE isim, BÜYÜK HARFLERLE)
-- customer_name: Müşteri adı (varsa)
-- customer_tax_id: Müşteri vergi numarası (varsa)
-- customer_tax_office: Müşteri vergi dairesi (varsa)
-- description: Fatura içeriğinin KISA özeti (3-5 kelime)
-- amount: Net tutar (sadece sayı)
-- vat: KDV tutarı (sadece sayı)
-- total: Toplam tutar (sadece sayı)
-- vat_details: KDV detayları listesi
+- issuer_name: Satıcı/düzenleyen firma adı
+- issuer_tax_id: Satıcı vergi numarası (10-11 haneli rakam)
+- issuer_tax_office: Satıcı vergi dairesi (BÜYÜK HARFLERLE)
+- customer_name: Alıcı/müşteri adı
+- customer_tax_id: Alıcı vergi numarası
+- customer_tax_office: Alıcı vergi dairesi
+- description: Mal/hizmet açıklaması (3-5 kelime özet)
+- amount: Mal Hizmet Toplam Tutarı (KDV hariç)
+- vat: Hesaplanan KDV tutarı
+- total: Ödenecek Tutar (KDV dahil)
+- vat_details: KDV oranları ve tutarları listesi
 
 SADECE JSON formatında yanıt ver:
-{{"invoices": [{{"invoice_number": "...", "date": "...", ...}}]}}"""
+{{"invoices": [{{"invoice_number": "GIB...", "date": "...", ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
