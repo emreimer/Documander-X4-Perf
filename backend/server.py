@@ -1273,14 +1273,14 @@ FORMAT KURALLARI:
 - customer_name: Müşteri adı (BÜYÜK HARF, yoksa boş)
 - customer_tax_id: Müşteri VKN (yoksa boş)
 - customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
-- description: İçerik özeti (küçük harf, 3-5 kelime, örn: "market alışverişi", "mum satışı")
+- description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
 - amount: Net tutar (sayı)
 - vat: KDV tutarı (sayı)
 - total: Toplam (sayı)
 - vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}]
 
 JSON FORMAT:
-{"invoices": [{"invoice_number": "...", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "market alışverişi", ...}]}"""
+{"invoices": [{"invoice_number": "...", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", ...}]}"""
     
     message = UserMessage(
         text=prompt,
