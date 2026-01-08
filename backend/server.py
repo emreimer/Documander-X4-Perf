@@ -1300,7 +1300,9 @@ async def upload_invoice(
             if mime_type == 'image/jpg':
                 mime_type = 'image/jpeg'
             
+            logger.info(f"Processing file: {file.filename}, mime: {mime_type}")
             ai_result = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
+            logger.info(f"AI result type: {type(ai_result)}, content: {str(ai_result)[:500]}")
             
             # Handle error responses
             if isinstance(ai_result, dict) and "error" in ai_result:
@@ -1314,6 +1316,8 @@ async def upload_invoice(
                 extracted_invoices = ai_result
             else:
                 extracted_invoices = [ai_result] if ai_result else []
+            
+            logger.info(f"Extracted {len(extracted_invoices)} invoices from {file.filename}")
             
             if not extracted_invoices:
                 errors.append(f"{file.filename}: Fatura verisi çıkarılamadı")
