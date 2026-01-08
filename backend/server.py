@@ -1187,14 +1187,14 @@ vat_details içinde her KDV oranı için:
 - customer_name: Alıcı adı (BÜYÜK HARF)
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
-- description: Mal/hizmet açıklaması (3-5 kelime)
+- description: Mal/hizmet açıklaması (küçük harf, 3-5 kelime, örn: "mum satışı", "ofis malzemesi")
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI
 - total: Ödenecek Tutar - SADECE SAYI
 - vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
 JSON FORMATI:
-{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
+{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "mum satışı", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
