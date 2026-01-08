@@ -845,11 +845,17 @@ const DashboardPage = () => {
         return invoice.document_type;
       }
       
+      // Fallback to invoice number prefix based detection
+      const invoiceNo = (invoice.invoice_number || '').toUpperCase();
+      const eArsivPrefixes = ['GIB', 'EAR', 'AEN', 'CMA', 'EAF', 'EFA', 'GBS'];
+      if (eArsivPrefixes.some(prefix => invoiceNo.startsWith(prefix))) {
+        return 'e-Arşiv Fatura';
+      }
+      
       // Fallback to file name based detection
       const fileName = (invoice.file_name || '').toLowerCase();
-      const invoiceNo = invoice.invoice_number || '';
       
-      if (fileName.includes('e-arsiv') || fileName.includes('e-arşiv') || invoiceNo.startsWith('GIB') || invoiceNo.startsWith('EAR')) {
+      if (fileName.includes('e-arsiv') || fileName.includes('e-arşiv') || fileName.includes('earsiv')) {
         return 'e-Arşiv Fatura';
       }
       if (fileName.includes('e-fatura')) return 'e-Fatura';
