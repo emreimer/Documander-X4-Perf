@@ -149,7 +149,6 @@ class Invoice(BaseModel):
     total: float
     file_name: str
     file_type: str
-    document_type: Optional[str] = ""  # e-Arsiv Fatura, Perakende Satis Fisi, etc.
     # KDV detayları
     vat_details: Optional[List[dict]] = []  # List of VatDetail dicts
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -1200,39 +1199,18 @@ vat_details içinde her KDV oranı için:
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
-- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - DİKKATLİ OKU):
-  Evrakın başlığında/üstünde belge türü MUTLAKA yazılıdır. Bunu bul:
-  
-  * "e-Arsiv Fatura" - eğer evrakta şunlardan BİRİ yazıyorsa:
-    - "e-Arşiv Fatura"
-    - "e-ARŞİV FATURA" 
-    - "E-ARŞİV"
-    - "e-Arşiv"
-    NOT: "e-Fatura" YAZMIYORSA ve "Arşiv" kelimesi varsa bu e-Arşiv'dir!
-    
-  * "e-Fatura" - SADECE evrakta "e-Fatura" veya "E-FATURA" yazıyorsa (Arşiv kelimesi OLMADAN)
-  
-  * "Fatura" - sadece "FATURA" yazıyorsa (ne e-Arşiv ne de e-Fatura DEĞİLSE)
-  
-  * "Perakende Satis Fisi" - eğer "Perakende Satış Fişi" veya "FİŞ" yazıyorsa
-  
+- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - METİNDE MUTLAKA YAZIYORDUR):
+  Metnin içinde belge türü yazılıdır. Bunu bul ve aşağıdakilerden birini seç:
+  * "e-Arsiv Fatura" - eğer metinde "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" geçiyorsa
+  * "e-Fatura" - eğer metinde "e-Fatura", "E-FATURA" geçiyorsa
+  * "Fatura" - eğer metinde sadece "FATURA" geçiyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
+  * "Perakende Satis Fisi" - eğer metinde "Perakende Satış Fişi", "FİŞ" geçiyorsa
   * "Diger" - hiçbirini bulamazsan
-  
-  ÖNEMLİ: "e-Arşiv Fatura" ve "e-Fatura" FARKLI şeylerdir! Dikkatli oku!
-
-TUTAR KURALLARI (FİŞLER İÇİN):
-- Fişte "TOPLAM" ve "TOPKDV" değerlerini bul
-- total = TOPLAM değeri (fişte yazan son tutar)
-- vat = TOPKDV değeri
-- amount = TOPLAM - TOPKDV (matrah hesapla)
-- Örnek: TOPLAM: 100,00 ve TOPKDV: 16,67 ise → total=100, vat=16.67, amount=83.33
-
-TUTAR KURALLARI (E-FATURALAR İÇİN):
-- amount = "Mal Hizmet Toplam Tutarı" (KDV hariç matrah)
-- vat = "Hesaplanan KDV" 
-- total = "Ödenecek Tutar"
-
-- vat_details: [{{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}}]
+  NOT: Fatura numarasına bakma, METİNDE YAZAN TÜRE BAK!
+- amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
+- vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
+- total: Ödenecek Tutar - SADECE SAYI
+- vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
 JSON FORMATI:
 {{"invoices": [{{"invoice_number": "AEN2025000036776", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "document_type": "e-Arsiv Fatura", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
@@ -1298,27 +1276,25 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
 
 TÜRKİYE STANDART FİŞ FORMATI:
-1. Fişin ALT KISMINDA "FİŞ NO" veya "FİŞ NO:" yazısını BUL
-2. "FİŞ NO" yazısının HEMEN SAĞINDA yazan sayı FİŞ NUMARASIDIR
-3. Bu sayı genellikle 4-8 haneli olur (örn: 3489, 003201, 00003489)
-4. Başka hiçbir yere bakma, SADECE "FİŞ NO" etiketinin yanındaki sayıyı al!
+- Fişte "FİŞ NO" veya "FİŞ NO:" yazısını BUL
+- "FİŞ NO" yazısının HEMEN YANINDA (sağında) yazan sayı FİŞ NUMARASIDIR
+- Başka hiçbir yere bakma, SADECE "FİŞ NO" etiketinin yanına bak!
+- Örnek: "FİŞ NO : 000003201" → fiş numarası "000003201"
+- Örnek: "FİŞ NO:3489" → fiş numarası "3489"
 
-ÖRNEKLER:
-- "FİŞ NO : 003489" → fiş numarası "003489"
-- "FİŞ NO:3489" → fiş numarası "3489"  
-- "FİŞ NO : 000003201" → fiş numarası "000003201"
-- "FİŞ NO:62" → fiş numarası "62"
-
-AKARYAKIT FİŞLERİNDE DİKKAT:
-- Pompa numarası (1, 2, 3, 4) FİŞ NUMARASI DEĞİL
-- Nozul numarası FİŞ NUMARASI DEĞİL
-- Litre miktarı (45.23) FİŞ NUMARASI DEĞİL
-- "FİŞ NO" yazısının yanındaki sayıyı al, başka sayıları ALMA!
+DİKKAT - BUNLAR FİŞ NUMARASI DEĞİL:
+- Pompa numarası (genelde 1, 2, 3, 4 gibi tek haneli)
+- Nozul numarası
+- Litre miktarı
+- Ürün kodu veya PLU
+- Masa numarası
+- Tarih veya saat
+- SADECE "FİŞ NO" yazısının yanındaki sayı fiş numarasıdır!
 
 E-FATURALARDA:
 - "ETTN" veya "Belge No" etiketinin yanındaki değer
 
-KURAL: "FİŞ NO" yazısını bul, HEMEN yanındaki sayıyı al!
+KURAL: Fiş numarası ASLA BOŞ OLAMAZ - "FİŞ NO" yaz yanındaki sayıyı al!
 
 VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
 - Vergi dairesi adını TAM yaz, kısaltma YAPMA
@@ -1349,43 +1325,23 @@ FORMAT KURALLARI:
 - customer_tax_id: Müşteri VKN (yoksa boş)
 - customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
 - description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
-- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - DİKKATLİ OKU):
-  Evrakın başlığında/üstünde belge türü MUTLAKA yazılıdır:
-  
-  * "e-Arsiv Fatura" - eğer evrakta şunlardan BİRİ yazıyorsa:
-    - "e-Arşiv Fatura"
-    - "e-ARŞİV FATURA"
-    - "E-ARŞİV"
-    - "e-Arşiv"
-    NOT: "Arşiv" kelimesi varsa bu e-Arşiv'dir, e-Fatura DEĞİL!
-    
-  * "e-Fatura" - SADECE evrakta "e-Fatura" yazıyorsa (Arşiv kelimesi OLMADAN)
-  
-  * "e-Bilet" - eğer "e-Bilet" yazıyorsa
-  
-  * "Fatura" - sadece "FATURA" yazıyorsa (ne e-Arşiv ne de e-Fatura DEĞİLSE)
-  
-  * "Perakende Satis Fisi" - eğer "Perakende Satış Fişi" veya "FİŞ" yazıyorsa
-  
-  * "Yolcu Tasima Bileti" - taksi fişi ise
-  
+- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - EVRAKIN İÇİNDE MUTLAKA YAZIYORDUR):
+  Evrakın üst kısmında veya başlık bölümünde belge türü yazılıdır. Bunu oku ve aşağıdakilerden birini seç:
+  * "e-Arsiv Fatura" - eğer evrakta "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" yazıyorsa
+  * "e-Fatura" - eğer evrakta "e-Fatura", "E-FATURA" yazıyorsa
+  * "e-Bilet" - eğer evrakta "e-Bilet" yazıyorsa
+  * "Fatura" - eğer evrakta sadece "FATURA" yazıyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
+  * "Perakende Satis Fisi" - eğer evrakta "Perakende Satış Fişi", "FİŞ", "SATIŞ FİŞİ" yazıyorsa
+  * "Yolcu Tasima Bileti" - eğer taksi fişi ise
   * "Diger" - hiçbirini bulamazsan
-  
-  DİKKAT: "e-Arşiv Fatura" ve "e-Fatura" FARKLI! Karıştırma!
-- amount: MATRAH (KDV hariç tutar) - Fişte "TOPLAM" - "TOPKDV" = Matrah. Örnek: TOPLAM 100, TOPKDV 16.67 ise amount = 83.33
-- vat: TOPKDV değeri (fişte "TOPKDV" yazan tutar)
-- total: TOPLAM değeri (fişte "TOPLAM" veya "NAKIT" yazan tutar)
-- vat_details: [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]
-
-TUTAR HESAPLAMA ÖRNEĞİ:
-- Fişte TOPLAM: 100,00 ve TOPKDV: 16,67 ise:
-  - total = 100.00
-  - vat = 16.67
-  - amount = 100.00 - 16.67 = 83.33
-  - vat_rate = 20
+  NOT: Fatura numarasına bakma, EVRAKIN İÇİNDE YAZAN TÜRE BAK!
+- amount: Net tutar (sayı)
+- vat: KDV tutarı (sayı, taksi için 0)
+- total: Toplam (sayı)
+- vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}] (taksi için vat_rate: 0)
 
 JSON FORMAT:
-{"invoices": [{"invoice_number": "0062", "date": "06/05/2024", "issuer_name": "GÜZEL ENERJİ AKARYAKIT A.Ş.", "issuer_tax_office": "B. MÜKELLEFLER", "description": "Akaryakıt Alımı", "document_type": "Perakende Satis Fisi", "amount": 83.33, "vat": 16.67, "total": 100.00, "vat_details": [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]}]}"""
+{"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", "document_type": "Perakende Satis Fisi", ...}]}"""
     
     message = UserMessage(
         text=prompt,
@@ -1616,7 +1572,6 @@ async def upload_invoice(
                     total=safe_float(extracted_data.get('total')),
                     file_name=file.filename,
                     file_type=file.content_type,
-                    document_type=extracted_data.get('document_type', '') or '',
                     vat_details=vat_details
                 )
                 
