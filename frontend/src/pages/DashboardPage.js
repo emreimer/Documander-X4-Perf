@@ -1397,10 +1397,16 @@ const DashboardPage = () => {
             </Button>
             
             {currentView === 'invoices' ? (
-              <Button onClick={showVatReport} disabled={!session} size="sm" className="rounded-none gap-1 text-xs bg-primary" data-testid="vat-report-button">
-                <FileText className="w-3 h-3" />
-                KDV Raporu
-              </Button>
+              <>
+                <Button onClick={showVatReport} disabled={!session} size="sm" className="rounded-none gap-1 text-xs bg-primary" data-testid="vat-report-button">
+                  <FileText className="w-3 h-3" />
+                  KDV Raporu
+                </Button>
+                <Button onClick={showLucaExport} disabled={!session} size="sm" className="rounded-none gap-1 text-xs bg-emerald-600 hover:bg-emerald-700" data-testid="luca-export-button">
+                  <Download className="w-3 h-3" />
+                  Luca Export
+                </Button>
+              </>
             ) : (
               <Button onClick={showInvoices} size="sm" className="rounded-none gap-1 text-xs" data-testid="invoices-button">
                 <ArrowLeft className="w-3 h-3" />
@@ -1422,6 +1428,8 @@ const DashboardPage = () => {
             <InvoiceTable invoices={incomeInvoices} type="income" />
             <InvoiceTable invoices={expenseInvoices} type="expense" />
           </>
+        ) : currentView === 'luca-export' ? (
+          <LucaExportView />
         ) : (
           <VatReportView />
         )}
