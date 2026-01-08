@@ -838,8 +838,14 @@ const DashboardPage = () => {
 
     const periodText = session ? `${session.year} ${MONTH_NAMES[session.month]}` : '';
 
-    // Helper function to determine belge türü
+    // Helper function to determine belge türü - use AI extracted value if available
     const getBelgeTuru = (invoice) => {
+      // First check if AI extracted document_type
+      if (invoice.document_type) {
+        return invoice.document_type;
+      }
+      
+      // Fallback to file name based detection
       const fileName = (invoice.file_name || '').toLowerCase();
       const invoiceNo = invoice.invoice_number || '';
       
