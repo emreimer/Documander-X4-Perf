@@ -1288,25 +1288,27 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
 
 TÜRKİYE STANDART FİŞ FORMATI:
-- Fişte "FİŞ NO" veya "FİŞ NO:" yazısını BUL
-- "FİŞ NO" yazısının HEMEN YANINDA (sağında) yazan sayı FİŞ NUMARASIDIR
-- Başka hiçbir yere bakma, SADECE "FİŞ NO" etiketinin yanına bak!
-- Örnek: "FİŞ NO : 000003201" → fiş numarası "000003201"
-- Örnek: "FİŞ NO:3489" → fiş numarası "3489"
+1. Fişin ALT KISMINDA "FİŞ NO" veya "FİŞ NO:" yazısını BUL
+2. "FİŞ NO" yazısının HEMEN SAĞINDA yazan sayı FİŞ NUMARASIDIR
+3. Bu sayı genellikle 4-8 haneli olur (örn: 3489, 003201, 00003489)
+4. Başka hiçbir yere bakma, SADECE "FİŞ NO" etiketinin yanındaki sayıyı al!
 
-DİKKAT - BUNLAR FİŞ NUMARASI DEĞİL:
-- Pompa numarası (genelde 1, 2, 3, 4 gibi tek haneli)
-- Nozul numarası
-- Litre miktarı
-- Ürün kodu veya PLU
-- Masa numarası
-- Tarih veya saat
-- SADECE "FİŞ NO" yazısının yanındaki sayı fiş numarasıdır!
+ÖRNEKLER:
+- "FİŞ NO : 003489" → fiş numarası "003489"
+- "FİŞ NO:3489" → fiş numarası "3489"  
+- "FİŞ NO : 000003201" → fiş numarası "000003201"
+- "FİŞ NO:62" → fiş numarası "62"
+
+AKARYAKIT FİŞLERİNDE DİKKAT:
+- Pompa numarası (1, 2, 3, 4) FİŞ NUMARASI DEĞİL
+- Nozul numarası FİŞ NUMARASI DEĞİL
+- Litre miktarı (45.23) FİŞ NUMARASI DEĞİL
+- "FİŞ NO" yazısının yanındaki sayıyı al, başka sayıları ALMA!
 
 E-FATURALARDA:
 - "ETTN" veya "Belge No" etiketinin yanındaki değer
 
-KURAL: Fiş numarası ASLA BOŞ OLAMAZ - "FİŞ NO" yaz yanındaki sayıyı al!
+KURAL: "FİŞ NO" yazısını bul, HEMEN yanındaki sayıyı al!
 
 VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
 - Vergi dairesi adını TAM yaz, kısaltma YAPMA
