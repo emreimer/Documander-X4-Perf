@@ -1295,29 +1295,30 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 - Eğer tarih belirsizse, fişin saat bilgisinden veya bağlamdan çıkar
 - Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
 
-FİŞ/FATURA NUMARASI KURALLARI (EN ÖNEMLİ KURAL):
+FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
 
-⚠️ SADECE "FİŞ NO" VEYA "FİŞ NO:" YAZISININ YANINDA YAZAN SAYIYI AL! ⚠️
+TÜRKİYE STANDART FİŞ FORMATI:
+1. Fişin ALT KISMINDA "FİŞ NO" veya "FİŞ NO:" yazısını BUL
+2. "FİŞ NO" yazısının HEMEN SAĞINDA yazan sayı FİŞ NUMARASIDIR
+3. Bu sayı genellikle 4-8 haneli olur (örn: 3489, 003201, 00003489)
+4. Başka hiçbir yere bakma, SADECE "FİŞ NO" etiketinin yanındaki sayıyı al!
 
-TÜRKİYE FİŞLERİNDE:
-- Fişte "FİŞ NO" veya "FİŞ NO:" kelimesini ara
-- Bu kelimenin HEMEN SAĞINDA yazan sayı fiş numarasıdır
-- Genellikle 4 haneli: 0062, 0063, 0007 gibi
+ÖRNEKLER:
+- "FİŞ NO : 003489" → fiş numarası "003489"
+- "FİŞ NO:3489" → fiş numarası "3489"  
+- "FİŞ NO : 000003201" → fiş numarası "000003201"
+- "FİŞ NO:62" → fiş numarası "62"
 
-ÖRNEK:
-"FİŞ NO: 0062" → invoice_number = "0062" ✓
-"FİŞ NO: 0063" → invoice_number = "0063" ✓
-
-❌ YANLIŞ NUMARALAR - BUNLARI ALMA:
-- AFAU: 0000002540 ← BU FİŞ NO DEĞİL, ALMA!
-- Z NO: 0608 ← BU FİŞ NO DEĞİL, ALMA!
-- EKU NO ← BU FİŞ NO DEĞİL, ALMA!
-- Pompa, Nozul, Vergi No ← BUNLAR FİŞ NO DEĞİL!
-
-"FİŞ NO" kelimesini bul → yanındaki sayıyı al → başka sayıları ALMA!
+AKARYAKIT FİŞLERİNDE DİKKAT:
+- Pompa numarası (1, 2, 3, 4) FİŞ NUMARASI DEĞİL
+- Nozul numarası FİŞ NUMARASI DEĞİL
+- Litre miktarı (45.23) FİŞ NUMARASI DEĞİL
+- "FİŞ NO" yazısının yanındaki sayıyı al, başka sayıları ALMA!
 
 E-FATURALARDA:
-- "ETTN" veya "Belge No" yanındaki değer
+- "ETTN" veya "Belge No" etiketinin yanındaki değer
+
+KURAL: "FİŞ NO" yazısını bul, HEMEN yanındaki sayıyı al!
 
 VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
 - Vergi dairesi adını TAM yaz, kısaltma YAPMA
@@ -1371,19 +1372,17 @@ FORMAT KURALLARI:
   * "Diger" - hiçbirini bulamazsan
   
   DİKKAT: "e-Arşiv Fatura" ve "e-Fatura" FARKLI! Karıştırma!
-- amount: MATRAH (KDV hariç tutar) = TOPLAM - TOPKDV. Örnek: TOPLAM 100, TOPKDV 16.67 → amount = 100 - 16.67 = 83.33
-- vat: TOPKDV değeri (KDV tutarı)
-- total: TOPLAM değeri (fişte yazan son tutar, KDV DAHİL)
+- amount: MATRAH (KDV hariç tutar) - Fişte "TOPLAM" - "TOPKDV" = Matrah. Örnek: TOPLAM 100, TOPKDV 16.67 ise amount = 83.33
+- vat: TOPKDV değeri (fişte "TOPKDV" yazan tutar)
+- total: TOPLAM değeri (fişte "TOPLAM" veya "NAKIT" yazan tutar)
 - vat_details: [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]
 
-⚠️ TUTAR HESAPLAMA - DİKKATLİ OKU:
-Fişte TOPLAM: 100,00 TL ve TOPKDV: 16,67 TL yazıyorsa:
-- total = 100.00 (TOPLAM değeri olduğu gibi)
-- vat = 16.67 (TOPKDV değeri olduğu gibi)
-- amount = 100.00 - 16.67 = 83.33 (TOPLAM eksi TOPKDV)
-
-❌ YANLIŞ: amount=100, total=116.67
-✓ DOĞRU: amount=83.33, vat=16.67, total=100.00
+TUTAR HESAPLAMA ÖRNEĞİ:
+- Fişte TOPLAM: 100,00 ve TOPKDV: 16,67 ise:
+  - total = 100.00
+  - vat = 16.67
+  - amount = 100.00 - 16.67 = 83.33
+  - vat_rate = 20
 
 JSON FORMAT:
 {"invoices": [{"invoice_number": "0062", "date": "06/05/2024", "issuer_name": "GÜZEL ENERJİ AKARYAKIT A.Ş.", "issuer_tax_office": "B. MÜKELLEFLER", "description": "Akaryakıt Alımı", "document_type": "Perakende Satis Fisi", "amount": 83.33, "vat": 16.67, "total": 100.00, "vat_details": [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]}]}"""
