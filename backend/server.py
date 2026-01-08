@@ -3009,14 +3009,16 @@ async def export_to_luca_csv(
         seri_no = ''
         evrak_no = remove_turkish_chars(invoice.get('invoice_number', ''))
         tckn_vkn = invoice.get('issuer_tax_id', '') if not is_income else invoice.get('customer_tax_id', '')
-        vergi_dairesi = remove_turkish_chars(invoice.get('issuer_tax_office', '') if not is_income else invoice.get('customer_tax_office', ''))
-        soyadi_unvan = remove_turkish_chars(invoice.get('issuer_name', '') if not is_income else invoice.get('customer_name', ''))
+        # Leave these empty - Luca will auto-fill them
+        vergi_dairesi = ''
+        soyadi_unvan = ''
         adi_devami = ''
         adres = ''
         cari_hesap = ''
         kdv_istisnasi = ''
         kod = ''
-        belge_turu_db = determine_belge_turu(invoice)
+        # Get document type from AI extraction or determine it
+        belge_turu_db = invoice.get('document_type', '') or determine_belge_turu(invoice)
         alis_satis_turu = 'Normal Satislar' if is_income else 'Normal Alim'
         kayit_alt_turu = determine_kayit_alt_turu(invoice, is_income)
         mal_hizmet_kodu = ''
