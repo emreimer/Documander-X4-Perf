@@ -1199,10 +1199,10 @@ vat_details içinde her KDV oranı için:
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
-- document_type: Belge türü - evrakın başlığında yazan türü seç:
-  * "e-Arsiv Fatura" - eğer "e-Arşiv Fatura" yazıyorsa
-  * "e-Fatura" - eğer "e-Fatura" yazıyorsa  
-  * "Fatura" - eğer sadece "Fatura" yazıyorsa
+- document_type: Belge türü - METİNDE "e-Arşiv Fatura" veya "e-ARŞİV FATURA" yazıyorsa "e-Arsiv Fatura" seç:
+  * "e-Arsiv Fatura" - eğer metinde "e-Arşiv Fatura" veya "e-ARŞİV" geçiyorsa (AEN/CMA/GIB/EAR numaralı belgeler genelde e-Arşiv'dir)
+  * "e-Fatura" - eğer metinde "e-Fatura" geçiyorsa  
+  * "Fatura" - eğer sadece "Fatura" yazıyorsa ve e-Arşiv DEĞİLSE
   * "Perakende Satis Fisi" - eğer fiş ise
   * "Diger" - tanımlayamazsan
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
@@ -1211,7 +1211,7 @@ vat_details içinde her KDV oranı için:
 - vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
 JSON FORMATI:
-{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "document_type": "e-Arsiv Fatura", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
+{{"invoices": [{{"invoice_number": "AEN2025000036776", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "document_type": "e-Arsiv Fatura", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
