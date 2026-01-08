@@ -1320,14 +1320,16 @@ FORMAT KURALLARI:
 - customer_tax_id: Müşteri VKN (yoksa boş)
 - customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
 - description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
-- document_type: Belge türü - EVRAKIN BAŞLIĞINDA/ÜSTÜNDEKİ YAZIYI OKU ve şunlardan birini seç:
-  * "e-Arsiv Fatura" - eğer belgede "e-Arşiv Fatura" veya "e-ARŞİV FATURA" yazıyorsa (GIB/EAR/AEN/CMA ile başlayan numaralar genelde e-Arşiv'dir)
-  * "e-Fatura" - eğer belgede "e-Fatura" yazıyorsa
-  * "e-Bilet" - eğer belgede "e-Bilet" yazıyorsa
-  * "Fatura" - eğer sadece "Fatura" yazıyorsa (e-Arşiv DEĞİLSE)
-  * "Perakende Satis Fisi" - eğer "Perakende Satış Fişi" veya kısa fiş ise
-  * "Yolcu Tasima Bileti" - eğer taksi/ulaşım fişi ise
-  * "Diger" - tanımlayamazsan
+- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - EVRAKIN İÇİNDE MUTLAKA YAZIYORDUR):
+  Evrakın üst kısmında veya başlık bölümünde belge türü yazılıdır. Bunu oku ve aşağıdakilerden birini seç:
+  * "e-Arsiv Fatura" - eğer evrakta "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" yazıyorsa
+  * "e-Fatura" - eğer evrakta "e-Fatura", "E-FATURA" yazıyorsa
+  * "e-Bilet" - eğer evrakta "e-Bilet" yazıyorsa
+  * "Fatura" - eğer evrakta sadece "FATURA" yazıyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
+  * "Perakende Satis Fisi" - eğer evrakta "Perakende Satış Fişi", "FİŞ", "SATIŞ FİŞİ" yazıyorsa
+  * "Yolcu Tasima Bileti" - eğer taksi fişi ise
+  * "Diger" - hiçbirini bulamazsan
+  NOT: Fatura numarasına bakma, EVRAKIN İÇİNDE YAZAN TÜRE BAK!
 - amount: Net tutar (sayı)
 - vat: KDV tutarı (sayı, taksi için 0)
 - total: Toplam (sayı)
