@@ -1261,7 +1261,7 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 - Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
 
 FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ):
-- E-faturalarda: GIB ile başlayan 16 karakter (örn: GIB2025000000050)
+- E-faturalarda: GIB/EAR/CMA + yıl + sıra (örn: GIB2025000000050)
 - Market/restoran fişlerinde fiş numarasını şu etiketlerin yanında ara:
   * "FİŞ NO", "FİŞ NO:", "Fiş No"
   * "Z NO", "Z RAPOR NO"
@@ -1270,7 +1270,13 @@ FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ):
   * "İRSALİYE NO"
 - Fiş numarası genellikle 4-10 haneli bir sayıdır (örn: "0042", "1234", "00123456")
 - Masa numarası veya sipariş numarası DEĞİL, FİŞ numarası olmalı
-- Eğer "FİŞ NO" etiketi yoksa, fişin üst kısmındaki sıra numarasını al
+- Fatura/fiş numarası ASLA BOŞ OLAMAZ - mutlaka bul!
+
+KDV KURALLARI (ÇOK ÖNEMLİ):
+- TAKSİ fişlerinde KDV YOKTUR - vat=0, vat_rate=0 olmalı
+- Ulaşım hizmetlerinde (taksi, dolmuş, otobüs) genellikle KDV yok
+- KDV oranları: %0, %1, %10, %20
+- Fişte KDV ayrıca belirtilmemişse ve taksi/ulaşım ise KDV=0 kabul et
 
 FORMAT KURALLARI:
 - issuer_name ve customer_name: TAMAMI BÜYÜK HARF
