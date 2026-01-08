@@ -2935,10 +2935,6 @@ def determine_belge_turu(invoice: dict) -> str:
     
     # Default - AI should have determined this
     return 'Diger'
-        return 'Fatura'
-    
-    # Default to receipt for expense items without customer info
-    return 'Perakende Satis Fisi'
 
 def determine_kayit_alt_turu(invoice: dict, is_income: bool) -> str:
     """Determine sub-category for Luca"""
