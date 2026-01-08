@@ -1171,12 +1171,17 @@ KDV KURALLARI (ÇOK ÖNEMLİ):
 - KDV oranları: %0, %1, %10, %20
 - Fişte KDV ayrıca belirtilmemişse ve taksi/ulaşım ise KDV=0 kabul et
 
+VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
+- Vergi dairesi adını TAM yaz, kısaltma YAPMA
+- "ANADOLU KURUMLAR VERGİ DAİRESİ" → "ANADOLU KURUMLAR"
+- "KADIKÖY VERGİ DAİRESİ MÜD." → "KADIKÖY"
+- Sadece sondaki "V.D.", "VERGİ DAİRESİ", "MÜD." eklerini kaldır
+- Vergi dairesi adının kendisini kısaltma (ANADOLU KURUM değil, ANADOLU KURUMLAR)
+
 FORMAT KURALLARI (ÇOK ÖNEMLİ):
 - issuer_name ve customer_name: TAMAMI BÜYÜK HARF (örn: "EMRE İMER", "ZUHAL DIŞ TİCARET A.Ş.")
-- issuer_tax_office ve customer_tax_office: SADECE KISA İSİM, BÜYÜK HARF
-  - "Erenköy Vergi Dairesi Müd." → "ERENKÖY"
-  - "MARMARA KURUMLAR VERGİ DAİRESİ" → "MARMARA KURUMLAR"
-  - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
+- issuer_tax_office ve customer_tax_office: TAM İSİM, BÜYÜK HARF
+  - Sadece sondaki "V.D.", "VERGİ DAİRESİ", "MÜD." eklerini kaldır
 
 KDV DETAYLARI FORMATI:
 vat_details içinde her KDV oranı için:
@@ -1189,10 +1194,10 @@ vat_details içinde her KDV oranı için:
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Satıcı adı (BÜYÜK HARF)
 - issuer_tax_id: Satıcı VKN/TCKN (10-11 haneli SADECE rakam)
-- issuer_tax_office: Satıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
+- issuer_tax_office: Satıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - customer_name: Alıcı adı (BÜYÜK HARF)
 - customer_tax_id: Alıcı VKN/TCKN
-- customer_tax_office: Alıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
+- customer_tax_office: Alıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
