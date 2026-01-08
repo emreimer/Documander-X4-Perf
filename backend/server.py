@@ -1108,38 +1108,54 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
         logger.error(f"AI extraction error: {e}")
         return {"error": str(e)}
 
-async def _extract_from_text(chat, text: str) -> list:
+async def _extract_from_text(chat, text: str, filename: str = "") -> list:
     """Helper function to extract invoice data from PDF text"""
     from emergentintegrations.llm.chat import UserMessage
     
-    prompt = f"""Bu metin bir e-fatura PDF'inden çıkarılmıştır. Fatura bilgilerini DİKKATLİCE çıkar.
+    # Extract potential invoice number from filename as hint
+    filename_hint = ""
+    if filename:
+        import re
+        gib_match = re.search(r'GIB\d{13}', filename)
+        if gib_match:
+            filename_hint = f"\nDosya adında fatura numarası ipucu: {gib_match.group()}"
+    
+    prompt = f"""Bu metin bir Türk e-fatura PDF'inden çıkarılmıştır. Fatura bilgilerini DİKKATLİCE çıkar.
+{filename_hint}
 
 FATURA METNİ:
 {text}
 
 FATURA NUMARASI BULMA KURALLARI (ÇOK ÖNEMLİ):
-1. "ETTN" veya "Fatura No" veya "Belge No" etiketinin yanındaki değeri bul
-2. GIB ile başlayan 16 haneli numara fatura numarasıdır (örn: GIB2025000000051)
-3. Eğer birden fazla numara varsa, GIB ile başlayanı tercih et
-4. Metinde tam olarak yazan değeri kullan, tahmin yapma
+1. Metinde "ETTN" veya "Belge No" veya "Fatura No" kelimesini ara
+2. Bu etiketin yanında veya altında GIB ile başlayan 16 karakterlik numara var (örn: GIB2025000000051)
+3. Format: GIB + YIL(4) + SIRA(9) = 16 karakter
+4. UUID formatında (xxxxxxxx-xxxx-...) numara KULLANMA, bu fatura numarası DEĞİL
+5. Eğer metinde GIB numarası bulamazsan ve dosya adında varsa, dosya adındakini kullan
+
+KDV DETAYLARI FORMATI (ÖNEMLİ):
+vat_details içinde her KDV oranı için:
+- vat_rate: KDV oranı SADECE SAYI (1, 10 veya 20 - % işareti OLMADAN)
+- base_amount: Matrah tutarı SADECE SAYI
+- vat_amount: KDV tutarı SADECE SAYI
 
 Çıkarılacak bilgiler:
-- invoice_number: ETTN veya Fatura No değeri (GIB ile başlayan 16 haneli numara)
+- invoice_number: GIB ile başlayan 16 karakterlik fatura numarası
 - date: Fatura tarihi (GG/AA/YYYY formatında)
-- issuer_name: Satıcı/düzenleyen firma adı
-- issuer_tax_id: Satıcı vergi numarası (10-11 haneli rakam)
-- issuer_tax_office: Satıcı vergi dairesi (BÜYÜK HARFLERLE)
-- customer_name: Alıcı/müşteri adı
-- customer_tax_id: Alıcı vergi numarası
+- issuer_name: Satıcı firma adı (TCKN sahibi veya şirket)
+- issuer_tax_id: Satıcı VKN/TCKN (10-11 haneli SADECE rakam)
+- issuer_tax_office: Satıcı vergi dairesi (BÜYÜK HARF, "VERGİ DAİRESİ" eklemeden)
+- customer_name: Alıcı firma/kişi adı
+- customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi
-- description: Mal/hizmet açıklaması (3-5 kelime özet)
-- amount: Mal Hizmet Toplam Tutarı (KDV hariç)
-- vat: Hesaplanan KDV tutarı
-- total: Ödenecek Tutar (KDV dahil)
-- vat_details: KDV oranları ve tutarları listesi
+- description: Mal/hizmet açıklaması (3-5 kelime)
+- amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
+- vat: Toplam KDV tutarı - SADECE SAYI
+- total: Ödenecek Tutar - SADECE SAYI
+- vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
-SADECE JSON formatında yanıt ver:
-{{"invoices": [{{"invoice_number": "GIB...", "date": "...", ...}}]}}"""
+JSON FORMATI:
+{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
