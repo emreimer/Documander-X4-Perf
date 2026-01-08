@@ -1187,7 +1187,7 @@ vat_details içinde her KDV oranı için:
 - customer_name: Alıcı adı (BÜYÜK HARF)
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
-- description: Mal/hizmet açıklaması (küçük harf, 3-5 kelime, örn: "mum satışı", "ofis malzemesi")
+- description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI
 - total: Ödenecek Tutar - SADECE SAYI
