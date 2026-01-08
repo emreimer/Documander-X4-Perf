@@ -1159,11 +1159,17 @@ FATURA METNİ:
 {text}
 
 FATURA NUMARASI BULMA KURALLARI (ÇOK ÖNEMLİ):
-1. Metinde "ETTN" veya "Belge No" veya "Fatura No" kelimesini ara
-2. Bu etiketin yanında veya altında GIB ile başlayan 16 karakterlik numara var (örn: GIB2025000000051)
-3. Format: GIB + YIL(4) + SIRA(9) = 16 karakter
-4. UUID formatında (xxxxxxxx-xxxx-...) numara KULLANMA, bu fatura numarası DEĞİL
-5. Eğer metinde GIB numarası bulamazsan ve dosya adında varsa, dosya adındakini kullan
+1. E-faturalarda: "ETTN", "Belge No", "Fatura No" etiketinin yanındaki değer
+2. GIB/EAR/CMA gibi 3 harf + yıl + sıra no formatı (örn: GIB2025000000051, EAR2025000000242)
+3. Eğer bu format yoksa, "Fatura No", "Belge No", "Seri-Sıra" gibi etiketlerin yanındaki değeri al
+4. UUID formatında (xxxxxxxx-xxxx-...) numara KULLANMA
+5. Fatura numarası ASLA BOŞ OLAMAZ - mutlaka bul!
+
+KDV KURALLARI (ÇOK ÖNEMLİ):
+- TAKSİ fişlerinde KDV YOKTUR - vat=0, vat_rate=0 olmalı
+- Ulaşım hizmetlerinde (taksi, dolmuş, otobüs) genellikle KDV yok
+- KDV oranları: %0, %1, %10, %20
+- Fişte KDV ayrıca belirtilmemişse ve taksi/ulaşım ise KDV=0 kabul et
 
 FORMAT KURALLARI (ÇOK ÖNEMLİ):
 - issuer_name ve customer_name: TAMAMI BÜYÜK HARF (örn: "EMRE İMER", "ZUHAL DIŞ TİCARET A.Ş.")
@@ -1174,12 +1180,12 @@ FORMAT KURALLARI (ÇOK ÖNEMLİ):
 
 KDV DETAYLARI FORMATI:
 vat_details içinde her KDV oranı için:
-- vat_rate: KDV oranı SADECE SAYI (1, 10 veya 20 - % işareti OLMADAN)
+- vat_rate: KDV oranı SADECE SAYI (0, 1, 10 veya 20 - % işareti OLMADAN)
 - base_amount: Matrah tutarı SADECE SAYI
 - vat_amount: KDV tutarı SADECE SAYI
 
 Çıkarılacak bilgiler:
-- invoice_number: GIB ile başlayan 16 karakterlik fatura numarası
+- invoice_number: Fatura numarası (ASLA BOŞ OLAMAZ - mutlaka bul!)
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Satıcı adı (BÜYÜK HARF)
 - issuer_tax_id: Satıcı VKN/TCKN (10-11 haneli SADECE rakam)
@@ -1189,7 +1195,7 @@ vat_details içinde her KDV oranı için:
 - customer_tax_office: Alıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
-- vat: Toplam KDV tutarı - SADECE SAYI
+- vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
 - total: Ödenecek Tutar - SADECE SAYI
 - vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
