@@ -2908,26 +2908,20 @@ def remove_turkish_chars(text: str) -> str:
     return text
 
 def determine_belge_turu(invoice: dict) -> str:
-    """Determine document type for Luca"""
+    """Determine document type for Luca - fallback if AI didn't extract it"""
     file_name = invoice.get('file_name', '').lower()
     description = invoice.get('description', '').lower()
     issuer_name = invoice.get('issuer_name', '').lower()
-    invoice_no = invoice.get('invoice_number', '').upper()
     
-    # Check for e-Arşiv - common prefixes: GIB, EAR, AEN, CMA, EAF, etc.
-    e_arsiv_prefixes = ['GIB', 'EAR', 'AEN', 'CMA', 'EAF', 'EFA', 'GBS']
-    if any(invoice_no.startswith(prefix) for prefix in e_arsiv_prefixes):
-        return 'e-Arsiv Fatura'
-    
-    # Check file name for e-Arşiv indicators
-    if 'e-arsiv' in file_name or 'e-arşiv' in file_name or 'earşiv' in file_name or 'earsiv' in file_name:
+    # Check file name for document type indicators
+    if 'e-arsiv' in file_name or 'e-arşiv' in file_name or 'earsiv' in file_name or 'arsiv' in file_name:
         return 'e-Arsiv Fatura'
     if 'e-fatura' in file_name or 'efatura' in file_name:
         return 'e-Fatura'
     if 'e-bilet' in file_name or 'ebilet' in file_name:
         return 'e-Bilet'
     
-    # Check for gas station / fuel receipts - these are always Perakende Satis Fisi
+    # Check for gas station / fuel receipts
     gas_keywords = ['petrol', 'akaryakıt', 'benzin', 'motorin', 'lpg', 'opet', 'shell', 
                    'bp', 'total', 'po ', 'doco', 'lukoil', 'aytemiz', 'kadoil']
     if any(keyword in issuer_name for keyword in gas_keywords):
@@ -2936,15 +2930,11 @@ def determine_belge_turu(invoice: dict) -> str:
         return 'Perakende Satis Fisi'
     
     # Check for taxi/transport
-    if 'taksi' in issuer_name or 'taksi' in description or 'ulaşım' in description:
+    if 'taksi' in issuer_name or 'taksi' in description:
         return 'Yolcu Tasima Bileti'
     
-    # Check for receipts (fiş) - short invoice numbers are usually receipts
-    if len(invoice_no) <= 10 and invoice_no.isdigit():
-        return 'Perakende Satis Fisi'
-    
-    # If has customer info, it's likely a proper invoice
-    if invoice.get('customer_name') and invoice.get('customer_tax_id'):
+    # Default - AI should have determined this
+    return 'Diger'
         return 'Fatura'
     
     # Default to receipt for expense items without customer info
