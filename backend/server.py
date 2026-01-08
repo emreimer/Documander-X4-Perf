@@ -1180,7 +1180,23 @@ JSON FORMATI:
         if not response_text:
             return {"error": "Empty response from LLM"}
         
-        data = json.loads(response_text)
+        # Try to fix common JSON issues
+        try:
+            data = json.loads(response_text)
+        except json.JSONDecodeError as je:
+            logger.warning(f"JSON parse error, trying to fix: {je}")
+            # Try to extract JSON from response
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response_text)
+            if json_match:
+                try:
+                    data = json.loads(json_match.group())
+                except:
+                    logger.error(f"Could not parse JSON even after extraction: {response_text[:500]}")
+                    return {"error": f"JSON parse error: {je}"}
+            else:
+                return {"error": f"JSON parse error: {je}"}
+        
         if "invoices" in data:
             return data["invoices"]
         return [data]
