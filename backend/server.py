@@ -1133,7 +1133,14 @@ FATURA NUMARASI BULMA KURALLARI (ÇOK ÖNEMLİ):
 4. UUID formatında (xxxxxxxx-xxxx-...) numara KULLANMA, bu fatura numarası DEĞİL
 5. Eğer metinde GIB numarası bulamazsan ve dosya adında varsa, dosya adındakini kullan
 
-KDV DETAYLARI FORMATI (ÖNEMLİ):
+FORMAT KURALLARI (ÇOK ÖNEMLİ):
+- issuer_name ve customer_name: TAMAMI BÜYÜK HARF (örn: "EMRE İMER", "ZUHAL DIŞ TİCARET A.Ş.")
+- issuer_tax_office ve customer_tax_office: SADECE KISA İSİM, BÜYÜK HARF
+  - "Erenköy Vergi Dairesi Müd." → "ERENKÖY"
+  - "MARMARA KURUMLAR VERGİ DAİRESİ" → "MARMARA KURUMLAR"
+  - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
+
+KDV DETAYLARI FORMATI:
 vat_details içinde her KDV oranı için:
 - vat_rate: KDV oranı SADECE SAYI (1, 10 veya 20 - % işareti OLMADAN)
 - base_amount: Matrah tutarı SADECE SAYI
@@ -1142,12 +1149,12 @@ vat_details içinde her KDV oranı için:
 Çıkarılacak bilgiler:
 - invoice_number: GIB ile başlayan 16 karakterlik fatura numarası
 - date: Fatura tarihi (GG/AA/YYYY formatında)
-- issuer_name: Satıcı firma adı (TCKN sahibi veya şirket)
+- issuer_name: Satıcı adı (BÜYÜK HARF)
 - issuer_tax_id: Satıcı VKN/TCKN (10-11 haneli SADECE rakam)
-- issuer_tax_office: Satıcı vergi dairesi (BÜYÜK HARF, "VERGİ DAİRESİ" eklemeden)
-- customer_name: Alıcı firma/kişi adı
+- issuer_tax_office: Satıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
+- customer_name: Alıcı adı (BÜYÜK HARF)
 - customer_tax_id: Alıcı VKN/TCKN
-- customer_tax_office: Alıcı vergi dairesi
+- customer_tax_office: Alıcı vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (3-5 kelime)
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI
@@ -1155,7 +1162,7 @@ vat_details içinde her KDV oranı için:
 - vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
 JSON FORMATI:
-{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
+{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
