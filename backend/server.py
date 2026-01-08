@@ -149,6 +149,7 @@ class Invoice(BaseModel):
     total: float
     file_name: str
     file_type: str
+    document_type: Optional[str] = ""  # e-Arsiv Fatura, Perakende Satis Fisi, etc.
     # KDV detayları
     vat_details: Optional[List[dict]] = []  # List of VatDetail dicts
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
