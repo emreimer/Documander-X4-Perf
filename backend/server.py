@@ -1295,31 +1295,29 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 - Eğer tarih belirsizse, fişin saat bilgisinden veya bağlamdan çıkar
 - Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
 
-FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
+FİŞ/FATURA NUMARASI KURALLARI (EN ÖNEMLİ KURAL):
 
-TÜRKİYE STANDART FİŞ FORMATI:
-1. Fişte "FİŞ NO" veya "FİŞ NO:" yazısını BUL (genelde fişin ortasında veya üst kısmında)
-2. "FİŞ NO" yazısının HEMEN SAĞINDA yazan sayı FİŞ NUMARASIDIR
-3. Bu sayı genellikle 4 haneli veya daha az olur (örn: 0062, 0063, 7)
+⚠️ SADECE "FİŞ NO" VEYA "FİŞ NO:" YAZISININ YANINDA YAZAN SAYIYI AL! ⚠️
 
-DOĞRU ÖRNEKLER:
-- "FİŞ NO: 0062" → fiş numarası = "0062" ✓
-- "FİŞ NO: 0063" → fiş numarası = "0063" ✓
-- "FİŞ NO 7" → fiş numarası = "7" ✓
+TÜRKİYE FİŞLERİNDE:
+- Fişte "FİŞ NO" veya "FİŞ NO:" kelimesini ara
+- Bu kelimenin HEMEN SAĞINDA yazan sayı fiş numarasıdır
+- Genellikle 4 haneli: 0062, 0063, 0007 gibi
 
-YANLIŞ - BUNLAR FİŞ NUMARASI DEĞİL:
-- AFAU numarası (örn: 0000002540) - BU FİŞ NO DEĞİL!
-- Z NO (örn: 0608) - BU FİŞ NO DEĞİL!
-- EKU NO - BU FİŞ NO DEĞİL!
-- Pompa numarası - BU FİŞ NO DEĞİL!
-- VERGİ NO - BU FİŞ NO DEĞİL!
+ÖRNEK:
+"FİŞ NO: 0062" → invoice_number = "0062" ✓
+"FİŞ NO: 0063" → invoice_number = "0063" ✓
 
-SADECE "FİŞ NO" ETİKETİNİN YANINDA YAZAN SAYIYI AL!
+❌ YANLIŞ NUMARALAR - BUNLARI ALMA:
+- AFAU: 0000002540 ← BU FİŞ NO DEĞİL, ALMA!
+- Z NO: 0608 ← BU FİŞ NO DEĞİL, ALMA!
+- EKU NO ← BU FİŞ NO DEĞİL, ALMA!
+- Pompa, Nozul, Vergi No ← BUNLAR FİŞ NO DEĞİL!
+
+"FİŞ NO" kelimesini bul → yanındaki sayıyı al → başka sayıları ALMA!
 
 E-FATURALARDA:
-- "ETTN" veya "Belge No" etiketinin yanındaki değer
-
-KURAL: "FİŞ NO:" yazısını bul, HEMEN yanındaki 4 haneli sayıyı al!
+- "ETTN" veya "Belge No" yanındaki değer
 
 VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
 - Vergi dairesi adını TAM yaz, kısaltma YAPMA
