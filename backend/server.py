@@ -1200,14 +1200,25 @@ vat_details içinde her KDV oranı için:
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
-- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - METİNDE MUTLAKA YAZIYORDUR):
-  Metnin içinde belge türü yazılıdır. Bunu bul ve aşağıdakilerden birini seç:
-  * "e-Arsiv Fatura" - eğer metinde "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" geçiyorsa
-  * "e-Fatura" - eğer metinde "e-Fatura", "E-FATURA" geçiyorsa
-  * "Fatura" - eğer metinde sadece "FATURA" geçiyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
-  * "Perakende Satis Fisi" - eğer metinde "Perakende Satış Fişi", "FİŞ" geçiyorsa
+- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - DİKKATLİ OKU):
+  Evrakın başlığında/üstünde belge türü MUTLAKA yazılıdır. Bunu bul:
+  
+  * "e-Arsiv Fatura" - eğer evrakta şunlardan BİRİ yazıyorsa:
+    - "e-Arşiv Fatura"
+    - "e-ARŞİV FATURA" 
+    - "E-ARŞİV"
+    - "e-Arşiv"
+    NOT: "e-Fatura" YAZMIYORSA ve "Arşiv" kelimesi varsa bu e-Arşiv'dir!
+    
+  * "e-Fatura" - SADECE evrakta "e-Fatura" veya "E-FATURA" yazıyorsa (Arşiv kelimesi OLMADAN)
+  
+  * "Fatura" - sadece "FATURA" yazıyorsa (ne e-Arşiv ne de e-Fatura DEĞİLSE)
+  
+  * "Perakende Satis Fisi" - eğer "Perakende Satış Fişi" veya "FİŞ" yazıyorsa
+  
   * "Diger" - hiçbirini bulamazsan
-  NOT: Fatura numarasına bakma, METİNDE YAZAN TÜRE BAK!
+  
+  ÖNEMLİ: "e-Arşiv Fatura" ve "e-Fatura" FARKLI şeylerdir! Dikkatli oku!
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
 - total: Ödenecek Tutar - SADECE SAYI
