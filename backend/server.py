@@ -2875,6 +2875,214 @@ async def wix_new_order_webhook(
     else:
         raise HTTPException(status_code=500, detail="Paket eklenemedi")
 
+# Luca CSV Export
+def remove_turkish_chars(text: str) -> str:
+    """Remove Turkish special characters for Luca compatibility"""
+    if not text:
+        return ""
+    replacements = {
+        'ı': 'i', 'İ': 'I', 'ğ': 'g', 'Ğ': 'G',
+        'ü': 'u', 'Ü': 'U', 'ş': 's', 'Ş': 'S',
+        'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C'
+    }
+    for turkish, latin in replacements.items():
+        text = text.replace(turkish, latin)
+    return text
+
+def determine_belge_turu(invoice: dict) -> str:
+    """Determine document type for Luca"""
+    file_name = invoice.get('file_name', '').lower()
+    description = invoice.get('description', '').lower()
+    issuer_name = invoice.get('issuer_name', '').lower()
+    
+    # Check for e-Arşiv
+    if 'e-arsiv' in file_name or 'e-arşiv' in file_name or 'earşiv' in file_name:
+        return 'e-Arsiv Fatura'
+    if 'e-fatura' in file_name or 'efatura' in file_name:
+        return 'e-Fatura'
+    if 'e-bilet' in file_name or 'ebilet' in file_name:
+        return 'e-Bilet'
+    
+    # Check invoice number format
+    invoice_no = invoice.get('invoice_number', '')
+    if invoice_no.startswith('GIB') or invoice_no.startswith('EAR'):
+        return 'e-Arsiv Fatura'
+    
+    # Check for receipts (fiş)
+    if 'fiş' in file_name or 'fis' in file_name or 'perakende' in description:
+        return 'Perakende Satis Fisi'
+    
+    # Check for taxi/transport
+    if 'taksi' in issuer_name or 'taksi' in description or 'ulaşım' in description:
+        return 'Yolcu Tasima Bileti'
+    
+    # Default to Fatura for invoices
+    if invoice.get('customer_name') or invoice.get('customer_tax_id'):
+        return 'Fatura'
+    
+    return 'Perakende Satis Fisi'
+
+def determine_kayit_alt_turu(invoice: dict, is_income: bool) -> str:
+    """Determine sub-category for Luca"""
+    description = invoice.get('description', '').lower()
+    
+    # Keywords for service
+    service_keywords = ['hizmet', 'danışmanlık', 'servis', 'bakım', 'onarım', 'taşıma', 
+                       'ulaşım', 'kargo', 'nakliye', 'eğitim', 'yazılım', 'reklam']
+    
+    is_service = any(keyword in description for keyword in service_keywords)
+    
+    if is_income:
+        return 'Hizmet Satisi' if is_service else 'Mal Satisi'
+    else:
+        return 'Disaridan Saglanan Fayda ve Hizmetler' if is_service else 'Mal Alisi'
+
+@api_router.get("/invoices/export/luca")
+async def export_to_luca_csv(
+    user_id: str = Depends(get_current_user)
+):
+    """Export invoices to Luca-compatible CSV format"""
+    import csv
+    
+    # Get current session
+    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
+    
+    # Build query
+    query = {"user_id": user_id}
+    if session:
+        query["session_id"] = session['id']
+    
+    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
+    
+    if not invoices:
+        raise HTTPException(status_code=404, detail="No invoices found")
+    
+    # Sort by date
+    def parse_date(date_str):
+        try:
+            parts = date_str.split('/')
+            if len(parts) == 3:
+                return datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+        except:
+            pass
+        return datetime.min
+    
+    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)
+    
+    # CSV columns matching Luca template
+    columns = [
+        'ISLEM', 'KATEGORI', 'BELGE TURU', 'EVRAK TARIHI', 'KAYIT TARIHI',
+        'SERI NO', 'EVRAK NO', 'TCKN/VKN', 'VERGI DAIRESI', 'SOYADI UNVAN',
+        'ADI DEVAMI', 'ADRES', 'CARI HESAP', 'KDV ISTISNASI', 'KOD',
+        'BELGE TURU(DB)', 'ALIS/SATIS TURU', 'KAYIT ALT TURU', 'MAL VE HIZMET KODU',
+        'ACIKLAMA', 'MIKTAR', 'B.FIYAT', 'TUTAR', 'TEVKIFAT', 'KDV ORANI',
+        'OZEL MATRAH ISLEM BEDELI', 'MATRAHTAN DUSULECEK TUTAR', 
+        'MATRAHA DAHIL OLMAYAN BEDEL', 'KDV TUTARI', 'TOPLAM TUTAR',
+        'KREDILI TUTAR', 'STOPAJ KODU', 'STOPAJ TUTARI', 'DONEMSELLIK ILKESI',
+        'FAALIYET KODU', 'ODEME TURU'
+    ]
+    
+    # Create CSV in memory
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+    
+    # Write header
+    writer.writerow(columns)
+    
+    # Write data rows
+    for invoice in invoices:
+        is_income = invoice.get('category', 'income') == 'income'
+        
+        # Get values
+        islem = 'Gelir' if is_income else 'Gider'
+        kategori = 'Defter Fisleri'
+        belge_turu = 'Satis' if is_income else 'Alis'
+        evrak_tarihi = invoice.get('date', '')
+        kayit_tarihi = invoice.get('date', '')
+        seri_no = ''
+        evrak_no = remove_turkish_chars(invoice.get('invoice_number', ''))
+        tckn_vkn = invoice.get('issuer_tax_id', '') if not is_income else invoice.get('customer_tax_id', '')
+        vergi_dairesi = remove_turkish_chars(invoice.get('issuer_tax_office', '') if not is_income else invoice.get('customer_tax_office', ''))
+        soyadi_unvan = remove_turkish_chars(invoice.get('issuer_name', '') if not is_income else invoice.get('customer_name', ''))
+        adi_devami = ''
+        adres = ''
+        cari_hesap = ''
+        kdv_istisnasi = ''
+        kod = ''
+        belge_turu_db = determine_belge_turu(invoice)
+        alis_satis_turu = 'Normal Satislar' if is_income else 'Normal Alim'
+        kayit_alt_turu = determine_kayit_alt_turu(invoice, is_income)
+        mal_hizmet_kodu = ''
+        aciklama = remove_turkish_chars(invoice.get('description', ''))
+        miktar = '1'
+        
+        # Amounts
+        net_amount = invoice.get('amount', 0) or 0
+        vat_amount = invoice.get('vat', 0) or 0
+        total_amount = invoice.get('total', 0) or net_amount + vat_amount
+        
+        # Get KDV rate from vat_details or calculate
+        vat_details = invoice.get('vat_details', [])
+        if vat_details and len(vat_details) > 0:
+            kdv_orani = vat_details[0].get('vat_rate', 0)
+        elif net_amount > 0 and vat_amount > 0:
+            kdv_orani = round((vat_amount / net_amount) * 100)
+        else:
+            kdv_orani = 0
+        
+        b_fiyat = f"{net_amount:.2f}".replace('.', ',')
+        tutar = f"{net_amount:.2f}".replace('.', ',')
+        tevkifat = ''
+        kdv_orani_str = str(int(kdv_orani))
+        ozel_matrah = ''
+        matrahtan_dusulecek = ''
+        matraha_dahil_olmayan = ''
+        kdv_tutari = f"{vat_amount:.2f}".replace('.', ',')
+        toplam_tutar = f"{total_amount:.2f}".replace('.', ',')
+        kredili_tutar = ''
+        stopaj_kodu = ''
+        stopaj_tutari = ''
+        donemsellik = ''
+        faaliyet_kodu = ''
+        odeme_turu = ''
+        
+        row = [
+            islem, kategori, belge_turu, evrak_tarihi, kayit_tarihi,
+            seri_no, evrak_no, tckn_vkn, vergi_dairesi, soyadi_unvan,
+            adi_devami, adres, cari_hesap, kdv_istisnasi, kod,
+            belge_turu_db, alis_satis_turu, kayit_alt_turu, mal_hizmet_kodu,
+            aciklama, miktar, b_fiyat, tutar, tevkifat, kdv_orani_str,
+            ozel_matrah, matrahtan_dusulecek, matraha_dahil_olmayan,
+            kdv_tutari, toplam_tutar, kredili_tutar, stopaj_kodu,
+            stopaj_tutari, donemsellik, faaliyet_kodu, odeme_turu
+        ]
+        
+        writer.writerow(row)
+    
+    # Get content
+    csv_content = output.getvalue()
+    output.close()
+    
+    # Generate filename
+    if session:
+        taxpayer = remove_turkish_chars(session.get('taxpayer_name', 'Export'))
+        month = session.get('month', datetime.now().month)
+        year = session.get('year', datetime.now().year)
+        filename = f"Luca_{taxpayer}_{year}_{month:02d}.csv"
+    else:
+        filename = f"Luca_Export_{datetime.now().strftime('%Y%m%d')}.csv"
+    
+    # Return as streaming response with UTF-8 BOM for Excel compatibility
+    csv_bytes = ('\ufeff' + csv_content).encode('utf-8')
+    
+    return StreamingResponse(
+        io.BytesIO(csv_bytes),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )
+
 # Include router AFTER all endpoints are defined
 app.include_router(api_router)
 
