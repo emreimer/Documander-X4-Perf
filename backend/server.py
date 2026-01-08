@@ -1109,8 +1109,29 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                 logger.error(f"PDF conversion error: {pdf_error}")
                 return {"error": f"PDF dönüştürme hatası: {str(pdf_error)}"}
         
-        # Handle image files directly
-        image_base64 = base64.b64encode(file_content).decode('utf-8')
+        # Handle image files directly - enhance for better OCR
+        from PIL import Image, ImageEnhance
+        
+        try:
+            img = Image.open(BytesIO(file_content))
+            img = img.convert('RGB')
+            
+            # Enhance image for crumpled/blurry receipts
+            enhancer = ImageEnhance.Contrast(img)
+            img = enhancer.enhance(1.3)
+            
+            enhancer = ImageEnhance.Sharpness(img)
+            img = enhancer.enhance(1.5)
+            
+            # Convert enhanced image to base64
+            img_buffer = BytesIO()
+            img.save(img_buffer, format='PNG')
+            img_buffer.seek(0)
+            image_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
+        except Exception as img_err:
+            logger.warning(f"Image enhancement failed, using original: {img_err}")
+            image_base64 = base64.b64encode(file_content).decode('utf-8')
+        
         image_obj = ImageContent(image_base64=image_base64)
         
         return await _extract_from_image(chat, image_obj)
