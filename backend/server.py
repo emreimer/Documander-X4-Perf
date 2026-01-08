@@ -1198,41 +1198,29 @@ TARANMIŞ/BULANIK GÖRÜNTÜ İÇİN ÖNEMLİ:
 - Fatura numarasında sadece harf ve rakam bulunur, özel karakter (!, ?, @) OLMAZ
 - Eğer belirsiz karakterler varsa, mantıklı olanı seç (örn: "0" ve "O", "1" ve "I")
 
+FORMAT KURALLARI (ÇOK ÖNEMLİ):
+- issuer_name ve customer_name: TAMAMI BÜYÜK HARF (örn: "EMRE İMER", "ZUHAL DIŞ TİCARET A.Ş.")
+- issuer_tax_office ve customer_tax_office: SADECE KISA İSİM, BÜYÜK HARF
+  - "Erenköy Vergi Dairesi Müd." → "ERENKÖY"
+  - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
+
 Her fiş/fatura için şu bilgileri çıkar:
-- invoice_number: Fatura/fiş numarası (GIB ile başlayan 16 haneli veya farklı format - özel karakter OLMADAN)
+- invoice_number: Fatura numarası (GIB ile başlayan 16 haneli - özel karakter OLMADAN)
 - date: Fatura tarihi (GG/AA/YYYY formatında)
-- issuer_name: Faturayı düzenleyen firma/kişi adı
-- issuer_tax_id: Vergi kimlik numarası (TCKN 11 hane, VKN 10 hane - sadece rakam)
-- issuer_tax_office: Vergi dairesi (SADECE isim, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D." gibi ekler OLMADAN)
-- customer_name: Müşteri adı (varsa)
-- customer_tax_id: Müşteri vergi numarası (varsa)
-- customer_tax_office: Müşteri vergi dairesi (varsa)
-- description: Fatura içeriğinin KISA özeti (3-5 kelime)
+- issuer_name: Düzenleyen adı (BÜYÜK HARF)
+- issuer_tax_id: Düzenleyen VKN/TCKN (sadece rakam)
+- issuer_tax_office: Düzenleyen vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
+- customer_name: Müşteri adı (BÜYÜK HARF)
+- customer_tax_id: Müşteri VKN/TCKN
+- customer_tax_office: Müşteri vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
+- description: Fatura içeriği özeti (3-5 kelime)
 - amount: Net tutar (sadece sayı)
 - vat: KDV tutarı (sadece sayı)
 - total: Toplam tutar (sadece sayı)
-- vat_details: KDV DETAYLARI - Türkiye KDV oranlarına göre (%1, %10, %20) ayrıştır. Her KDV oranı için:
-  - vat_rate: KDV oranı (1, 10 veya 20)
-  - base_amount: O orana ait matrah (KDV hariç tutar)
-  - vat_amount: O orana ait KDV tutarı
-  - withholding: Tevkifat var mı (true/false)
-  - withholding_rate: Tevkifat oranı varsa (örn: "5/10", "9/10", null yoksa)
+- vat_details: [{vat_rate: 20, base_amount: 1000.0, vat_amount: 200.0}]
 
-ÖNEMLİ KDV KURALLARI:
-- Faturada farklı KDV oranları varsa her birini ayrı ayrı listele
-- KDV oranı belirtilmemişse, tutardan hesapla (örn: KDV/Matrah oranına bak)
-- Tevkifatlı faturalarda tevkifat oranını belirt
-- Eğer KDV detayı bulunamıyorsa, toplam KDV'yi tek satır olarak göster
-
-SADECE JSON formatında yanıt ver. 
-- Tek fiş varsa: {"invoices": [{ ... fiş bilgileri ... }]}
-- Birden fazla fiş varsa: {"invoices": [{ fiş1 }, { fiş2 }, ...]}
-
-Örnek:
-{"invoices": [{"invoice_number": "FIS-001", "date": "15/01/2024", "issuer_name": "ABC Market", "issuer_tax_id": "1234567890", "issuer_tax_office": "KADIKÖY", "customer_name": "", "customer_tax_id": "", "customer_tax_office": "", "description": "Market alışverişi", "amount": 100.0, "vat": 20.0, "total": 120.0, "vat_details": [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0, "withholding": false, "withholding_rate": null}]}]}
-
-Birden fazla KDV oranı örneği:
-{"invoices": [{"invoice_number": "FTR-002", "date": "20/01/2024", "issuer_name": "XYZ Ltd", "issuer_tax_id": "9876543210", "issuer_tax_office": "BEYOĞLU", "customer_name": "Müşteri A.Ş.", "customer_tax_id": "1111111111", "customer_tax_office": "ŞİŞLİ", "description": "Muhtelif ürünler", "amount": 250.0, "vat": 35.0, "total": 285.0, "vat_details": [{"vat_rate": 10, "base_amount": 150.0, "vat_amount": 15.0, "withholding": false, "withholding_rate": null}, {"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0, "withholding": false, "withholding_rate": null}]}]}"""
+SADECE JSON formatında yanıt ver:
+{"invoices": [{"invoice_number": "GIB2025000000050", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "amount": 100.0, "vat": 20.0, "total": 120.0, "vat_details": [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}], ...}]}"""
     
     message = UserMessage(
         text=prompt,
