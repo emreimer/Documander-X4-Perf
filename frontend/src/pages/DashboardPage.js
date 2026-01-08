@@ -845,17 +845,35 @@ const DashboardPage = () => {
         return invoice.document_type;
       }
       
-      // Fallback to file name based detection only
+      // Fallback logic - same as backend
       const fileName = (invoice.file_name || '').toLowerCase();
+      const issuerName = (invoice.issuer_name || '').toLowerCase();
+      const description = (invoice.description || '').toLowerCase();
+      const invoiceNo = invoice.invoice_number || '';
       
       if (fileName.includes('e-arsiv') || fileName.includes('e-arşiv') || fileName.includes('earsiv')) {
         return 'e-Arşiv Fatura';
       }
       if (fileName.includes('e-fatura')) return 'e-Fatura';
       if (fileName.includes('e-bilet')) return 'e-Bilet';
+      if (fileName.includes('fis') || fileName.includes('fiş')) return 'Perakende Satış Fişi';
       
-      // Default - AI should have determined this
-      return 'Diğer';
+      // Gas station keywords
+      const gasKeywords = ['petrol', 'akaryakıt', 'benzin', 'motorin', 'doco', 'opet', 'shell', 'bp', 'total'];
+      if (gasKeywords.some(k => issuerName.includes(k))) return 'Perakende Satış Fişi';
+      if (['yakıt', 'benzin', 'motorin', 'satış', 'alışveriş'].some(k => description.includes(k))) return 'Perakende Satış Fişi';
+      
+      // Short numeric invoice = receipt
+      if (invoiceNo && invoiceNo.length <= 10 && /^\d+$/.test(invoiceNo.replace(/^0+/, ''))) {
+        return 'Perakende Satış Fişi';
+      }
+      
+      // No customer info = receipt
+      if (!invoice.customer_name && !invoice.customer_tax_id) {
+        return 'Perakende Satış Fişi';
+      }
+      
+      return 'Fatura';
     };
 
     // Helper function to determine kayıt alt türü
