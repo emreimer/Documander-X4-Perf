@@ -1194,7 +1194,7 @@ vat_details içinde her KDV oranı için:
 - vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
 JSON FORMATI:
-{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "mum satışı", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
+{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
