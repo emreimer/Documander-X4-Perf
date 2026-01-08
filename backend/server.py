@@ -1199,21 +1199,13 @@ vat_details içinde her KDV oranı için:
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
-- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - METİNDE MUTLAKA YAZIYORDUR):
-  Metnin içinde belge türü yazılıdır. Bunu bul ve aşağıdakilerden birini seç:
-  * "e-Arsiv Fatura" - eğer metinde "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" geçiyorsa
-  * "e-Fatura" - eğer metinde "e-Fatura", "E-FATURA" geçiyorsa
-  * "Fatura" - eğer metinde sadece "FATURA" geçiyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
-  * "Perakende Satis Fisi" - eğer metinde "Perakende Satış Fişi", "FİŞ" geçiyorsa
-  * "Diger" - hiçbirini bulamazsan
-  NOT: Fatura numarasına bakma, METİNDE YAZAN TÜRE BAK!
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
 - total: Ödenecek Tutar - SADECE SAYI
 - vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
 
 JSON FORMATI:
-{{"invoices": [{{"invoice_number": "AEN2025000036776", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "document_type": "e-Arsiv Fatura", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
+{{"invoices": [{{"invoice_number": "GIB2025000000051", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
 
     try:
         message = UserMessage(text=prompt)
@@ -1275,26 +1267,23 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 
 FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
 
-TÜRKİYE STANDART FİŞ FORMATI:
-- Fişte "FİŞ NO" veya "FİŞ NO:" yazısını BUL
-- "FİŞ NO" yazısının HEMEN YANINDA (sağında) yazan sayı FİŞ NUMARASIDIR
-- Başka hiçbir yere bakma, SADECE "FİŞ NO" etiketinin yanına bak!
-- Örnek: "FİŞ NO : 000003201" → fiş numarası "000003201"
-- Örnek: "FİŞ NO:3489" → fiş numarası "3489"
-
-DİKKAT - BUNLAR FİŞ NUMARASI DEĞİL:
-- Pompa numarası (genelde 1, 2, 3, 4 gibi tek haneli)
-- Nozul numarası
-- Litre miktarı
-- Ürün kodu veya PLU
-- Masa numarası
-- Tarih veya saat
-- SADECE "FİŞ NO" yazısının yanındaki sayı fiş numarasıdır!
+TÜRKİYE'DEKİ FİŞLERDE NUMARA BULMA:
+- Fişlerde "FİŞ NO" veya "FİŞ NO:" etiketi ara - bu ETİKETİN YANINDA veya ALTINDA yazan sayı fiş numarasıdır
+- "FİŞ NO" bulamazsan "BELGE NO", "Z NO", "EKÜ NO" ara
+- Fiş numarası genellikle fişin ALT KISMINDA bulunur
 
 E-FATURALARDA:
-- "ETTN" veya "Belge No" etiketinin yanındaki değer
+- GIB/EAR/CMA + yıl + sıra formatı (örn: GIB2025000000050)
 
-KURAL: Fiş numarası ASLA BOŞ OLAMAZ - "FİŞ NO" yaz yanındaki sayıyı al!
+AKARYAKIT/BENZİN İSTASYONU FİŞLERİ:
+- "FİŞ NO:" etiketinin HEMEN YANINDA yazan sayıyı al
+- Pompa no, nozul no, litre miktarı FİŞ NUMARASI DEĞİL
+- Fiş numarası 6-10 haneli sıralı sayıdır
+
+ÖNEMLİ:
+- Fiş numarası ASLA BOŞ OLAMAZ
+- "FİŞ NO" etiketini bul ve yanındaki sayıyı al
+- Masa no, sipariş no, ürün adedi FİŞ NUMARASI DEĞİL
 
 VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
 - Vergi dairesi adını TAM yaz, kısaltma YAPMA
@@ -1325,23 +1314,13 @@ FORMAT KURALLARI:
 - customer_tax_id: Müşteri VKN (yoksa boş)
 - customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
 - description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
-- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - EVRAKIN İÇİNDE MUTLAKA YAZIYORDUR):
-  Evrakın üst kısmında veya başlık bölümünde belge türü yazılıdır. Bunu oku ve aşağıdakilerden birini seç:
-  * "e-Arsiv Fatura" - eğer evrakta "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" yazıyorsa
-  * "e-Fatura" - eğer evrakta "e-Fatura", "E-FATURA" yazıyorsa
-  * "e-Bilet" - eğer evrakta "e-Bilet" yazıyorsa
-  * "Fatura" - eğer evrakta sadece "FATURA" yazıyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
-  * "Perakende Satis Fisi" - eğer evrakta "Perakende Satış Fişi", "FİŞ", "SATIŞ FİŞİ" yazıyorsa
-  * "Yolcu Tasima Bileti" - eğer taksi fişi ise
-  * "Diger" - hiçbirini bulamazsan
-  NOT: Fatura numarasına bakma, EVRAKIN İÇİNDE YAZAN TÜRE BAK!
 - amount: Net tutar (sayı)
 - vat: KDV tutarı (sayı, taksi için 0)
 - total: Toplam (sayı)
 - vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}] (taksi için vat_rate: 0)
 
 JSON FORMAT:
-{"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", "document_type": "Perakende Satis Fisi", ...}]}"""
+{"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", ...}]}"""
     
     message = UserMessage(
         text=prompt,
@@ -2895,223 +2874,6 @@ async def wix_new_order_webhook(
         }
     else:
         raise HTTPException(status_code=500, detail="Paket eklenemedi")
-
-# Luca CSV Export
-def remove_turkish_chars(text: str) -> str:
-    """Remove Turkish special characters for Luca compatibility"""
-    if not text:
-        return ""
-    replacements = {
-        'ı': 'i', 'İ': 'I', 'ğ': 'g', 'Ğ': 'G',
-        'ü': 'u', 'Ü': 'U', 'ş': 's', 'Ş': 'S',
-        'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C'
-    }
-    for turkish, latin in replacements.items():
-        text = text.replace(turkish, latin)
-    return text
-
-def determine_belge_turu(invoice: dict) -> str:
-    """Determine document type for Luca - fallback if AI didn't extract it"""
-    file_name = invoice.get('file_name', '').lower()
-    description = invoice.get('description', '').lower()
-    issuer_name = invoice.get('issuer_name', '').lower()
-    invoice_no = invoice.get('invoice_number', '')
-    
-    # Check file name for document type indicators
-    if 'e-arsiv' in file_name or 'e-arşiv' in file_name or 'earsiv' in file_name or 'arsiv' in file_name:
-        return 'e-Arsiv Fatura'
-    if 'e-fatura' in file_name or 'efatura' in file_name:
-        return 'e-Fatura'
-    if 'e-bilet' in file_name or 'ebilet' in file_name:
-        return 'e-Bilet'
-    if 'fis' in file_name or 'fiş' in file_name:
-        return 'Perakende Satis Fisi'
-    
-    # Check for gas station / fuel receipts
-    gas_keywords = ['petrol', 'akaryakıt', 'benzin', 'motorin', 'lpg', 'opet', 'shell', 
-                   'bp', 'total', 'po ', 'doco', 'lukoil', 'aytemiz', 'kadoil']
-    if any(keyword in issuer_name for keyword in gas_keywords):
-        return 'Perakende Satis Fisi'
-    if any(keyword in description for keyword in ['yakıt', 'benzin', 'motorin', 'akaryakıt', 'satış', 'alışveriş']):
-        return 'Perakende Satis Fisi'
-    
-    # Check for taxi/transport
-    if 'taksi' in issuer_name or 'taksi' in description:
-        return 'Yolcu Tasima Bileti'
-    
-    # Short numeric invoice numbers are typically receipts
-    if invoice_no and len(invoice_no) <= 10 and invoice_no.replace('0', '').isdigit():
-        return 'Perakende Satis Fisi'
-    
-    # If no customer info, it's likely a receipt
-    if not invoice.get('customer_name') and not invoice.get('customer_tax_id'):
-        return 'Perakende Satis Fisi'
-    
-    # Default to Fatura if has customer info
-    return 'Fatura'
-
-def determine_kayit_alt_turu(invoice: dict, is_income: bool) -> str:
-    """Determine sub-category for Luca"""
-    description = invoice.get('description', '').lower()
-    
-    # Keywords for service
-    service_keywords = ['hizmet', 'danışmanlık', 'servis', 'bakım', 'onarım', 'taşıma', 
-                       'ulaşım', 'kargo', 'nakliye', 'eğitim', 'yazılım', 'reklam']
-    
-    is_service = any(keyword in description for keyword in service_keywords)
-    
-    if is_income:
-        return 'Hizmet Satisi' if is_service else 'Mal Satisi'
-    else:
-        return 'Disaridan Saglanan Fayda ve Hizmetler' if is_service else 'Mal Alisi'
-
-@api_router.get("/invoices/export/luca")
-async def export_to_luca_csv(
-    user_id: str = Depends(get_current_user)
-):
-    """Export invoices to Luca-compatible CSV format"""
-    import csv
-    
-    # Get current session
-    session = await db.taxpayer_sessions.find_one({"user_id": user_id}, {"_id": 0})
-    
-    # Build query
-    query = {"user_id": user_id}
-    if session:
-        query["session_id"] = session['id']
-    
-    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
-    
-    if not invoices:
-        raise HTTPException(status_code=404, detail="No invoices found")
-    
-    # Sort by date
-    def parse_date(date_str):
-        try:
-            parts = date_str.split('/')
-            if len(parts) == 3:
-                return datetime(int(parts[2]), int(parts[1]), int(parts[0]))
-        except:
-            pass
-        return datetime.min
-    
-    invoices.sort(key=lambda x: parse_date(x.get('date', '')), reverse=False)
-    
-    # CSV columns matching EXACT Luca template headers (with special characters)
-    columns = [
-        'ÝÞLEM', 'KATEGORÝ', 'BELGE TURU', 'EVRAK TARÝHÝ', 'KAYIT TARÝHÝ',
-        'SERÝ NO', 'EVRAK NO', 'TCKN/VKN', 'VERGÝ DAÝRESÝ', 'SOYADI ÜNVAN',
-        'ADI DEVAMI', 'ADRES', 'CARÝ HESAP', 'KDV ÝSTÝSNASI', 'KOD',
-        'BELGE TÜRÜ(DB)', 'ALIÞ/SATIÞ TÜRÜ', 'KAYIT ALT TÜRÜ', 'MAL VE HÝZMET KODU',
-        'AÇIKLAMA', 'MÝKTAR', 'B.FÝYAT', 'TUTAR', 'TEVKÝFAT', 'KDV ORANI',
-        'ÖZEL MATRAH ÝÞLEM BEDELÝ', 'MATRAHTAN DÜÞÜLECEK TUTAR', 
-        'MATRAHA DAHÝL OLMAYAN BEDEL', 'KDV TUTARI', 'TOPLAM TUTAR',
-        'KREDÝLÝ TUTAR', 'STOPAJ KODU', 'STOPAJ TUTARI', 'DÖNEMSELLÝK ÝLKESÝ',
-        'FAALÝYET KODU', 'ÖDEME TÜRÜ'
-    ]
-    
-    # Create CSV in memory
-    output = io.StringIO()
-    writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
-    
-    # Write header
-    writer.writerow(columns)
-    
-    # Write data rows
-    for invoice in invoices:
-        is_income = invoice.get('category', 'income') == 'income'
-        
-        # Get values
-        islem = 'Gelir' if is_income else 'Gider'
-        kategori = 'Defter Fisleri'
-        belge_turu = 'Satis' if is_income else 'Alis'
-        evrak_tarihi = invoice.get('date', '')
-        kayit_tarihi = invoice.get('date', '')
-        seri_no = ''
-        evrak_no = remove_turkish_chars(invoice.get('invoice_number', ''))
-        tckn_vkn = invoice.get('issuer_tax_id', '') if not is_income else invoice.get('customer_tax_id', '')
-        # Leave these empty - Luca will auto-fill them
-        vergi_dairesi = ''
-        soyadi_unvan = ''
-        adi_devami = ''
-        adres = ''
-        cari_hesap = ''
-        kdv_istisnasi = ''
-        kod = ''
-        # Get document type from AI extraction or determine it
-        belge_turu_db = invoice.get('document_type', '') or determine_belge_turu(invoice)
-        alis_satis_turu = 'Normal Satislar' if is_income else 'Normal Alim'
-        kayit_alt_turu = determine_kayit_alt_turu(invoice, is_income)
-        mal_hizmet_kodu = ''
-        aciklama = remove_turkish_chars(invoice.get('description', ''))
-        miktar = '1'
-        
-        # Amounts
-        net_amount = invoice.get('amount', 0) or 0
-        vat_amount = invoice.get('vat', 0) or 0
-        total_amount = invoice.get('total', 0) or net_amount + vat_amount
-        
-        # Get KDV rate from vat_details or calculate
-        vat_details = invoice.get('vat_details', [])
-        if vat_details and len(vat_details) > 0:
-            kdv_orani = vat_details[0].get('vat_rate', 0)
-        elif net_amount > 0 and vat_amount > 0:
-            kdv_orani = round((vat_amount / net_amount) * 100)
-        else:
-            kdv_orani = 0
-        
-        b_fiyat = f"{net_amount:.2f}".replace('.', ',')
-        tutar = f"{net_amount:.2f}".replace('.', ',')
-        tevkifat = ''
-        kdv_orani_str = str(int(kdv_orani))
-        ozel_matrah = ''
-        matrahtan_dusulecek = ''
-        matraha_dahil_olmayan = ''
-        kdv_tutari = f"{vat_amount:.2f}".replace('.', ',')
-        toplam_tutar = f"{total_amount:.2f}".replace('.', ',')
-        kredili_tutar = ''
-        stopaj_kodu = ''
-        stopaj_tutari = ''
-        donemsellik = ''
-        faaliyet_kodu = ''
-        odeme_turu = ''
-        
-        row = [
-            islem, kategori, belge_turu, evrak_tarihi, kayit_tarihi,
-            seri_no, evrak_no, tckn_vkn, vergi_dairesi, soyadi_unvan,
-            adi_devami, adres, cari_hesap, kdv_istisnasi, kod,
-            belge_turu_db, alis_satis_turu, kayit_alt_turu, mal_hizmet_kodu,
-            aciklama, miktar, b_fiyat, tutar, tevkifat, kdv_orani_str,
-            ozel_matrah, matrahtan_dusulecek, matraha_dahil_olmayan,
-            kdv_tutari, toplam_tutar, kredili_tutar, stopaj_kodu,
-            stopaj_tutari, donemsellik, faaliyet_kodu, odeme_turu
-        ]
-        
-        writer.writerow(row)
-    
-    # Get content
-    csv_content = output.getvalue()
-    output.close()
-    
-    # Generate filename
-    if session:
-        taxpayer = remove_turkish_chars(session.get('taxpayer_name', 'Export'))
-        month = session.get('month', datetime.now().month)
-        year = session.get('year', datetime.now().year)
-        filename = f"Luca_{taxpayer}_{year}_{month:02d}.csv"
-    else:
-        filename = f"Luca_Export_{datetime.now().strftime('%Y%m%d')}.csv"
-    
-    # Return as streaming response with UTF-8 BOM for Excel compatibility
-    csv_bytes = ('\ufeff' + csv_content).encode('utf-8')
-    
-    return StreamingResponse(
-        io.BytesIO(csv_bytes),
-        media_type="text/csv; charset=utf-8",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"'
-        }
-    )
 
 # Include router AFTER all endpoints are defined
 app.include_router(api_router)
