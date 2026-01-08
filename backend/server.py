@@ -1262,15 +1262,25 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 
 FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ):
 - E-faturalarda: GIB/EAR/CMA + yıl + sıra (örn: GIB2025000000050)
+- Akaryakıt/benzin istasyonu fişlerinde: Genellikle "FİŞ NO" veya "BELGE NO" etiketinin yanında
 - Market/restoran fişlerinde fiş numarasını şu etiketlerin yanında ara:
-  * "FİŞ NO", "FİŞ NO:", "Fiş No"
-  * "Z NO", "Z RAPOR NO"
-  * "EKÜ NO", "EKÜ"
+  * "FİŞ NO", "FİŞ NO:", "Fiş No", "FIS NO"
+  * "Z NO", "Z RAPOR NO", "Z-NO"
+  * "EKÜ NO", "EKÜ", "EKU NO"
   * "BELGE NO", "Belge No"
-  * "İRSALİYE NO"
-- Fiş numarası genellikle 4-10 haneli bir sayıdır (örn: "0042", "1234", "00123456")
-- Masa numarası veya sipariş numarası DEĞİL, FİŞ numarası olmalı
+  * "SIRA NO", "Sıra No"
+- Fiş numarasını fişin ÜST KISMINDA veya ALT KISMINDA ara
+- Numara genellikle 4-10 haneli (örn: "0042", "3201", "00123456")
+- Masa no, sipariş no, ürün adedi DEĞİL - FİŞ/BELGE numarası olmalı
 - Fatura/fiş numarası ASLA BOŞ OLAMAZ - mutlaka bul!
+
+VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
+- Vergi dairesi adını TAM yaz, kısaltma YAPMA
+- "ANADOLU KURUMLAR" → "ANADOLU KURUMLAR" (kısaltma yok)
+- "KADIKÖY" → "KADIKÖY"
+- "BEŞİKTAŞ" → "BEŞİKTAŞ"
+- Sadece "V.D.", "VERGİ DAİRESİ", "MÜD." gibi son ekleri kaldır
+- Vergi dairesi adının kendisini KISA KESME
 
 KDV KURALLARI (ÇOK ÖNEMLİ):
 - TAKSİ fişlerinde KDV YOKTUR - vat=0, vat_rate=0 olmalı
@@ -1280,8 +1290,8 @@ KDV KURALLARI (ÇOK ÖNEMLİ):
 
 FORMAT KURALLARI:
 - issuer_name ve customer_name: TAMAMI BÜYÜK HARF
-- issuer_tax_office ve customer_tax_office: SADECE KISA İSİM, BÜYÜK HARF
-  - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
+- issuer_tax_office ve customer_tax_office: TAM İSİM, BÜYÜK HARF (kısaltma yapma)
+  - Sadece "V.D.", "VERGİ DAİRESİ", "MÜD." gibi son ekleri kaldır
 
 Çıkarılacak bilgiler:
 - invoice_number: Fiş/Fatura numarası (ASLA BOŞ OLAMAZ - mutlaka bul!)
