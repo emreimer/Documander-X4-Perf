@@ -1219,10 +1219,20 @@ vat_details içinde her KDV oranı için:
   * "Diger" - hiçbirini bulamazsan
   
   ÖNEMLİ: "e-Arşiv Fatura" ve "e-Fatura" FARKLI şeylerdir! Dikkatli oku!
-- amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
-- vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
-- total: Ödenecek Tutar - SADECE SAYI
-- vat_details: [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}]
+
+TUTAR KURALLARI (FİŞLER İÇİN):
+- Fişte "TOPLAM" ve "TOPKDV" değerlerini bul
+- total = TOPLAM değeri (fişte yazan son tutar)
+- vat = TOPKDV değeri
+- amount = TOPLAM - TOPKDV (matrah hesapla)
+- Örnek: TOPLAM: 100,00 ve TOPKDV: 16,67 ise → total=100, vat=16.67, amount=83.33
+
+TUTAR KURALLARI (E-FATURALAR İÇİN):
+- amount = "Mal Hizmet Toplam Tutarı" (KDV hariç matrah)
+- vat = "Hesaplanan KDV" 
+- total = "Ödenecek Tutar"
+
+- vat_details: [{{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}}]
 
 JSON FORMATI:
 {{"invoices": [{{"invoice_number": "AEN2025000036776", "date": "26/11/2025", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "description": "Mum Satışı", "document_type": "e-Arsiv Fatura", "amount": 1000.0, "vat": 200.0, "total": 1200.0, "vat_details": [{{"vat_rate": 20, "base_amount": 1000.0, "vat_amount": 200.0}}], ...}}]}}"""
