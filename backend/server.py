@@ -2894,8 +2894,11 @@ def determine_belge_turu(invoice: dict) -> str:
     file_name = invoice.get('file_name', '').lower()
     description = invoice.get('description', '').lower()
     issuer_name = invoice.get('issuer_name', '').lower()
+    invoice_no = invoice.get('invoice_number', '')
     
-    # Check for e-Arşiv
+    # Check for e-Arşiv (GIB/EAR prefix)
+    if invoice_no.startswith('GIB') or invoice_no.startswith('EAR'):
+        return 'e-Arsiv Fatura'
     if 'e-arsiv' in file_name or 'e-arşiv' in file_name or 'earşiv' in file_name:
         return 'e-Arsiv Fatura'
     if 'e-fatura' in file_name or 'efatura' in file_name:
@@ -2903,23 +2906,27 @@ def determine_belge_turu(invoice: dict) -> str:
     if 'e-bilet' in file_name or 'ebilet' in file_name:
         return 'e-Bilet'
     
-    # Check invoice number format
-    invoice_no = invoice.get('invoice_number', '')
-    if invoice_no.startswith('GIB') or invoice_no.startswith('EAR'):
-        return 'e-Arsiv Fatura'
-    
-    # Check for receipts (fiş)
-    if 'fiş' in file_name or 'fis' in file_name or 'perakende' in description:
+    # Check for gas station / fuel receipts - these are always Perakende Satis Fisi
+    gas_keywords = ['petrol', 'akaryakıt', 'benzin', 'motorin', 'lpg', 'opet', 'shell', 
+                   'bp', 'total', 'po ', 'doco', 'lukoil', 'aytemiz', 'kadoil']
+    if any(keyword in issuer_name for keyword in gas_keywords):
+        return 'Perakende Satis Fisi'
+    if any(keyword in description for keyword in ['yakıt', 'benzin', 'motorin', 'akaryakıt']):
         return 'Perakende Satis Fisi'
     
     # Check for taxi/transport
     if 'taksi' in issuer_name or 'taksi' in description or 'ulaşım' in description:
         return 'Yolcu Tasima Bileti'
     
-    # Default to Fatura for invoices
-    if invoice.get('customer_name') or invoice.get('customer_tax_id'):
+    # Check for receipts (fiş) - short invoice numbers are usually receipts
+    if len(invoice_no) <= 10 and invoice_no.isdigit():
+        return 'Perakende Satis Fisi'
+    
+    # If has customer info, it's likely a proper invoice
+    if invoice.get('customer_name') and invoice.get('customer_tax_id'):
         return 'Fatura'
     
+    # Default to receipt for expense items without customer info
     return 'Perakende Satis Fisi'
 
 def determine_kayit_alt_turu(invoice: dict, is_income: bool) -> str:
