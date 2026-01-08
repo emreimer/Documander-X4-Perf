@@ -1199,12 +1199,14 @@ vat_details içinde her KDV oranı için:
 - customer_tax_id: Alıcı VKN/TCKN
 - customer_tax_office: Alıcı vergi dairesi (TAM İSİM, BÜYÜK HARF)
 - description: Mal/hizmet açıklaması (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Mum Satışı", "Ofis Malzemesi")
-- document_type: Belge türü - METİNDE "e-Arşiv Fatura" veya "e-ARŞİV FATURA" yazıyorsa "e-Arsiv Fatura" seç:
-  * "e-Arsiv Fatura" - eğer metinde "e-Arşiv Fatura" veya "e-ARŞİV" geçiyorsa (AEN/CMA/GIB/EAR numaralı belgeler genelde e-Arşiv'dir)
-  * "e-Fatura" - eğer metinde "e-Fatura" geçiyorsa  
-  * "Fatura" - eğer sadece "Fatura" yazıyorsa ve e-Arşiv DEĞİLSE
-  * "Perakende Satis Fisi" - eğer fiş ise
-  * "Diger" - tanımlayamazsan
+- document_type: BELGE TÜRÜ (ÇOK ÖNEMLİ - METİNDE MUTLAKA YAZIYORDUR):
+  Metnin içinde belge türü yazılıdır. Bunu bul ve aşağıdakilerden birini seç:
+  * "e-Arsiv Fatura" - eğer metinde "e-Arşiv Fatura", "e-ARŞİV FATURA", "E-ARŞİV" geçiyorsa
+  * "e-Fatura" - eğer metinde "e-Fatura", "E-FATURA" geçiyorsa
+  * "Fatura" - eğer metinde sadece "FATURA" geçiyorsa (e-Arşiv veya e-Fatura DEĞİLSE)
+  * "Perakende Satis Fisi" - eğer metinde "Perakende Satış Fişi", "FİŞ" geçiyorsa
+  * "Diger" - hiçbirini bulamazsan
+  NOT: Fatura numarasına bakma, METİNDE YAZAN TÜRE BAK!
 - amount: Mal Hizmet Toplam (KDV hariç) - SADECE SAYI
 - vat: Toplam KDV tutarı - SADECE SAYI (taksi için 0)
 - total: Ödenecek Tutar - SADECE SAYI
