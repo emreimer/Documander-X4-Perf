@@ -1208,35 +1208,47 @@ async def _extract_from_image(chat, image_obj) -> dict:
     """Helper function to extract invoice data from an image"""
     prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
 
-TARANMIŞ/BULANIK GÖRÜNTÜ İÇİN ÖNEMLİ:
-- Karakterleri dikkatli oku, OCR hataları olabilir
-- Fatura numarası genellikle "GIB" ile başlar ve 16 haneli olur (örn: GIB2025000000050)
-- Fatura numarasında sadece harf ve rakam bulunur, özel karakter (!, ?, @) OLMAZ
-- Eğer belirsiz karakterler varsa, mantıklı olanı seç (örn: "0" ve "O", "1" ve "I")
+BURUŞUK/BULANIK/TARANMIŞ GÖRÜNTÜ İÇİN ÖNEMLİ:
+- Görüntü kalitesi düşük olabilir, DİKKATLİ oku
+- Karakterleri bağlamdan anlamaya çalış
+- Belirsiz karakterlerde mantıklı olanı seç (örn: "0"/"O", "1"/"I"/"l", "5"/"S", "8"/"B")
 
-FORMAT KURALLARI (ÇOK ÖNEMLİ):
-- issuer_name ve customer_name: TAMAMI BÜYÜK HARF (örn: "EMRE İMER", "ZUHAL DIŞ TİCARET A.Ş.")
+TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
+- Tarih genellikle fişin üst kısmında veya "TARİH" etiketinin yanında
+- Türk formatı: GG/AA/YYYY veya GG.AA.YYYY veya GG-AA-YYYY
+- Yıl 2024 veya 2025 olmalı (20Z4→2024, Z0Z5→2025, 20ZS→2025)
+- Ay 01-12 arası olmalı (l2→12, 1O→10, ll→11)
+- Gün 01-31 arası olmalı
+- Eğer tarih belirsizse, fişin saat bilgisinden veya bağlamdan çıkar
+- Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
+
+FATURA NUMARASI KURALLARI:
+- GIB ile başlayan 16 karakter (örn: GIB2025000000050)
+- Market fişlerinde fiş numarası farklı formatta olabilir
+- Özel karakter (!, ?, @) OLMAZ
+
+FORMAT KURALLARI:
+- issuer_name ve customer_name: TAMAMI BÜYÜK HARF
 - issuer_tax_office ve customer_tax_office: SADECE KISA İSİM, BÜYÜK HARF
-  - "Erenköy Vergi Dairesi Müd." → "ERENKÖY"
   - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
 
-Her fiş/fatura için şu bilgileri çıkar:
-- invoice_number: Fatura numarası (GIB ile başlayan 16 haneli - özel karakter OLMADAN)
-- date: Fatura tarihi (GG/AA/YYYY formatında)
+Çıkarılacak bilgiler:
+- invoice_number: Fatura/fiş numarası
+- date: Tarih (GG/AA/YYYY - yukarıdaki kurallara göre düzelt)
 - issuer_name: Düzenleyen adı (BÜYÜK HARF)
-- issuer_tax_id: Düzenleyen VKN/TCKN (sadece rakam)
-- issuer_tax_office: Düzenleyen vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
-- customer_name: Müşteri adı (BÜYÜK HARF)
-- customer_tax_id: Müşteri VKN/TCKN
-- customer_tax_office: Müşteri vergi dairesi (SADECE KISA İSİM, BÜYÜK HARF)
-- description: Fatura içeriği özeti (3-5 kelime)
-- amount: Net tutar (sadece sayı)
-- vat: KDV tutarı (sadece sayı)
-- total: Toplam tutar (sadece sayı)
-- vat_details: [{vat_rate: 20, base_amount: 1000.0, vat_amount: 200.0}]
+- issuer_tax_id: VKN/TCKN (sadece rakam)
+- issuer_tax_office: Vergi dairesi (KISA İSİM, BÜYÜK HARF)
+- customer_name: Müşteri adı (BÜYÜK HARF, yoksa boş)
+- customer_tax_id: Müşteri VKN (yoksa boş)
+- customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
+- description: İçerik özeti (3-5 kelime)
+- amount: Net tutar (sayı)
+- vat: KDV tutarı (sayı)
+- total: Toplam (sayı)
+- vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}]
 
-SADECE JSON formatında yanıt ver:
-{"invoices": [{"invoice_number": "GIB2025000000050", "issuer_name": "EMRE İMER", "issuer_tax_office": "ERENKÖY", "customer_name": "ZUHAL DIŞ TİCARET A.Ş.", "customer_tax_office": "BEYOĞLU", "amount": 100.0, "vat": 20.0, "total": 120.0, "vat_details": [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}], ...}]}"""
+JSON FORMAT:
+{"invoices": [{"invoice_number": "...", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", ...}]}"""
     
     message = UserMessage(
         text=prompt,
