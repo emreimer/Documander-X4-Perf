@@ -1261,8 +1261,6 @@ SADECE JSON formatında yanıt ver:
         response_text = response_text[:-3]
     response_text = response_text.strip()
     
-    logger.info(f"Final response text for JSON parsing: '{response_text}'")
-    
     if not response_text:
         logger.error("Empty response from LLM after processing")
         return {"error": "LLM returned empty response"}
@@ -1270,9 +1268,18 @@ SADECE JSON formatında yanıt ver:
     try:
         data = json.loads(response_text)
     except json.JSONDecodeError as e:
-        logger.error(f"JSON parsing failed: {e}")
-        logger.error(f"Problematic text: '{response_text}'")
-        return {"error": f"JSON parsing failed: {e}"}
+        logger.warning(f"JSON parsing failed, trying to fix: {e}")
+        # Try to extract JSON from response
+        import re
+        json_match = re.search(r'\{[\s\S]*\}', response_text)
+        if json_match:
+            try:
+                data = json.loads(json_match.group())
+            except:
+                logger.error(f"Could not parse JSON: '{response_text[:500]}'")
+                return {"error": f"JSON parsing failed: {e}"}
+        else:
+            return {"error": f"JSON parsing failed: {e}"}
     
     # Normalize response to always return a list of invoices
     if "invoices" in data:
