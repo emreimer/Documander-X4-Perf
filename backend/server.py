@@ -1057,7 +1057,8 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                     logger.info(f"PDF text extraction failed: {text_err}, using image conversion")
                 
                 # Fall back to image conversion with higher DPI for better quality
-                images = convert_from_bytes(file_content, dpi=200, first_page=1, last_page=3)
+                # Use 300 DPI for scanned documents for better OCR accuracy
+                images = convert_from_bytes(file_content, dpi=300, first_page=1, last_page=3)
                 
                 if not images:
                     return {"error": "PDF dosyası okunamadı"}
@@ -1067,9 +1068,9 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                 for page_num, img in enumerate(images):
                     # Convert PIL image to base64 with high quality
                     img_buffer = BytesIO()
-                    # Use JPEG with high quality for better text recognition
+                    # Use PNG for lossless quality - better for OCR
                     img = img.convert('RGB')
-                    img.save(img_buffer, format='JPEG', quality=95)
+                    img.save(img_buffer, format='PNG', optimize=False)
                     img_buffer.seek(0)
                     image_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
                     
