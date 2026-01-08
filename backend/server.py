@@ -1051,7 +1051,7 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                         logger.info(f"PDF text extraction successful, length: {len(pdf_text)}")
                         # Log first 1000 chars of extracted text for debugging
                         logger.info(f"PDF text preview: {pdf_text[:1000]}")
-                        result = await _extract_from_text(chat, pdf_text)
+                        result = await _extract_from_text(chat, pdf_text, file_name)
                         if result and not isinstance(result, dict) or "error" not in result:
                             return {"invoices": result if isinstance(result, list) else [result]}
                         logger.info("Text extraction failed, falling back to image conversion")
