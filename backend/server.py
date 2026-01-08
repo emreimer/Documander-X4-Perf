@@ -1361,10 +1361,39 @@ async def upload_invoice(
                     file_date_mismatches.append(f"{receipt_label}: {error_msg}")
                     continue
                 
-                # Process VAT details - ensure proper structure
-                vat_details = extracted_data.get('vat_details', [])
+                # Process VAT details - normalize different AI response formats
+                raw_vat_details = extracted_data.get('vat_details', [])
+                vat_details = []
+                
+                if raw_vat_details:
+                    for vd in raw_vat_details:
+                        # Handle different field names from AI
+                        rate = vd.get('vat_rate') or vd.get('rate') or vd.get('percentage') or 0
+                        # Clean rate if it's a string like "20%" 
+                        if isinstance(rate, str):
+                            rate = rate.replace('%', '').replace(' ', '')
+                            try:
+                                rate = float(rate)
+                            except:
+                                rate = 0
+                        
+                        base = vd.get('base_amount') or vd.get('base') or 0
+                        amount = vd.get('vat_amount') or vd.get('amount') or vd.get('tax_amount') or 0
+                        
+                        # Clean amounts if strings
+                        base = safe_float(base)
+                        amount = safe_float(amount)
+                        
+                        vat_details.append({
+                            "vat_rate": float(rate),
+                            "base_amount": base,
+                            "vat_amount": amount,
+                            "withholding": vd.get('withholding', False),
+                            "withholding_rate": vd.get('withholding_rate')
+                        })
+                
+                # If still no vat_details, create default from total VAT
                 if not vat_details:
-                    # If no vat_details from AI, create default from total VAT
                     total_vat = safe_float(extracted_data.get('vat'))
                     total_amount = safe_float(extracted_data.get('amount'))
                     if total_vat > 0 and total_amount > 0:
