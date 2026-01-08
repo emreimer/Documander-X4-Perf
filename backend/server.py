@@ -1320,12 +1320,12 @@ FORMAT KURALLARI:
 - customer_tax_id: Müşteri VKN (yoksa boş)
 - customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
 - description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
-- document_type: Belge türü - evrakın başlığında/üstünde yazan türü seç:
-  * "e-Arsiv Fatura" - eğer "e-Arşiv Fatura" yazıyorsa
-  * "e-Fatura" - eğer "e-Fatura" yazıyorsa
-  * "e-Bilet" - eğer "e-Bilet" yazıyorsa
-  * "Fatura" - eğer sadece "Fatura" yazıyorsa
-  * "Perakende Satis Fisi" - eğer "Perakende Satış Fişi" veya "Fiş" yazıyorsa
+- document_type: Belge türü - EVRAKIN BAŞLIĞINDA/ÜSTÜNDEKİ YAZIYI OKU ve şunlardan birini seç:
+  * "e-Arsiv Fatura" - eğer belgede "e-Arşiv Fatura" veya "e-ARŞİV FATURA" yazıyorsa (GIB/EAR/AEN/CMA ile başlayan numaralar genelde e-Arşiv'dir)
+  * "e-Fatura" - eğer belgede "e-Fatura" yazıyorsa
+  * "e-Bilet" - eğer belgede "e-Bilet" yazıyorsa
+  * "Fatura" - eğer sadece "Fatura" yazıyorsa (e-Arşiv DEĞİLSE)
+  * "Perakende Satis Fisi" - eğer "Perakende Satış Fişi" veya kısa fiş ise
   * "Yolcu Tasima Bileti" - eğer taksi/ulaşım fişi ise
   * "Diger" - tanımlayamazsan
 - amount: Net tutar (sayı)
