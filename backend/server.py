@@ -1329,10 +1329,6 @@ async def upload_invoice(
                 errors.append(f"{file.filename}: {limit_msg} (Bu dosyada {receipts_in_file} fiş bulundu)")
                 continue
             
-            # Process each extracted invoice/receipt
-            if not isinstance(extracted_invoices, list):
-                extracted_invoices = [extracted_invoices]
-            
             file_invoices_added = 0
             file_date_mismatches = []
             
