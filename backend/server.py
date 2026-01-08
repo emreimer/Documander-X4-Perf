@@ -1049,6 +1049,8 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                     # If we got substantial text, use text-based extraction
                     if pdf_text and len(pdf_text.strip()) > 100:
                         logger.info(f"PDF text extraction successful, length: {len(pdf_text)}")
+                        # Log first 1000 chars of extracted text for debugging
+                        logger.info(f"PDF text preview: {pdf_text[:1000]}")
                         result = await _extract_from_text(chat, pdf_text)
                         if result and not isinstance(result, dict) or "error" not in result:
                             return {"invoices": result if isinstance(result, list) else [result]}
