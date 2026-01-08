@@ -238,6 +238,44 @@ const DashboardPage = () => {
     setCurrentView('invoices');
   };
 
+  // Switch to Luca Export view
+  const showLucaExport = () => {
+    setCurrentView('luca-export');
+  };
+
+  // Luca CSV Export
+  const handleLucaExport = async () => {
+    try {
+      const response = await axios.get(`${API}/invoices/export/luca`, {
+        headers: getAuthHeader(),
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get filename from response headers or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'Luca_Export.csv';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) filename = match[1];
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Luca CSV dosyası indirildi');
+    } catch (error) {
+      console.error('Luca export error:', error);
+      toast.error('Luca export başarısız');
+    }
+  };
+
   const handleDelete = async (invoiceId) => {
     if (!window.confirm('Bu faturayı silmek istediğinizden emin misiniz?')) {
       return;
