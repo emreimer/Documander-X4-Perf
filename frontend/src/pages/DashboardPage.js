@@ -828,6 +828,139 @@ const DashboardPage = () => {
     );
   };
 
+  // Luca Export View
+  const LucaExportView = () => {
+    const allInvoices = [...incomeInvoices, ...expenseInvoices].sort((a, b) => {
+      const dateA = a.date?.split('/').reverse().join('') || '';
+      const dateB = b.date?.split('/').reverse().join('') || '';
+      return dateA.localeCompare(dateB);
+    });
+
+    const periodText = session ? `${session.year} ${MONTH_NAMES[session.month]}` : '';
+
+    // Helper function to determine belge türü
+    const getBelgeTuru = (invoice) => {
+      const fileName = (invoice.file_name || '').toLowerCase();
+      const invoiceNo = invoice.invoice_number || '';
+      
+      if (fileName.includes('e-arsiv') || fileName.includes('e-arşiv') || invoiceNo.startsWith('GIB') || invoiceNo.startsWith('EAR')) {
+        return 'e-Arşiv Fatura';
+      }
+      if (fileName.includes('e-fatura')) return 'e-Fatura';
+      if (fileName.includes('e-bilet')) return 'e-Bilet';
+      if (invoice.customer_name || invoice.customer_tax_id) return 'Fatura';
+      return 'Perakende Satış Fişi';
+    };
+
+    // Helper function to determine kayıt alt türü
+    const getKayitAltTuru = (invoice, isIncome) => {
+      const desc = (invoice.description || '').toLowerCase();
+      const serviceKeywords = ['hizmet', 'danışmanlık', 'servis', 'bakım', 'taşıma', 'ulaşım', 'kargo'];
+      const isService = serviceKeywords.some(k => desc.includes(k));
+      
+      if (isIncome) {
+        return isService ? 'Hizmet Satışı' : 'Mal Satışı';
+      }
+      return isService ? 'Dışarıdan Sağlanan Fayda ve Hizmetler' : 'Mal Alışı';
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-heading font-semibold tracking-tight flex items-center gap-2">
+              <span className="w-3 h-3 bg-emerald-500 rounded-full"></span>
+              Luca Export - {periodText}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Toplam {allInvoices.length} kayıt Luca formatında dışa aktarılacak
+            </p>
+          </div>
+          <Button
+            onClick={handleLucaExport}
+            disabled={allInvoices.length === 0}
+            className="rounded-none gap-2 bg-emerald-600 hover:bg-emerald-700"
+            data-testid="luca-download-button"
+          >
+            <Download className="w-4 h-4" />
+            CSV İndir
+          </Button>
+        </div>
+
+        {/* Preview Table */}
+        <div className="bg-card border border-border overflow-x-auto">
+          <table className="w-full text-sm" data-testid="luca-preview-table">
+            <thead className="bg-emerald-500/10 border-b border-border">
+              <tr>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">İşlem</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Belge Türü</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Evrak Tarihi</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Evrak No</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">VKN/TCKN</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Ünvan</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Belge Türü (DB)</th>
+                <th className="text-left p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Kayıt Alt Türü</th>
+                <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Tutar</th>
+                <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV %</th>
+                <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">KDV Tutarı</th>
+                <th className="text-right p-3 text-xs uppercase tracking-wider text-muted-foreground font-medium">Toplam</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allInvoices.map((invoice, idx) => {
+                const isIncome = invoice.category === 'income';
+                const vat = invoice.vat || 0;
+                const amount = invoice.amount || 0;
+                const total = invoice.total || (amount + vat);
+                const vatRate = invoice.vat_details?.[0]?.vat_rate || (amount > 0 ? Math.round((vat / amount) * 100) : 0);
+                
+                return (
+                  <tr key={invoice.id || idx} className="border-b border-border/50 hover:bg-muted/30">
+                    <td className="p-3">
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${isIncome ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {isIncome ? 'Gelir' : 'Gider'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-muted-foreground">{isIncome ? 'Satış' : 'Alış'}</td>
+                    <td className="p-3 font-mono">{invoice.date}</td>
+                    <td className="p-3 font-mono text-xs">{invoice.invoice_number}</td>
+                    <td className="p-3 font-mono text-xs">{isIncome ? invoice.customer_tax_id : invoice.issuer_tax_id}</td>
+                    <td className="p-3 max-w-[200px] truncate" title={isIncome ? invoice.customer_name : invoice.issuer_name}>
+                      {isIncome ? invoice.customer_name : invoice.issuer_name}
+                    </td>
+                    <td className="p-3 text-xs">{getBelgeTuru(invoice)}</td>
+                    <td className="p-3 text-xs">{getKayitAltTuru(invoice, isIncome)}</td>
+                    <td className="p-3 text-right font-mono">{amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                    <td className="p-3 text-right font-mono">%{vatRate}</td>
+                    <td className="p-3 text-right font-mono">{vat.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                    <td className="p-3 text-right font-mono font-semibold">{total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {allInvoices.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            Dışa aktarılacak fatura bulunamadı
+          </div>
+        )}
+
+        {/* Info Box */}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+          <h3 className="font-semibold text-emerald-800 mb-2">Luca Uyumlu CSV Formatı</h3>
+          <ul className="text-sm text-emerald-700 space-y-1">
+            <li>• Türkçe karakterler otomatik olarak dönüştürülür (ş→s, ğ→g, vb.)</li>
+            <li>• Tüm kolonlar Luca şablonuna uygun formatta oluşturulur</li>
+            <li>• CSV dosyası doğrudan Luca'ya yüklenebilir</li>
+          </ul>
+        </div>
+      </div>
+    );
+  };
+
   const InvoiceTable = ({ invoices, type }) => {
     const title = type === 'income' ? 'Gelir Faturaları' : 'Gider Faturaları';
     const emptyMessage = type === 'income' ? 'gelir faturası' : 'gider faturası';
