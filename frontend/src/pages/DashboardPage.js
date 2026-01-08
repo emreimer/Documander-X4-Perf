@@ -396,10 +396,10 @@ const DashboardPage = () => {
 
     // Calculate separate summaries for income and expense
     const calculateCategorySummary = (categoryItems) => {
-      const summaryData = { 1: { base: 0, vat: 0 }, 10: { base: 0, vat: 0 }, 20: { base: 0, vat: 0 } };
+      const summaryData = { 0: { base: 0, vat: 0 }, 1: { base: 0, vat: 0 }, 10: { base: 0, vat: 0 }, 20: { base: 0, vat: 0 } };
       categoryItems.forEach(item => {
         const rate = item.vat_rate;
-        if (summaryData[rate]) {
+        if (summaryData[rate] !== undefined) {
           summaryData[rate].base += item.base_amount || 0;
           summaryData[rate].vat += item.vat_amount || 0;
         }
