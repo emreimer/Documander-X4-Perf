@@ -838,21 +838,14 @@ const DashboardPage = () => {
 
     const periodText = session ? `${session.year} ${MONTH_NAMES[session.month]}` : '';
 
-    // Helper function to determine belge türü - use AI extracted value if available
+    // Helper function to determine belge türü - use AI extracted value
     const getBelgeTuru = (invoice) => {
       // First check if AI extracted document_type
       if (invoice.document_type) {
         return invoice.document_type;
       }
       
-      // Fallback to invoice number prefix based detection
-      const invoiceNo = (invoice.invoice_number || '').toUpperCase();
-      const eArsivPrefixes = ['GIB', 'EAR', 'AEN', 'CMA', 'EAF', 'EFA', 'GBS'];
-      if (eArsivPrefixes.some(prefix => invoiceNo.startsWith(prefix))) {
-        return 'e-Arşiv Fatura';
-      }
-      
-      // Fallback to file name based detection
+      // Fallback to file name based detection only
       const fileName = (invoice.file_name || '').toLowerCase();
       
       if (fileName.includes('e-arsiv') || fileName.includes('e-arşiv') || fileName.includes('earsiv')) {
@@ -860,8 +853,9 @@ const DashboardPage = () => {
       }
       if (fileName.includes('e-fatura')) return 'e-Fatura';
       if (fileName.includes('e-bilet')) return 'e-Bilet';
-      if (invoice.customer_name || invoice.customer_tax_id) return 'Fatura';
-      return 'Perakende Satış Fişi';
+      
+      // Default - AI should have determined this
+      return 'Diğer';
     };
 
     // Helper function to determine kayıt alt türü
