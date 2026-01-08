@@ -1284,7 +1284,7 @@ FORMAT KURALLARI:
   - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
 
 Çıkarılacak bilgiler:
-- invoice_number: Fiş/Fatura numarası (yukarıdaki kurallara göre doğru numarayı bul)
+- invoice_number: Fiş/Fatura numarası (ASLA BOŞ OLAMAZ - mutlaka bul!)
 - date: Tarih (GG/AA/YYYY - yukarıdaki kurallara göre düzelt)
 - issuer_name: Düzenleyen adı (BÜYÜK HARF)
 - issuer_tax_id: VKN/TCKN (sadece rakam)
@@ -1294,9 +1294,9 @@ FORMAT KURALLARI:
 - customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
 - description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
 - amount: Net tutar (sayı)
-- vat: KDV tutarı (sayı)
+- vat: KDV tutarı (sayı, taksi için 0)
 - total: Toplam (sayı)
-- vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}]
+- vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}] (taksi için vat_rate: 0)
 
 JSON FORMAT:
 {"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", ...}]}"""
