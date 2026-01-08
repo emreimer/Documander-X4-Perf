@@ -1371,17 +1371,19 @@ FORMAT KURALLARI:
   * "Diger" - hiçbirini bulamazsan
   
   DİKKAT: "e-Arşiv Fatura" ve "e-Fatura" FARKLI! Karıştırma!
-- amount: MATRAH (KDV hariç tutar) - Fişte "TOPLAM" - "TOPKDV" = Matrah. Örnek: TOPLAM 100, TOPKDV 16.67 ise amount = 83.33
-- vat: TOPKDV değeri (fişte "TOPKDV" yazan tutar)
-- total: TOPLAM değeri (fişte "TOPLAM" veya "NAKIT" yazan tutar)
+- amount: MATRAH (KDV hariç tutar) = TOPLAM - TOPKDV. Örnek: TOPLAM 100, TOPKDV 16.67 → amount = 100 - 16.67 = 83.33
+- vat: TOPKDV değeri (KDV tutarı)
+- total: TOPLAM değeri (fişte yazan son tutar, KDV DAHİL)
 - vat_details: [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]
 
-TUTAR HESAPLAMA ÖRNEĞİ:
-- Fişte TOPLAM: 100,00 ve TOPKDV: 16,67 ise:
-  - total = 100.00
-  - vat = 16.67
-  - amount = 100.00 - 16.67 = 83.33
-  - vat_rate = 20
+⚠️ TUTAR HESAPLAMA - DİKKATLİ OKU:
+Fişte TOPLAM: 100,00 TL ve TOPKDV: 16,67 TL yazıyorsa:
+- total = 100.00 (TOPLAM değeri olduğu gibi)
+- vat = 16.67 (TOPKDV değeri olduğu gibi)
+- amount = 100.00 - 16.67 = 83.33 (TOPLAM eksi TOPKDV)
+
+❌ YANLIŞ: amount=100, total=116.67
+✓ DOĞRU: amount=83.33, vat=16.67, total=100.00
 
 JSON FORMAT:
 {"invoices": [{"invoice_number": "0062", "date": "06/05/2024", "issuer_name": "GÜZEL ENERJİ AKARYAKIT A.Ş.", "issuer_tax_office": "B. MÜKELLEFLER", "description": "Akaryakıt Alımı", "document_type": "Perakende Satis Fisi", "amount": 83.33, "vat": 16.67, "total": 100.00, "vat_details": [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]}]}"""
