@@ -1160,11 +1160,17 @@ async def _extract_from_image(chat, image_obj) -> dict:
     """Helper function to extract invoice data from an image"""
     prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
 
+TARANMIŞ/BULANIK GÖRÜNTÜ İÇİN ÖNEMLİ:
+- Karakterleri dikkatli oku, OCR hataları olabilir
+- Fatura numarası genellikle "GIB" ile başlar ve 16 haneli olur (örn: GIB2025000000050)
+- Fatura numarasında sadece harf ve rakam bulunur, özel karakter (!, ?, @) OLMAZ
+- Eğer belirsiz karakterler varsa, mantıklı olanı seç (örn: "0" ve "O", "1" ve "I")
+
 Her fiş/fatura için şu bilgileri çıkar:
-- invoice_number: Fatura/fiş numarası
+- invoice_number: Fatura/fiş numarası (GIB ile başlayan 16 haneli veya farklı format - özel karakter OLMADAN)
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Faturayı düzenleyen firma/kişi adı
-- issuer_tax_id: Vergi kimlik numarası (TCKN veya VKN)
+- issuer_tax_id: Vergi kimlik numarası (TCKN 11 hane, VKN 10 hane - sadece rakam)
 - issuer_tax_office: Vergi dairesi (SADECE isim, BÜYÜK HARFLERLE, "VERGİ DAİRESİ", "V.D." gibi ekler OLMADAN)
 - customer_name: Müşteri adı (varsa)
 - customer_tax_id: Müşteri vergi numarası (varsa)
