@@ -1573,6 +1573,7 @@ async def upload_invoice(
                     total=safe_float(extracted_data.get('total')),
                     file_name=file.filename,
                     file_type=file.content_type,
+                    document_type=extracted_data.get('document_type', '') or '',
                     vat_details=vat_details
                 )
                 
