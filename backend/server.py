@@ -1300,10 +1300,27 @@ async def upload_invoice(
             if mime_type == 'image/jpg':
                 mime_type = 'image/jpeg'
             
-            extracted_invoices = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
+            ai_result = await extract_invoice_data_with_ai(file_content, file.filename, mime_type)
+            
+            # Handle error responses
+            if isinstance(ai_result, dict) and "error" in ai_result:
+                errors.append(f"{file.filename}: {ai_result['error']}")
+                continue
+            
+            # Extract invoices from result - handle both dict and list formats
+            if isinstance(ai_result, dict) and "invoices" in ai_result:
+                extracted_invoices = ai_result["invoices"]
+            elif isinstance(ai_result, list):
+                extracted_invoices = ai_result
+            else:
+                extracted_invoices = [ai_result] if ai_result else []
+            
+            if not extracted_invoices:
+                errors.append(f"{file.filename}: Fatura verisi çıkarılamadı")
+                continue
             
             # Process each receipt found in the image
-            receipts_in_file = len(extracted_invoices) if isinstance(extracted_invoices, list) else 1
+            receipts_in_file = len(extracted_invoices)
             total_receipts_found += receipts_in_file
             
             # Check quota BEFORE processing this file's receipts
