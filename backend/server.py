@@ -1068,10 +1068,21 @@ async def extract_invoice_data_with_ai(file_content: bytes, file_name: str, mime
                 # Process each page
                 all_invoices = []
                 for page_num, img in enumerate(images):
-                    # Convert PIL image to base64 with high quality
-                    img_buffer = BytesIO()
-                    # Use PNG for lossless quality - better for OCR
+                    # Enhance image for better OCR on crumpled/blurry receipts
+                    from PIL import ImageEnhance, ImageFilter
+                    
                     img = img.convert('RGB')
+                    
+                    # Increase contrast for faded receipts
+                    enhancer = ImageEnhance.Contrast(img)
+                    img = enhancer.enhance(1.3)
+                    
+                    # Increase sharpness for blurry images
+                    enhancer = ImageEnhance.Sharpness(img)
+                    img = enhancer.enhance(1.5)
+                    
+                    # Convert to base64
+                    img_buffer = BytesIO()
                     img.save(img_buffer, format='PNG', optimize=False)
                     img_buffer.seek(0)
                     image_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
