@@ -1115,11 +1115,16 @@ async def _extract_from_text(chat, text: str) -> list:
 FATURA METNİ:
 {text}
 
+ÖNEMLİ KURALLAR:
+- Fatura numarası genellikle "GIB" ile başlar ve 16 haneli olur (örn: GIB2025000000050)
+- Fatura numarasında sadece harf ve rakam bulunur, özel karakter OLMAZ
+- Vergi numaraları sadece rakamdan oluşur (TCKN 11 hane, VKN 10 hane)
+
 Her fatura için şu bilgileri çıkar:
-- invoice_number: Fatura/fiş numarası
+- invoice_number: Fatura/fiş numarası (özel karakter OLMADAN)
 - date: Fatura tarihi (GG/AA/YYYY formatında)
 - issuer_name: Faturayı düzenleyen firma/kişi adı
-- issuer_tax_id: Vergi kimlik numarası (TCKN veya VKN)
+- issuer_tax_id: Vergi kimlik numarası (sadece rakam)
 - issuer_tax_office: Vergi dairesi (SADECE isim, BÜYÜK HARFLERLE)
 - customer_name: Müşteri adı (varsa)
 - customer_tax_id: Müşteri vergi numarası (varsa)
@@ -1131,7 +1136,7 @@ Her fatura için şu bilgileri çıkar:
 - vat_details: KDV detayları listesi
 
 SADECE JSON formatında yanıt ver:
-{{"invoices": [{{"invoice_number": "...", "date": "...", ...}}]}}"""
+{{"invoices": [{{"invoice_number": "...", "date": "...", ...}}]}}`"""
 
     try:
         message = UserMessage(text=prompt)
