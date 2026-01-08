@@ -1136,7 +1136,7 @@ Her fatura için şu bilgileri çıkar:
 - vat_details: KDV detayları listesi
 
 SADECE JSON formatında yanıt ver:
-{{"invoices": [{{"invoice_number": "...", "date": "...", ...}}]}}`"""
+{{"invoices": [{{"invoice_number": "...", "date": "...", ...}}]}}""""
 
     try:
         message = UserMessage(text=prompt)
