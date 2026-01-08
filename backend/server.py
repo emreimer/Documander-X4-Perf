@@ -1254,10 +1254,17 @@ TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
 - Eğer tarih belirsizse, fişin saat bilgisinden veya bağlamdan çıkar
 - Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
 
-FATURA NUMARASI KURALLARI:
-- GIB ile başlayan 16 karakter (örn: GIB2025000000050)
-- Market fişlerinde fiş numarası farklı formatta olabilir
-- Özel karakter (!, ?, @) OLMAZ
+FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ):
+- E-faturalarda: GIB ile başlayan 16 karakter (örn: GIB2025000000050)
+- Market/restoran fişlerinde fiş numarasını şu etiketlerin yanında ara:
+  * "FİŞ NO", "FİŞ NO:", "Fiş No"
+  * "Z NO", "Z RAPOR NO"
+  * "EKÜ NO", "EKÜ"
+  * "BELGE NO", "Belge No"
+  * "İRSALİYE NO"
+- Fiş numarası genellikle 4-10 haneli bir sayıdır (örn: "0042", "1234", "00123456")
+- Masa numarası veya sipariş numarası DEĞİL, FİŞ numarası olmalı
+- Eğer "FİŞ NO" etiketi yoksa, fişin üst kısmındaki sıra numarasını al
 
 FORMAT KURALLARI:
 - issuer_name ve customer_name: TAMAMI BÜYÜK HARF
@@ -1265,7 +1272,7 @@ FORMAT KURALLARI:
   - "V.D.", "VERGİ DAİRESİ", "MÜD." gibi ekleri KALDIR
 
 Çıkarılacak bilgiler:
-- invoice_number: Fatura/fiş numarası
+- invoice_number: Fiş/Fatura numarası (yukarıdaki kurallara göre doğru numarayı bul)
 - date: Tarih (GG/AA/YYYY - yukarıdaki kurallara göre düzelt)
 - issuer_name: Düzenleyen adı (BÜYÜK HARF)
 - issuer_tax_id: VKN/TCKN (sadece rakam)
@@ -1280,7 +1287,7 @@ FORMAT KURALLARI:
 - vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}]
 
 JSON FORMAT:
-{"invoices": [{"invoice_number": "...", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", ...}]}"""
+{"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", ...}]}"""
     
     message = UserMessage(
         text=prompt,
