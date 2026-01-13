@@ -1251,76 +1251,56 @@ async def _extract_from_image(chat, image_obj) -> dict:
     """Helper function to extract invoice data from an image"""
     prompt = """Bu görseli analiz et. Eğer birden fazla fiş/fatura varsa HER BİRİNİ AYRI AYRI çıkar.
 
-BURUŞUK/BULANIK/TARANMIŞ GÖRÜNTÜ İÇİN ÖNEMLİ:
-- Görüntü kalitesi düşük olabilir, DİKKATLİ oku
-- Karakterleri bağlamdan anlamaya çalış
-- Belirsiz karakterlerde mantıklı olanı seç (örn: "0"/"O", "1"/"I"/"l", "5"/"S", "8"/"B")
+FİŞ NUMARASI KURALLARI (EN ÖNEMLİ):
+⚠️ SADECE "FİŞ NO" VEYA "FİŞ NO:" YAZISININ YANINDA YAZAN SAYIYI AL! ⚠️
 
-TARİH OKUMA KURALLARI (ÇOK ÖNEMLİ):
-- Tarih genellikle fişin üst kısmında veya "TARİH" etiketinin yanında
-- Türk formatı: GG/AA/YYYY veya GG.AA.YYYY veya GG-AA-YYYY
-- Yıl 2024 veya 2025 olmalı (20Z4→2024, Z0Z5→2025, 20ZS→2025)
-- Ay 01-12 arası olmalı (l2→12, 1O→10, ll→11)
-- Gün 01-31 arası olmalı
-- Eğer tarih belirsizse, fişin saat bilgisinden veya bağlamdan çıkar
-- Örnek düzeltmeler: "Z6/ll/Z0Z5" → "26/11/2025", "O5.1Z.2024" → "05/12/2024"
+- Fişte "FİŞ NO:" yazısını bul (genelde fişin ortasında)
+- "FİŞ NO:" yazısının HEMEN SAĞINDA yazan 4 haneli sayı fiş numarasıdır
+- Örnek: "FİŞ NO: 0062" → invoice_number = "0062"
+- Örnek: "FİŞ NO: 0063" → invoice_number = "0063"
 
-FİŞ/FATURA NUMARASI KURALLARI (ÇOK ÖNEMLİ - DİKKATLİ OKU):
+❌ YANLIŞ - BUNLARI FİŞ NO OLARAK ALMA:
+- AFAU numarası (0000002540 gibi uzun sayılar) - BU FİŞ NO DEĞİL!
+- Z NO - BU FİŞ NO DEĞİL!
+- EKU NO - BU FİŞ NO DEĞİL!
+- Pompa/Nozul numarası - BU FİŞ NO DEĞİL!
 
-TÜRKİYE'DEKİ FİŞLERDE NUMARA BULMA:
-- Fişlerde "FİŞ NO" veya "FİŞ NO:" etiketi ara - bu ETİKETİN YANINDA veya ALTINDA yazan sayı fiş numarasıdır
-- "FİŞ NO" bulamazsan "BELGE NO", "Z NO", "EKÜ NO" ara
-- Fiş numarası genellikle fişin ALT KISMINDA bulunur
+E-FATURALARDA: "ETTN" veya "Belge No" yanındaki değer (GIB/EAR/CMA/AEN ile başlar)
 
-E-FATURALARDA:
-- GIB/EAR/CMA + yıl + sıra formatı (örn: GIB2025000000050)
+TUTAR KURALLARI (ÇOK ÖNEMLİ):
+- Fişte TOPLAM ve TOPKDV değerlerini bul
+- total = TOPLAM değeri (örn: 100.00)
+- vat = TOPKDV değeri (örn: 16.67)
+- amount = TOPLAM - TOPKDV (örn: 100 - 16.67 = 83.33)
 
-AKARYAKIT/BENZİN İSTASYONU FİŞLERİ:
-- "FİŞ NO:" etiketinin HEMEN YANINDA yazan sayıyı al
-- Pompa no, nozul no, litre miktarı FİŞ NUMARASI DEĞİL
-- Fiş numarası 6-10 haneli sıralı sayıdır
+Örnek: TOPLAM: 100,00 TL ve TOPKDV: 16,67 TL ise:
+- total = 100.00
+- vat = 16.67  
+- amount = 83.33
+- vat_rate = 20
 
-ÖNEMLİ:
-- Fiş numarası ASLA BOŞ OLAMAZ
-- "FİŞ NO" etiketini bul ve yanındaki sayıyı al
-- Masa no, sipariş no, ürün adedi FİŞ NUMARASI DEĞİL
+TARİH: GG/AA/YYYY formatında (örn: 06/05/2024)
 
-VERGİ DAİRESİ KURALLARI (ÖNEMLİ):
-- Vergi dairesi adını TAM yaz, kısaltma YAPMA
-- "ANADOLU KURUMLAR" → "ANADOLU KURUMLAR" (kısaltma yok)
-- "KADIKÖY" → "KADIKÖY"
-- "BEŞİKTAŞ" → "BEŞİKTAŞ"
-- Sadece "V.D.", "VERGİ DAİRESİ", "MÜD." gibi son ekleri kaldır
-- Vergi dairesi adının kendisini KISA KESME
-
-KDV KURALLARI (ÇOK ÖNEMLİ):
-- TAKSİ fişlerinde KDV YOKTUR - vat=0, vat_rate=0 olmalı
-- Ulaşım hizmetlerinde (taksi, dolmuş, otobüs) genellikle KDV yok
-- KDV oranları: %0, %1, %10, %20
-- Fişte KDV ayrıca belirtilmemişse ve taksi/ulaşım ise KDV=0 kabul et
-
-FORMAT KURALLARI:
-- issuer_name ve customer_name: TAMAMI BÜYÜK HARF
-- issuer_tax_office ve customer_tax_office: TAM İSİM, BÜYÜK HARF (kısaltma yapma)
-  - Sadece "V.D.", "VERGİ DAİRESİ", "MÜD." gibi son ekleri kaldır
+FORMAT:
+- issuer_name: BÜYÜK HARF
+- issuer_tax_office: Sadece isim, BÜYÜK HARF ("V.D." ekleme)
+- description: Her Kelimenin Baş Harfi Büyük
 
 Çıkarılacak bilgiler:
-- invoice_number: Fiş/Fatura numarası (ASLA BOŞ OLAMAZ - mutlaka bul!)
-- date: Tarih (GG/AA/YYYY - yukarıdaki kurallara göre düzelt)
-- issuer_name: Düzenleyen adı (BÜYÜK HARF)
-- issuer_tax_id: VKN/TCKN (sadece rakam)
-- issuer_tax_office: Vergi dairesi (KISA İSİM, BÜYÜK HARF)
-- customer_name: Müşteri adı (BÜYÜK HARF, yoksa boş)
-- customer_tax_id: Müşteri VKN (yoksa boş)
-- customer_tax_office: Müşteri V.D. (KISA İSİM, yoksa boş)
-- description: İçerik özeti (Her Kelimenin Baş Harfi Büyük, 3-5 kelime, örn: "Market Alışverişi", "Mum Satışı")
-- amount: Net tutar (sayı)
-- vat: KDV tutarı (sayı, taksi için 0)
-- total: Toplam (sayı)
-- vat_details: [{"vat_rate": 20, "base_amount": 100.0, "vat_amount": 20.0}] (taksi için vat_rate: 0)
+- invoice_number: "FİŞ NO:" yanındaki 4 haneli sayı
+- date: Tarih (GG/AA/YYYY)
+- issuer_name: Firma adı (BÜYÜK HARF)
+- issuer_tax_id: VKN (10-11 hane)
+- issuer_tax_office: Vergi dairesi
+- customer_name, customer_tax_id, customer_tax_office: (varsa)
+- description: Açıklama
+- amount: TOPLAM - TOPKDV (matrah)
+- vat: TOPKDV değeri
+- total: TOPLAM değeri
+- vat_details: [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]
 
-JSON FORMAT:
-{"invoices": [{"invoice_number": "0042", "date": "26/11/2025", "issuer_name": "MARKET A.Ş.", "issuer_tax_office": "KADIKÖY", "description": "Market Alışverişi", ...}]}"""
+JSON:
+{"invoices": [{"invoice_number": "0062", "date": "06/05/2024", "issuer_name": "GÜZEL ENERJİ AKARYAKIT A.Ş.", "amount": 83.33, "vat": 16.67, "total": 100.00, "vat_details": [{"vat_rate": 20, "base_amount": 83.33, "vat_amount": 16.67}]}]}"""
     
     message = UserMessage(
         text=prompt,
